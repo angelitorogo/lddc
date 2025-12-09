@@ -1,0 +1,209 @@
+<!-- src/app/features/legal/terms-privacy/terms-privacy.component.html -->
+<div class="container">
+
+  <div class="container-legal">
+    <!-- Cabecera de marca -->
+    <div class="brand">
+      <img src="assets/icons/favicon.png" alt="SALA 2" class="brand-icon" />
+      <div class="brand-text">
+        <span class="brand-name">SALA 2</span>
+        <span class="brand-tag">Películas y series</span>
+      </div>
+    </div>
+
+    <h1 class="title">Términos de uso y privacidad</h1>
+
+    <p class="subtitle">
+      Última actualización: {{ lastUpdate }}
+    </p>
+
+    <div class="legal-content">
+
+      <!-- 1. Introducción -->
+      <section id="intro" class="section">
+        <h2>1. Introducción</h2>
+        <p>
+          Bienvenido a <strong>SALA 2</strong>. Este sitio web y aplicación tienen como objetivo
+          ayudarte a descubrir y organizar información sobre películas y series.
+        </p>
+        <p>
+          Al utilizar SALA 2 aceptas estos términos de uso y la política de privacidad que se
+          detalla a continuación. Si no estás de acuerdo con alguna de las condiciones, te
+          recomendamos que no utilices la plataforma.
+        </p>
+      </section>
+
+      <!-- 2. Uso de la plataforma -->
+      <section id="uso" class="section">
+        <h2>2. Uso de la plataforma</h2>
+        <p>
+          El acceso a SALA 2 es de carácter personal y no transferible. Te comprometes a hacer
+          un uso responsable de la aplicación, especialmente en lo relativo a:
+        </p>
+        <ul>
+          <li>No intentar acceder a áreas o funcionalidades restringidas de forma no autorizada.</li>
+          <li>No utilizar SALA 2 para actividades ilícitas o que puedan dañar la imagen del servicio.</li>
+          <li>No manipular ni modificar el funcionamiento de la aplicación o sus contenidos.</li>
+        </ul>
+        <p>
+          Nos reservamos el derecho a limitar, suspender o cancelar el acceso de usuarios que
+          incumplan estos términos.
+        </p>
+      </section>
+
+      <!-- 3. Cuenta de usuario -->
+      <section id="cuenta" class="section">
+        <h2>3. Cuenta de usuario</h2>
+        <p>
+          Para utilizar determinadas funcionalidades (como gestionar favoritos, listas o
+          colecciones) es necesario crear una cuenta de usuario.
+        </p>
+        <ul>
+          <li>
+            Eres responsable de la confidencialidad de tus credenciales de acceso
+            (correo y contraseña).
+          </li>
+          <li>
+            Si detectas un acceso no autorizado o sospechas que alguien conoce tu contraseña,
+            te recomendamos cambiarla y contactar con nosotros.
+          </li>
+          <li>
+            Puedes solicitar la eliminación de tu cuenta y datos asociados en cualquier momento,
+            siguiendo el procedimiento disponible en la propia aplicación.
+          </li>
+        </ul>
+      </section>
+
+      <!-- 4. Origen de los datos (TMDB / terceros) -->
+      <section id="tmdb" class="section">
+        <h2>4. Contenidos y fuentes de datos</h2>
+        <p>
+          SALA 2 utiliza información procedente de servicios externos de bases de datos de cine y TV
+          (por ejemplo, <strong>The Movie Database (TMDB)</strong>). Estos proveedores son los
+          responsables del contenido de las fichas (títulos, sinopsis, pósters, etc.).
+        </p>
+        <p>
+          SALA 2 no aloja vídeos ni reproduce contenido protegido por derechos de autor; solo
+          muestra información y, en su caso, enlaces o identificadores hacia plataformas de
+          <em>streaming</em> u otros servicios.
+        </p>
+      </section>
+
+      <!-- 5. Datos personales que tratamos -->
+      <section id="datos" class="section">
+        <h2>5. Datos personales que tratamos</h2>
+        <p>
+          Para el funcionamiento básico de SALA 2 podemos tratar los siguientes tipos de datos:
+        </p>
+        <ul>
+          <li>
+            <strong>Datos de registro:</strong> nombre, correo electrónico y contraseña
+            (almacenada de forma cifrada).
+          </li>
+          <li>
+            <strong>Datos de uso:</strong> listas de favoritos, series seguidas, valoraciones
+            u otros datos de interacción con el contenido.
+          </li>
+          <li>
+            <strong>Datos de contacto:</strong> mensajes enviados a través del formulario de
+            contacto, incluyendo nombre, email y contenido del mensaje.
+          </li>
+        </ul>
+        <p>
+          Estos datos se utilizan únicamente para prestar el servicio, mejorar la experiencia
+          de usuario y atender tus consultas o solicitudes.
+        </p>
+      </section>
+
+      <!-- 6. Cookies -->
+      <section id="cookies" class="section">
+        <h2>6. Cookies y tecnologías similares</h2>
+        <p>
+          SALA 2 puede utilizar cookies técnicas y, en su caso, otras tecnologías de seguimiento
+          para:
+        </p>
+        <ul>
+          <li>Mantener tu sesión iniciada de forma segura.</li>
+          <li>Recordar ciertas preferencias de visualización.</li>
+          <li>Medir de forma anónima el uso de la aplicación para mejorarla.</li>
+        </ul>
+        <p>
+          Podrás configurar el uso de cookies opcionales a través del banner o panel de
+          configuración de cookies que se muestra al acceder a la página.
+        </p>
+      </section>
+
+      <!-- 7. Envío de correos (formulario contacto) -->
+      <section id="contacto" class="section">
+        <h2>7. Formulario de contacto</h2>
+        <p>
+          Cuando usas el formulario de contacto, los datos que introduces se utilizan únicamente
+          para responder a tu consulta.
+        </p>
+      </section>
+
+      <!-- 8. Tus derechos -->
+      <section id="derechos" class="section">
+        <h2>8. Tus derechos sobre los datos</h2>
+        <p>
+          Como usuario puedes ejercer, entre otros, los siguientes derechos sobre tus datos
+          personales, en los términos previstos por la normativa aplicable:
+        </p>
+        <ul>
+          <li>Rectificar datos inexactos o incompletos.</li>
+          <li>Solicitar la eliminación de tu cuenta y de tus datos asociados.</li>
+        </ul>
+        <p>
+          Para ejercer estos derechos puedes ponerte en contacto con nosotros a través del propio
+          formulario de contacto de SALA 2, indicando claramente tu solicitud.
+        </p>
+      </section>
+
+      <!-- 9. Seguridad -->
+      <section id="seguridad" class="section">
+        <h2>9. Seguridad</h2>
+        <p>
+          Adoptamos medidas técnicas y organizativas razonables para proteger tus datos, como el
+          uso de conexiones cifradas (HTTPS), almacenamiento seguro de contraseñas y restricciones
+          de acceso a la base de datos.
+        </p>
+        <p>
+          No obstante, ningún sistema es completamente infalible. En caso de detectar una posible
+          brecha de seguridad que afecte a tus datos, nos comprometemos a analizarla y actuar con
+          la mayor diligencia posible.
+        </p>
+      </section>
+
+      <!-- 10. Cambios en la política -->
+      <section id="cambios" class="section">
+        <h2>10. Cambios en estos términos</h2>
+        <p>
+          Podemos actualizar estos términos y la política de privacidad para adaptarlos a cambios
+          legales o funcionales de la plataforma. Cuando esto ocurra, se actualizará la fecha de
+          “Última actualización” al inicio de esta página.
+        </p>
+        <p>
+          Te recomendamos revisar periódicamente este apartado para estar al tanto de las posibles
+          modificaciones.
+        </p>
+      </section>
+
+      <!-- 11. Contacto -->
+      <section id="contacto-final" class="section">
+        <h2>11. Contacto</h2>
+        <p>
+          Si tienes dudas sobre estos términos o sobre cómo tratamos tus datos personales,
+          puedes escribirnos a través del <strong>formulario de contacto</strong> disponible
+          en la aplicación.
+        </p>
+      </section>
+
+    </div>
+
+    <!-- Pie pequeño dentro de la tarjeta -->
+    <div class="legal-footer">
+      &copy; {{ currentYear }} SALA 2 · Términos de uso y privacidad
+    </div>
+  </div>
+
+</div>

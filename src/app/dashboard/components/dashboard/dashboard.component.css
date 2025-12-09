@@ -1,0 +1,20 @@
+/* Layout general */
+.dashboard-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-primary);
+}
+
+/* MAIN */
+.dashboard-main {
+  flex: 1;
+  padding: 2.4rem 0 2.8rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-main {
+    flex: 1;
+    padding: 0.4rem 0 2.8rem;
+  }
+}

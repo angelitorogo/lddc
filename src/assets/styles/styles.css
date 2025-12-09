@@ -1,0 +1,17 @@
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+
+/* GENERALES */
+body {
+    color: var(--text-color);
+    background-color: var(--color-background);
+}
+
+img[src$="poster-placeholder.png"] {
+  filter: brightness(0.4) contrast(1.1);
+  object-fit: cover;
+}
+
+
+
+

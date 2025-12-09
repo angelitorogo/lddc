@@ -1,0 +1,103 @@
+:root {
+  /* Paleta base (ya la teníamos) */
+  --color-background: #0f1f1a;        /* fondo general oscuro bosque */
+  --color-surface: #1b2e27;           /* panels / cards / header */
+  
+  --color-primary: #4caf50;           /* verde sendero */
+  --color-primary-hover: #66bb6a;
+
+  --color-secondary: #6d4c41;         /* marrón tierra */
+  --color-secondary-hover: #8d6e63;
+
+  --color-accent: #f9a825;            /* sol */
+  --color-accent-hover: #ffb300;
+
+  --text-color: #e6f2ee;
+  --text-muted-color: #a8c1b7;
+  --text-hover-color: #ffffff;
+
+  --color-success: #43a047;
+  --color-warning: #fbc02d;
+  --color-error: #e53935;
+
+  --color-border: #2f4a3f;
+  --color-overlay: rgba(0, 0, 0, 0.55);
+
+  /* Alias para lo que usa el navbar antiguo */
+  --text-primary: var(--text-color);
+  --text-secondary: var(--text-muted-color);
+  --text-hover: var(--text-hover-color);
+
+  --accent-sun: var(--color-accent);
+  --accent-rain: #4db6ac; /* toque verdoso-agua suave para resaltes */
+  
+  /* Colores específicos de header / menú */
+  --header-bg-top: rgba(15, 31, 26, 0.96);   /* degradado superior */
+  --header-bg-mid: rgba(15, 31, 26, 0.85);   /* degradado medio */
+  --header-border-color: rgba(47, 74, 63, 0.8);
+
+  --header-chip-bg: radial-gradient(
+    circle at top left,
+    rgba(76, 175, 80, 0.35),
+    rgba(27, 46, 39, 0.98)
+  );
+  --header-chip-bg-hover: radial-gradient(
+    circle at top left,
+    rgba(102, 187, 106, 0.55),
+    rgba(27, 46, 39, 1)
+  );
+  --header-chip-border: rgba(102, 187, 106, 0.9);
+
+  --submenu-bg: rgba(19, 34, 28, 0.95);
+  --submenu-bg-hover: rgba(31, 52, 43, 0.98);
+
+  /* Botones / contenedores header */
+  --header-pill-bg: rgba(19, 34, 28, 0.96);
+  --header-pill-bg-hover: rgba(27, 46, 39, 0.98);
+  --header-pill-border: rgba(47, 74, 63, 0.9);
+
+  --header-circle-bg: rgba(19, 34, 28, 0.96);
+  --header-circle-bg-hover: rgba(27, 46, 39, 0.98);
+  --header-circle-border: rgba(47, 74, 63, 0.9);
+  --header-circle-shadow: 0 0 16px rgba(249, 168, 37, 0.35);
+
+  --nav-active-bg: rgba(76, 175, 80, 0.18);
+  --nav-active-border: rgba(102, 187, 106, 0.9);
+  --nav-active-shadow: 0 0 22px rgba(102, 187, 106, 0.25);
+
+  --nav-mobile-active-bg: rgba(76, 175, 80, 0.2);
+  --nav-mobile-active-border: rgba(102, 187, 106, 0.95);
+
+  /* Footer específico */
+  --footer-bg-top: rgba(15, 31, 26, 1);
+  --footer-bg-bottom: rgba(15, 31, 26, 0.9);
+  --footer-border-color: rgba(47, 74, 63, 0.85);
+
+  --footer-text: var(--text-muted-color);
+  --footer-brand: var(--text-secondary);
+
+  --footer-link: #81c784;        /* verde suave */
+  --footer-link-hover: #aed581;  /* verde más claro */
+
+  /* Auth / login específicos */
+  --auth-overlay-top: rgba(4, 12, 9, 0);
+  --auth-overlay-bottom: rgba(4, 12, 9, 0.34);
+
+  --auth-card-bg: rgb(11 22 17 / 54%);
+  --auth-card-border: rgba(111, 207, 151, 0.25);
+
+  --auth-input-bg: rgba(10, 20, 16, 0.95);
+  --auth-input-border: rgba(71, 107, 88, 0.9);
+  --auth-input-border-focus: var(--color-primary);
+  --auth-input-ring: rgba(76, 175, 80, 0.35);
+
+  --auth-shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.7);
+
+  /* 📱 Breakpoints */
+  --bp-xs: 360px;    /* móviles pequeños */
+  --bp-sm: 480px;    /* móviles estándar */
+  --bp-md: 768px;    /* tablets */
+  --bp-lg: 1024px;   /* portátiles */
+  --bp-xl: 1280px;   /* desktop */
+  --bp-xxl: 1536px;  /* pantallas grandes */
+}

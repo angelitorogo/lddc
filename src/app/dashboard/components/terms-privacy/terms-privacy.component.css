@@ -1,0 +1,168 @@
+/* src/app/features/legal/terms-privacy/terms-privacy.component.css */
+
+/* ===== CONTENEDOR GENERAL ===== */
+.container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+
+  background: linear-gradient(to bottom, #000000cc, #00000000 30%),
+              url("/assets/images/2.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center 30%;
+}
+
+/* Tarjeta legal (más ancha que login/register) */
+.container-legal {
+  box-sizing: border-box;
+  width: min(96vw, 900px);
+  max-width: 900px;
+  margin: 5rem auto 4rem auto;
+  padding: 2.5rem;
+  background: rgba(0, 0, 0, 0.86);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(0,0,0,.65);
+  color: var(--text-color);
+  animation: fadeIn 0.5s ease;
+}
+
+/* ===== CABECERA / MARCA ===== */
+.brand {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:1.2rem;
+}
+.brand-icon {
+  width:36px;height:36px;
+  border-radius:8px;
+  box-shadow:0 4px 18px rgba(255,194,75,.25);
+}
+.brand-text {
+  display:flex;
+  flex-direction:column;
+  line-height:1;
+}
+.brand-name {
+  font-weight:800;
+  font-size:1.6rem;
+  color:#fff;
+  text-shadow:1px 1px 2px #000,-1px -1px 2px #000;
+}
+.brand-tag {
+  font-size:1.4rem;
+  color:#cbd5e1;
+  opacity:.9;
+}
+
+/* ===== TÍTULOS ===== */
+.title {
+  text-align: center;
+  font-size: 2.1rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px #000, -1px -1px 2px #000000;
+  color: var(--color-primary);
+  margin-block: 1.5rem 0.5rem;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #cbd5e1;
+  opacity: 0.8;
+  margin-bottom: 1.8rem;
+}
+
+/* ===== CONTENIDO LEGAL ===== */
+.legal-content {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Scrollbar fino coherente */
+.legal-content::-webkit-scrollbar {
+  width: 8px;
+}
+.legal-content::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+.legal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.section h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: #e5e7eb;
+  margin-bottom: 0.5rem;
+}
+
+.section ul {
+  padding-left: 1.4rem;
+  margin: 0.3rem 0 0.7rem;
+}
+
+.section li {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #e5e7eb;
+  margin-bottom: 0.25rem;
+  position: relative;
+}
+
+.section li::marker {
+  color: var(--color-primary);
+}
+
+/* ===== FOOTER DENTRO DE LA TARJETA ===== */
+.legal-footer {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 0.8rem;
+  font-size: 1.1rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+/* ===== ANIMACIÓN ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container-legal {
+    margin-top: 1rem;
+    padding: 1.8rem;
+  }
+
+  .legal-content {
+    max-height: none;
+  }
+}

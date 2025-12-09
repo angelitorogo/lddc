@@ -1,0 +1,35 @@
+<!-- src/app/shared/components/cookie-banner/cookie-banner.component.html -->
+<div class="cookie-banner" *ngIf="visible">
+  <div class="cookie-banner__content">
+    <div class="cookie-banner__text">
+      <h3>Tu privacidad en SALA 2</h3>
+      <p>
+        Usamos cookies propias para que la web funcione correctamente (no se pueden desactivar)
+        y, si nos das tu consentimiento, también cookies de analítica y de publicidad para
+        medir el uso del sitio y personalizar los anuncios.
+      </p>
+      <p>
+        Si eliges <strong>“Solo esenciales”</strong>, seguiremos mostrando anuncios,
+        pero serán <strong>no personalizados</strong> y no usaremos tu historial de navegación
+        para perfilado.
+      </p>
+      <a routerLink="/dashboard/cookies" class="cookie-banner__link">
+        Ver detalles de cookies
+      </a>
+    </div>
+
+    <div class="cookie-banner__actions">
+      <button class="btn btn--primary" type="button" (click)="acceptAll()">
+        Aceptar todas
+      </button>
+
+      <button class="btn btn--ghost" type="button" (click)="acceptEssential()">
+        Solo esenciales
+      </button>
+
+      <button class="btn btn--link" type="button" (click)="openSettings()">
+        Configurar
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,280 @@
+/* login.component.css */
+
+/* ===== CONTENEDOR GENERAL ===== */
+.container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+
+  background:
+    linear-gradient(
+      to bottom,
+      var(--auth-overlay-top),
+      var(--auth-overlay-bottom)
+    ),
+    url('/assets/images/1-old.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center 30%;
+}
+
+/* Tarjeta de auth compartida */
+.container-login,
+.container-register {
+  box-sizing: border-box;
+  width: min(92vw, 420px);
+  max-width: 420px;
+  margin: 6rem auto;
+  padding: 2.5rem;
+  background: var(--auth-card-bg);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--auth-shadow-strong);
+
+  color: var(--text-color);
+  animation: fadeIn 0.5s ease;
+}
+
+/* ===== BRAND ===== */
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 1.2rem;
+}
+
+.brand-icon {
+  width: 55px;
+  border-radius: 8px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--text-hover-color);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px #000, -1px -1px 2px #000;
+}
+
+.brand-tag {
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+  opacity: 0.95;
+}
+
+/* ===== TÍTULO ===== */
+.title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px #000, -1px -1px 2px #000000;
+  color: var(--color-primary);
+  margin-block: 2rem 1.8rem;
+}
+
+span {
+  margin-top: 0.45rem;
+}
+
+/* ===== FORMULARIO ===== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ===== GRUPOS DE CAMPOS ===== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: var(--text-color);
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* ===== INPUTS ===== */
+.form-group input {
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--auth-input-border);
+  background: var(--auth-input-bg);
+  color: var(--text-color);
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted-color);
+}
+
+.form-group input:focus {
+  border-color: var(--auth-input-border-focus);
+  box-shadow: 0 0 0 2px var(--auth-input-ring);
+}
+
+.input-invalid {
+  border-color: #f97373;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.45);
+}
+
+/* ===== BOTÓN ===== */
+button[type='submit'] {
+  padding: 0.9rem 1rem;
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  /*text-shadow: 1px 1px 2px #000;*/
+  font-weight: 600;
+}
+
+button[type='submit']:hover {
+  background: var(--color-primary);
+  color: #111;
+}
+
+/* ===== TEXTO FINAL ===== */
+.form-text {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-muted-color);
+  text-shadow: 1px 1px 2px #000;
+}
+
+.form-text a {
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.form-text a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ===== HR ===== */
+hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 2rem;
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== MODAL DE ERROR ===== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal {
+  width: min(92vw, 400px);
+  background: var(--auth-card-bg);
+  border-radius: 14px;
+  padding: 1.6rem 1.8rem 1.2rem;
+  box-shadow: var(--auth-shadow-strong);
+  box-sizing: border-box;
+  color: var(--text-color);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-shadow: 1px 1px 2px #000;
+}
+
+.close-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted-color);
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+
+.close-btn:hover {
+  color: var(--text-color);
+  transform: scale(1.05);
+}
+
+.modal-body {
+  font-size: 0.95rem;
+  color: var(--text-color);
+  margin-bottom: 1.1rem;
+}
+
+.modal-body p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Botón del modal, coherente con el tema */
+.btn-modal {
+  padding: 0.6rem 1.4rem;
+  background: transparent;
+  border-radius: 999px;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.btn-modal:hover {
+  background: var(--color-primary);
+  color: #111;
+}

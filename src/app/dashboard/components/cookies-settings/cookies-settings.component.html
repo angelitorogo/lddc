@@ -1,0 +1,180 @@
+<!-- src/app/features/legal/cookies-settings/cookies-settings.component.html -->
+<div class="container">
+
+  <div class="container-cookies">
+    <!-- Cabecera de marca -->
+    <div class="brand">
+      <img src="assets/icons/favicon.png" alt="SALA 2" class="brand-icon" />
+      <div class="brand-text">
+        <span class="brand-name">SALA 2</span>
+        <span class="brand-tag">Películas y series</span>
+      </div>
+    </div>
+
+    <h1 class="title">Preferencias de cookies</h1>
+    <p class="subtitle">
+      Última actualización: {{ lastUpdate }}
+    </p>
+
+    <!-- Mensaje al guardar -->
+    <div class="alert" *ngIf="saveMessage">
+      {{ saveMessage }}
+    </div>
+
+    <!-- Intro -->
+    <p class="intro">
+      En <strong>SALA 2</strong> utilizamos cookies y tecnologías similares para poder
+      mantener tu sesión, proteger los formularios (reCAPTCHA) y mejorar la experiencia
+      con métricas y publicidad.
+    </p>
+
+    <p class="intro">
+      Puedes decidir si quieres que usemos cookies de <strong>analítica</strong> y
+      de <strong>publicidad personalizada</strong>. Ten en cuenta que ciertas cookies son
+      <strong>estrictamente necesarias</strong> para que la aplicación funcione y no se pueden desactivar.
+      Si desactivas la publicidad personalizada seguiremos mostrando anuncios, pero serán
+      <strong>no personalizados</strong>.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="savePrefs()">
+
+      <div class="sections">
+
+        <!-- ESENCIALES -->
+        <section class="card section-card">
+          <div class="section-header">
+            <h2>Cookies esenciales (obligatorias)</h2>
+            <span class="pill pill-required">Siempre activas</span>
+          </div>
+          <p>
+            Son necesarias para que SALA 2 funcione de forma segura:
+          </p>
+          <ul>
+            <li>Mantener tu sesión iniciada de forma segura (cookies de autenticación).</li>
+            <li>Proteger las peticiones frente a ataques CSRF.</li>
+          </ul>
+          <p class="note">
+            Sin estas cookies no podrías iniciar sesión ni usar las funcionalidades para usuarios registrados.
+          </p>
+
+          <div class="cookie-table">
+            <div class="cookie-row header">
+              <span>Nombre</span>
+              <span>Finalidad</span>
+            </div>
+            <div class="cookie-row">
+              <span><code>auth_token</code></span>
+              <span>Identificar de forma segura tu sesión de usuario.</span>
+            </div>
+            <div class="cookie-row">
+              <span><code>csrf_token</code></span>
+              <span>Proteger formularios y peticiones frente a ataques CSRF.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- FUNCIONALES / SEGURIDAD (reCAPTCHA) -->
+        <section class="card section-card">
+          <div class="section-header">
+            <h2>Cookies funcionales / seguridad</h2>
+
+            <!-- switch -->
+            <label class="switch">
+              <input type="checkbox" formControlName="functional" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <p>
+            Este tipo de cookies se utilizan para mejorar la seguridad y la experiencia
+            de uso en formularios, como el de contacto, donde usamos
+            <strong>Google reCAPTCHA</strong> para evitar envíos automáticos de bots.
+          </p>
+
+          <p class="note">
+            Si desactivas estas cookies puede que algunos formularios no funcionen correctamente
+            o dejen de estar protegidos frente a abusos.
+          </p>
+
+          <div class="cookie-table">
+            <div class="cookie-row header">
+              <span>Proveedor</span>
+              <span>Uso principal</span>
+            </div>
+            <div class="cookie-row">
+              <span>Google reCAPTCHA</span>
+              <span>Verificar que el usuario es humano antes de enviar ciertos formularios.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ANALÍTICAS -->
+        <section class="card section-card">
+          <div class="section-header">
+            <h2>Cookies de analítica</h2>
+
+            <label class="switch">
+              <input type="checkbox" formControlName="analytics" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <p>
+            Estas cookies se utilizan para recopilar información (generalmente agregada) sobre el uso de
+            <strong>SALA 2</strong> (páginas más vistas, errores frecuentes, etc.) y así mejorar el rendimiento y la
+            experiencia.
+          </p>
+          <p class="note">
+            Actualmente la analítica puede estar limitada o en fase de pruebas, pero este ajuste se respetará
+            cuando esté plenamente activa.
+          </p>
+        </section>
+
+        <!-- PUBLICIDAD -->
+        <section class="card section-card">
+          <div class="section-header">
+            <h2>Cookies de publicidad</h2>
+
+            <label class="switch">
+              <input type="checkbox" formControlName="ads" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <p>
+            Estas cookies permiten que la publicidad que ves en <strong>SALA 2</strong> y en otros sitios
+            de la red de Google se adapte mejor a tus intereses (por ejemplo, evitar mostrarte siempre
+            los mismos anuncios).
+          </p>
+          <p class="note">
+            Si <strong>desactivas</strong> esta opción, seguiremos mostrando anuncios para poder
+            mantener la plataforma, pero serán <strong>no personalizados</strong> (más genéricos).
+          </p>
+          <p class="note">
+            Si <strong>activas</strong> las cookies de publicidad, permites que Google utilice cookies
+            para ofrecer anuncios más relevantes y medir mejor su rendimiento.
+          </p>
+          <p class="note">
+            Actualmente la analítica puede estar limitada o en fase de pruebas, pero este ajuste se respetará cuando esté plenamente activa
+          </p>
+        </section>
+
+      </div>
+
+      <!-- Botón guardar -->
+      <div class="actions">
+        <button type="submit">
+          Guardar preferencias
+        </button>
+      </div>
+
+    </form>
+
+    <!-- Pie pequeño dentro de la tarjeta -->
+    <div class="cookies-footer">
+      &copy; {{ currentYear }} SALA 2 · Gestión de cookies
+    </div>
+
+  </div>
+
+</div>

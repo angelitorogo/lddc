@@ -1,0 +1,158 @@
+<!-- src/app/features/contact/contact.component.html -->
+<div class="container">
+
+  <div class="container-contact">
+    <!-- Cabecera de marca -->
+    <div class="brand">
+      <img src="assets/icons/favicon.png" alt="SALA 2" class="brand-icon" />
+      <div class="brand-text">
+        <span class="brand-name">SALA 2</span>
+        <span class="brand-tag">Películas y series</span>
+      </div>
+    </div>
+
+    <h1 class="title">Contacto</h1>
+
+    <!-- Mensajes de estado -->
+    <div class="alert alert-success" *ngIf="submitSuccess">
+      {{ submitSuccess }}
+    </div>
+    <div class="alert alert-error" *ngIf="submitError">
+      {{ submitError }}
+    </div>
+
+    <form [formGroup]="formContact" (ngSubmit)="submit()" autocomplete="off">
+
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input
+          id="nombre"
+          type="text"
+          formControlName="nombre"
+          name="nombre"
+          [class.is-invalid]="hasError('nombre','required') || hasError('nombre','minlength')"
+        />
+        <small class="error" *ngIf="hasError('nombre','required')">
+          El nombre es obligatorio.
+        </small>
+        <small class="error" *ngIf="hasError('nombre','minlength')">
+          El nombre debe tener al menos 2 caracteres.
+        </small>
+      </div>
+
+      <!-- Apellido -->
+      <div class="form-group">
+        <label for="apellido">Apellidos</label>
+        <input
+          id="apellido"
+          type="text"
+          formControlName="apellido"
+          name="apellido"
+          [class.is-invalid]="hasError('apellido','required') || hasError('apellido','minlength')"
+        />
+        <small class="error" *ngIf="hasError('apellido','required')">
+          Los apellidos son obligatorios.
+        </small>
+        <small class="error" *ngIf="hasError('apellido','minlength')">
+          Los apellidos deben tener al menos 2 caracteres.
+        </small>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          name="email"
+          [class.is-invalid]="hasError('email','required') || hasError('email','email')"
+        />
+        <small class="error" *ngIf="hasError('email','required')">
+          El correo electrónico es obligatorio.
+        </small>
+        <small class="error" *ngIf="hasError('email','email')">
+          Debes introducir un correo electrónico válido.
+        </small>
+      </div>
+
+      <!-- Asunto -->
+      <div class="form-group">
+        <label for="asunto">Asunto</label>
+        <input
+          id="asunto"
+          type="text"
+          formControlName="asunto"
+          name="asunto"
+          [class.is-invalid]="hasError('asunto','required') || hasError('asunto','minlength')"
+        />
+        <small class="error" *ngIf="hasError('asunto','required')">
+          El asunto es obligatorio.
+        </small>
+        <small class="error" *ngIf="hasError('asunto','minlength')">
+          El asunto debe tener al menos 3 caracteres.
+        </small>
+      </div>
+
+      <!-- Mensaje -->
+      <div class="form-group">
+        <label for="text">Mensaje</label>
+        <textarea
+          id="text"
+          rows="5"
+          formControlName="text"
+          name="text"
+          [class.is-invalid]="hasError('text','required') || hasError('text','minlength')"
+        ></textarea>
+        <small class="error" *ngIf="hasError('text','required')">
+          El mensaje es obligatorio.
+        </small>
+        <small class="error" *ngIf="hasError('text','minlength')">
+          El mensaje debe tener al menos 10 caracteres.
+        </small>
+      </div>
+
+      <!-- reCAPTCHA v2 checkbox -->
+      <div *ngIf="functionalEnabled; else captchaBloqueado">
+
+        <div class="form-group captcha-group">
+          <label>
+            Verificación anti-bots
+          </label>
+
+          <div class="captcha-row">
+            <re-captcha
+              [siteKey]="siteKey"
+              (resolved)="onCaptchaResolved($event)"
+              errorMode="handled"
+              (errored)="onCaptchaError($event)"
+            ></re-captcha>
+          </div>
+
+          <small class="error" *ngIf="hasError('recaptcha','required')">
+            Debes completar el captcha para continuar.
+          </small>
+        </div>
+
+      </div>
+
+      <ng-template #captchaBloqueado>
+        <p class="text-sm">
+          Para usar el CAPTCHA y enviar este formulario,
+          tienes que aceptar las cookies funcionales.
+        </p>
+        <button type="button" (click)="openCookieSettings()">
+          Configurar cookies
+        </button>
+      </ng-template>
+          
+
+      <button *ngIf="functionalEnabled" type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Enviando…' : 'Enviar mensaje' }}
+      </button>
+
+    </form>
+  </div>
+
+</div>

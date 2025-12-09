@@ -1,0 +1,160 @@
+/* src/app/shared/components/cookie-banner/cookie-banner.component.css */
+
+.cookie-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  pointer-events: none; /* para que solo el contenido capture */
+}
+
+.cookie-banner__content {
+  pointer-events: auto;
+  max-width: 960px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: radial-gradient(circle at top left, rgba(212,175,55,0.12), transparent 55%),
+              rgba(0,0,0,0.88);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.75);
+  padding: 1.25rem 1.5rem;
+
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.cookie-banner__text {
+  flex: 1;
+  color: #e5e7eb;
+}
+
+.cookie-banner__text h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  text-shadow: 0 1px 2px #000;
+}
+
+.cookie-banner__text p {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.cookie-banner__link {
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* Actions */
+.cookie-banner__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Botones coherentes con SALA 2 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #111;
+  box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+}
+
+.btn--primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn--ghost {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(148,163,184,0.6);
+  color: #e5e7eb;
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn--link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  padding-inline: 0;
+}
+
+.btn--link:hover {
+  text-decoration: underline;
+}
+
+.btn--outline {
+  background: transparent;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn--outline:hover {
+  background: var(--color-primary);
+  color: #111;
+  box-shadow: 0 6px 18px rgba(212,175,55,0.25);
+}
+
+.btn--ghost {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(148,163,184,0.6);
+  color: #e5e7eb;
+}
+
+.btn--ghost:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn--link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  padding-inline: 0;
+}
+
+.btn--link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .cookie-banner__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cookie-banner__actions {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

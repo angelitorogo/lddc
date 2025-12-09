@@ -1,0 +1,259 @@
+/* src/app/dashboard/pages/home/home.component.css */
+
+.home {
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--text-color);
+}
+
+.home__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.home__title {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.home__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 0.95rem;
+}
+
+.filters {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filters__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 150px;
+}
+
+.filters__group label {
+  font-size: 0.85rem;
+  color: var(--text-muted-color);
+}
+
+.filters__group select,
+.filters__group input {
+  background-color: #111a16;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.filters__group select:focus,
+.filters__group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.filters__group--two-inputs {
+  min-width: 220px;
+}
+
+.filters__inline-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filters__inline-separator {
+  color: var(--text-muted-color);
+}
+
+.filters__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.btn {
+  border-radius: 4px;
+  border: 1px solid transparent;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background-color: var(--color-primary);
+  color: #0a1a14;
+}
+
+.btn--primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn--secondary {
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--text-color);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.home__status {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--text-muted-color);
+}
+
+.home__status--error {
+  color: var(--color-error);
+}
+
+.tracks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.track-card {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.track-card__image-wrapper {
+  width: 110px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #101a16;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.track-card__image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.track-card__placeholder {
+  font-size: 1.5rem;
+  color: var(--color-accent);
+}
+
+.track-card__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.track-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.track-card__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.track-card__difficulty {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+}
+
+.track-card__difficulty--easy {
+  border-color: #66bb6a;
+  color: #a5d6a7;
+}
+
+.track-card__difficulty--moderate {
+  border-color: #ffb300;
+  color: #ffe082;
+}
+
+.track-card__difficulty--hard {
+  border-color: #ef5350;
+  color: #ef9a9a;
+}
+
+.track-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted-color);
+}
+
+.track-card__description {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.track-card__footer {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted-color);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.pagination__info {
+  font-size: 0.85rem;
+  color: var(--text-muted-color);
+}
+
+/* Responsivo básico */
+@media (max-width: 768px) {
+  .home__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .track-card {
+    flex-direction: column;
+  }
+
+  .track-card__image-wrapper {
+    width: 100%;
+    height: 140px;
+  }
+}

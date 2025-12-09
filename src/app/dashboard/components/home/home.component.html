@@ -1,0 +1,185 @@
+<!-- src/app/dashboard/pages/home/home.component.html -->
+
+<section class="home">
+  <header class="home__header">
+    <div>
+      <h1 class="home__title">Rutas disponibles</h1>
+      <p class="home__subtitle">
+        Explora las rutas grabadas por la comunidad. Filtra por distancia, tipo y dificultad.
+      </p>
+    </div>
+  </header>
+
+  <!-- Filtros -->
+  <section class="filters">
+    <div class="filters__row">
+      <div class="filters__group">
+        <label for="routeType">Tipo de ruta</label>
+        <select
+          id="routeType"
+          [(ngModel)]="filterRouteType"
+          name="routeType"
+        >
+          <option value="">Todas</option>
+          <option value="CIRCULAR">Circular</option>
+          <option value="OUT_AND_BACK">Ida y vuelta</option>
+          <option value="POINT_TO_POINT">Punto a punto</option>
+        </select>
+      </div>
+
+      <div class="filters__group">
+        <label for="difficulty">Dificultad</label>
+        <select
+          id="difficulty"
+          [(ngModel)]="filterDifficulty"
+          name="difficulty"
+        >
+          <option value="">Todas</option>
+          <option value="EASY">Fácil</option>
+          <option value="MODERATE">Moderada</option>
+          <option value="HARD">Difícil</option>
+        </select>
+      </div>
+
+      <div class="filters__group filters__group--two-inputs">
+        <label>Distancia (km)</label>
+        <div class="filters__inline-inputs">
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            placeholder="mín"
+            [(ngModel)]="filterMinDistanceKm"
+            name="minDistanceKm"
+          />
+          <span class="filters__inline-separator">–</span>
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            placeholder="máx"
+            [(ngModel)]="filterMaxDistanceKm"
+            name="maxDistanceKm"
+          />
+        </div>
+      </div>
+
+      <div class="filters__group">
+        <label for="sortBy">Ordenar por</label>
+        <select
+          id="sortBy"
+          [(ngModel)]="sortBy"
+          name="sortBy"
+        >
+          <option value="date">Fecha</option>
+          <option value="distance">Distancia</option>
+          <option value="ascent">Desnivel</option>
+          <option value="time">Tiempo</option>
+        </select>
+      </div>
+
+      <div class="filters__group">
+        <label for="sortOrder">Dirección</label>
+        <select
+          id="sortOrder"
+          [(ngModel)]="sortOrder"
+          name="sortOrder"
+        >
+          <option value="desc">Desc</option>
+          <option value="asc">Asc</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filters__actions">
+      <button class="btn btn--primary" (click)="onApplyFilters()">
+        Aplicar filtros
+      </button>
+      <button class="btn btn--secondary" (click)="onResetFilters()">
+        Limpiar
+      </button>
+    </div>
+  </section>
+
+  <!-- Estado de carga / error -->
+  <div *ngIf="loading" class="home__status">
+    Cargando rutas...
+  </div>
+
+  <div *ngIf="!loading && error" class="home__status home__status--error">
+    {{ error }}
+  </div>
+
+  <!-- Lista de tracks -->
+  <section *ngIf="!loading && !error" class="tracks-list">
+    <div *ngIf="tracks.length === 0" class="home__status">
+      No se han encontrado rutas con esos filtros.
+    </div>
+
+    <article
+      class="track-card"
+      *ngFor="let track of tracks"
+    >
+      <div class="track-card__image-wrapper">
+        <img
+          *ngIf="trackImageUrl(track) as imgUrl"
+          [src]="imgUrl"
+          alt="Imagen de la ruta"
+        />
+        <div *ngIf="!trackImageUrl(track)" class="track-card__placeholder">
+          🏔️
+        </div>
+      </div>
+
+      <div class="track-card__content">
+        <header class="track-card__header">
+          <h2 class="track-card__title">{{ track.name }}</h2>
+          <span class="track-card__difficulty track-card__difficulty--{{ track.difficulty | lowercase }}">
+            {{ track.difficulty }}
+          </span>
+        </header>
+
+        <p class="track-card__meta">
+          <span>{{ track.routeType }}</span>
+          <span>·</span>
+          <span>{{ trackDistanceKm(track) }} km</span>
+          <span>·</span>
+          <span>{{ trackAscent(track) }} +</span>
+        </p>
+
+        <p class="track-card__description">
+          {{ track.description || 'Sin descripción.' }}
+        </p>
+
+        <footer class="track-card__footer">
+          <span class="track-card__date">
+            Fecha: {{ trackDate(track) }}
+          </span>
+        </footer>
+      </div>
+    </article>
+  </section>
+
+  <!-- Paginación -->
+  <section *ngIf="!loading && !error && tracks.length > 0" class="pagination">
+    <button
+      class="btn btn--secondary"
+      [disabled]="!canGoPrev()"
+      (click)="goPrev()"
+    >
+      « Anterior
+    </button>
+
+    <span class="pagination__info">
+      Página {{ page }} de {{ totalPages }} ({{ total }} rutas)
+    </span>
+
+    <button
+      class="btn btn--secondary"
+      [disabled]="!canGoNext()"
+      (click)="goNext()"
+    >
+      Siguiente »
+    </button>
+  </section>
+</section>

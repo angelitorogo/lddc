@@ -1,0 +1,132 @@
+<!-- NAVBAR -->
+  <header class="dashboard-header">
+    <div class="contenedor dashboard-header__inner">
+      <!-- Branding -->
+      <div class="brand" (click)="onNavigate()">
+        <div class="brand__logo">
+          <img src="assets/images/LDDC-icono-blanco.png" alt="{{appName}} Logo" />
+        </div>
+        <div class="brand__text">
+          <span class="brand__title">{{appName}}</span>
+        </div>
+      </div>
+
+      <!-- Navegación desktop -->
+      <nav class="nav-links">
+        <a
+          class="nav-links__item nav-links__item--active"
+          routerLink="/dashboard/home"
+          routerLinkActive="nav-links__item--active"
+          (click)="onNavigate()"
+        >
+          Inicio
+        </a>
+        <a
+          class="nav-links__item"
+          routerLink="/dashboard/weekly"
+          routerLinkActive="nav-links__item--active"
+          (click)="onNavigate()"
+        >
+          Mapa
+        </a>
+        <a
+          class="nav-links__item"
+          routerLink="/dashboard/maps"
+          routerLinkActive="nav-links__item--active"
+          (click)="onNavigate()"
+        >
+          Favoritas
+        </a>
+        <a
+          class="nav-links__item"
+          routerLink="/dashboard/favorites"
+          routerLinkActive="nav-links__item--active"
+          (click)="onNavigate()"
+        >
+          Subir track
+        </a>
+      </nav>
+
+      <!-- Zona derecha: ciudad actual / usuario / etc -->
+      <div class="header-actions">
+
+        <!-- Botón modo/tema (placeholder) -->
+        <button class="btn-circle">
+          <i class="bi bi-brightness-high"></i>
+        </button>
+
+        <!-- Mi cuenta -->
+        <button class="btn-ghost" (click)="onAccountClick()">
+          <div class="user-chip__avatar">
+            <i class="bi bi-person"></i>
+          </div>
+          <div class="user-chip__text">
+            <span class="user-chip__label">
+              {{
+                authService.isLoggedIn()
+                  ? authService.user.fullname
+                  : 'Inicia sesión'
+              }}
+            </span>
+          </div>
+        </button>
+        <button class="btn-ghost" *ngIf="authService.isLoggedIn()" (click)="logout()">
+          <div class="user-chip__avatar">
+            <i class="bi bi-power"></i>
+          </div>
+          <div class="user-chip__text">
+            <span class="user-chip__label">
+              Salir
+            </span>
+          </div>
+        </button>
+
+
+        <button class="btn-burger" (click)="toggleMenu()">
+          <i class="bi" [ngClass]="isMenuOpen ? 'bi-x' : 'bi-list'"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú móvil -->
+    <div class="nav-mobile" [class.nav-mobile--open]="isMenuOpen">
+      <div class="nav-mobile__inner contenedor">
+        <a
+          class="nav-mobile__item"
+          routerLink="/dashboard/home"
+          routerLinkActive="nav-mobile__item--active"
+          (click)="onNavigate()"
+        >
+          <i class="bi bi-sun"></i>
+          <span>Inicio</span>
+        </a>
+        <a
+          class="nav-mobile__item"
+          routerLink="/dashboard/weekly"
+          routerLinkActive="nav-mobile__item--active"
+          (click)="onNavigate()"
+        >
+          <i class="bi bi-calendar-week"></i>
+          <span>Mapa</span>
+        </a>
+        <a
+          class="nav-mobile__item"
+          routerLink="/dashboard/maps"
+          routerLinkActive="nav-mobile__item--active"
+          (click)="onNavigate()"
+        >
+          <i class="bi bi-map"></i>
+          <span>Favoritas</span>
+        </a>
+        <a
+          class="nav-mobile__item"
+          routerLink="/dashboard/favorites"
+          routerLinkActive="nav-mobile__item--active"
+          (click)="onNavigate()"
+        >
+          <i class="bi bi-heart"></i>
+          <span>Subir Track</span>
+        </a>
+      </div>
+    </div>
+  </header>
