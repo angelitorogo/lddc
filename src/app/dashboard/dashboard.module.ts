@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DashboardComponent } from './components/principal/dashboard/dashboard.component';
 
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { SharedModule } from '../shared/shared.module';
@@ -9,12 +9,15 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { ContactComponent } from './components/contact/contact.component';
 import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
-import { TermsPrivacyComponent } from './components/terms-privacy/terms-privacy.component';
-import { CookiesSettingsComponent } from './components/cookies-settings/cookies-settings.component';
-import { ManualAdComponent } from './components/manual-ad/manual-ad.component';
+import { TermsPrivacyComponent } from './components/otros/terms-privacy/terms-privacy.component';
+import { CookiesSettingsComponent } from './components/otros/cookies-settings/cookies-settings.component';
+import { ManualAdComponent } from './components/otros/manual-ad/manual-ad.component';
 import { HomeComponent } from './components/home/home.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
-import { FooterComponent } from './components/footer/footer.component';
+import { NavbarComponent } from './components/principal/navbar/navbar.component';
+import { FooterComponent } from './components/principal/footer/footer.component';
+import { TrackDetailComponent } from './components/track-detail/track-detail.component';
+import { TrackCreateComponent } from './components/track-create/track-create.component';
+import { GoogleMapsModule } from '@angular/google-maps';
 
 
 
@@ -27,7 +30,9 @@ import { FooterComponent } from './components/footer/footer.component';
     CookiesSettingsComponent,
     ManualAdComponent,
     NavbarComponent,
-    FooterComponent
+    FooterComponent,
+    TrackDetailComponent,
+    TrackCreateComponent
   ],
   imports: [
     CommonModule,
@@ -37,6 +42,7 @@ import { FooterComponent } from './components/footer/footer.component';
     ReactiveFormsModule,
     RecaptchaModule,
     RecaptchaFormsModule,
+    GoogleMapsModule
   ],
 
 })

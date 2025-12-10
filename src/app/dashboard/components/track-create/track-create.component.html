@@ -1,0 +1,115 @@
+<!-- src/app/dashboard/components/track-create/track-create.component.html -->
+
+<section class="track-create">
+  <header class="track-create__header">
+    <button type="button" class="track-create__back" (click)="onBack()">
+      <i class="bi bi-arrow-left"></i>
+      <span>Volver</span>
+    </button>
+
+    <h1 class="track-create__title">Crear nueva ruta</h1>
+    <p class="track-create__subtitle">
+      Sube un archivo GPX y revisa el trazado en el mapa antes de guardar el track.
+    </p>
+  </header>
+
+  <form class="track-create__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- NOMBRE -->
+    <div class="form-field">
+      <label for="name">Nombre de la ruta *</label>
+      <input
+        id="name"
+        type="text"
+        formControlName="name"
+        placeholder="P. ej. Circular a la Peña X..."
+      />
+      <div
+        class="form-field__error"
+        *ngIf="form.get('name')?.touched && form.get('name')?.invalid"
+      >
+        El nombre es obligatorio.
+      </div>
+    </div>
+
+    <!-- DESCRIPCIÓN -->
+    <div class="form-field">
+      <label for="description">Descripción (opcional)</label>
+      <textarea
+        id="description"
+        rows="4"
+        formControlName="description"
+        placeholder="Aquí puedes escribir una descripción narrativa de la ruta..."
+      ></textarea>
+    </div>
+
+    <!-- ARCHIVO GPX -->
+    <div class="form-field">
+      <label for="gpxFile">Archivo GPX</label>
+
+      <div class="file-input-row">
+        <input
+          #fileInput
+          id="gpxFile"
+          type="file"
+          accept=".gpx"
+          (change)="onFileSelected($event)"
+        />
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="onCancelFile()"
+          [disabled]="!selectedFile && !isPreviewVisible"
+        >
+          Quitar archivo
+        </button>
+      </div>
+
+      <p class="form-field__hint">
+        Selecciona un archivo .gpx para previsualizar el trazado en el mapa.
+      </p>
+
+      <div class="form-field__error" *ngIf="fileError">
+        {{ fileError }}
+      </div>
+
+      <div class="form-field__info" *ngIf="selectedFile && !fileError">
+        Archivo seleccionado: <strong>{{ selectedFile.name }}</strong>
+      </div>
+    </div>
+
+    <!-- PREVIEW MAPA -->
+    <section class="track-create__preview" *ngIf="isPreviewVisible">
+      <h2 class="track-create__preview-title">Vista previa del track</h2>
+
+      <div class="track-create__map-wrapper">
+        <google-map
+          height="360px"
+          width="100%"
+          [options]="mapOptions"
+          (mapInitialized)="onMapReady($event)"
+        >
+          <map-polyline
+            [path]="previewPoints"
+            [options]="polylineOptions"
+          ></map-polyline>
+        </google-map>
+      </div>
+
+      <p class="track-create__preview-footnote">
+        Si cambias de archivo GPX sin guardar, se actualizará esta vista previa.
+      </p>
+    </section>
+
+    <!-- ACCIONES -->
+    <div class="track-create__actions">
+      <button type="button" class="btn-secondary" (click)="onBack()">
+        Cancelar
+      </button>
+
+      <button type="submit" class="btn-primary">
+        Crear track
+      </button>
+    </div>
+  </form>
+</section>

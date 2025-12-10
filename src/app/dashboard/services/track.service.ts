@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TrackListParams } from '../../shared/models/track-list-params-model';
 import { TrackListResponse } from '../../shared/models/track.model';
+import { DetailResponse } from '../../shared/responses/detail.response';
 
 
 @Injectable({
@@ -53,9 +54,18 @@ export class TracksService {
       httpParams = httpParams.set('sortOrder', params.sortOrder);
     }
 
+    //console.log(httpParams)
+
     return this.http.get<TrackListResponse>(this.baseUrl, {
       params: httpParams,
       withCredentials: true, // por si usas cookies de sesión (no afecta a GET)
     });
+  }
+
+  getTrackById(id: string): Observable<DetailResponse> {
+    return this.http.get<any>(
+      `${this.baseUrl}/${id}`,
+      { withCredentials: true }
+    );
   }
 }

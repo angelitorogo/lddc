@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import {
   CookiePreferencesService,
   CookiePrefs
-} from '../../services/otros/cookie-preferences.service';
+} from '../../../services/otros/cookie-preferences.service';
 
 @Component({
   selector: 'app-cookie-banner',

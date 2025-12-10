@@ -5,7 +5,7 @@
     <div>
       <h1 class="home__title">Rutas disponibles</h1>
       <p class="home__subtitle">
-        Explora las rutas grabadas por la comunidad. Filtra por distancia, tipo y dificultad.
+        Explora todas rutas. Filtra por distancia, tipo y dificultad.
       </p>
     </div>
   </header>
@@ -13,34 +13,132 @@
   <!-- Filtros -->
   <section class="filters">
     <div class="filters__row">
+      <!-- === TIPO DE RUTA (custom select) === -->
       <div class="filters__group">
         <label for="routeType">Tipo de ruta</label>
-        <select
-          id="routeType"
-          [(ngModel)]="filterRouteType"
-          name="routeType"
+        <div
+          class="custom-select"
+          [class.custom-select--open]="isRouteTypeOpen"
+          (click)="$event.stopPropagation()"
         >
-          <option value="">Todas</option>
-          <option value="CIRCULAR">Circular</option>
-          <option value="OUT_AND_BACK">Ida y vuelta</option>
-          <option value="POINT_TO_POINT">Punto a punto</option>
-        </select>
+          <button
+            type="button"
+            class="custom-select__trigger"
+            (click)="toggleRouteType()"
+          >
+            <span>
+              {{
+                filterRouteType === 'CIRCULAR' ? 'Circular' :
+                filterRouteType === 'OUT_AND_BACK' ? 'Ida y vuelta' :
+                filterRouteType === 'POINT_TO_POINT' ? 'Lineal' :
+                'Todas'
+              }}
+            </span>
+            <i class="bi bi-chevron-down custom-select__icon"></i>
+          </button>
+
+          <div class="custom-select__dropdown">
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="!filterRouteType"
+              (click)="filterRouteType = ''; closeRouteType()"
+            >
+              Todas
+            </button>
+
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="filterRouteType === 'CIRCULAR'"
+              (click)="filterRouteType = 'CIRCULAR'; closeRouteType()"
+            >
+              Circular
+            </button>
+
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="filterRouteType === 'OUT_AND_BACK'"
+              (click)="filterRouteType = 'OUT_AND_BACK'; closeRouteType()"
+            >
+              Ida y vuelta
+            </button>
+
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="filterRouteType === 'POINT_TO_POINT'"
+              (click)="filterRouteType = 'POINT_TO_POINT'; closeRouteType()"
+            >
+              Lineal
+            </button>
+          </div>
+        </div>
       </div>
 
+      <!-- === DIFICULTAD (custom select) === -->
       <div class="filters__group">
         <label for="difficulty">Dificultad</label>
-        <select
-          id="difficulty"
-          [(ngModel)]="filterDifficulty"
-          name="difficulty"
+        <div
+          class="custom-select"
+          [class.custom-select--open]="isDifficultyOpen"
+          (click)="$event.stopPropagation()"
         >
-          <option value="">Todas</option>
-          <option value="EASY">Fácil</option>
-          <option value="MODERATE">Moderada</option>
-          <option value="HARD">Difícil</option>
-        </select>
+          <button
+            type="button"
+            class="custom-select__trigger"
+            (click)="toggleDifficulty()"
+          >
+            <span>
+              {{
+                filterDifficulty === 'EASY' ? 'Fácil' :
+                filterDifficulty === 'MODERATE' ? 'Moderada' :
+                filterDifficulty === 'HARD' ? 'Difícil' :
+                'Todas'
+              }}
+            </span>
+            <i class="bi bi-chevron-down custom-select__icon"></i>
+          </button>
+
+          <div class="custom-select__dropdown">
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="!filterDifficulty"
+              (click)="filterDifficulty = ''; closeDifficulty()"
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="filterDifficulty === 'EASY'"
+              (click)="filterDifficulty = 'EASY'; closeDifficulty()"
+            >
+              Fácil
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="filterDifficulty === 'MODERATE'"
+              (click)="filterDifficulty = 'MODERATE'; closeDifficulty()"
+            >
+              Moderada
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="filterDifficulty === 'HARD'"
+              (click)="filterDifficulty = 'HARD'; closeDifficulty()"
+            >
+              Difícil
+            </button>
+          </div>
+        </div>
       </div>
 
+      <!-- === DISTANCIA (inputs numéricos) === -->
       <div class="filters__group filters__group--two-inputs">
         <label>Distancia (km)</label>
         <div class="filters__inline-inputs">
@@ -64,30 +162,105 @@
         </div>
       </div>
 
+      <!-- === ORDENAR POR (custom select) === -->
       <div class="filters__group">
         <label for="sortBy">Ordenar por</label>
-        <select
-          id="sortBy"
-          [(ngModel)]="sortBy"
-          name="sortBy"
+        <div
+          class="custom-select"
+          [class.custom-select--open]="isSortByOpen"
+          (click)="$event.stopPropagation()"
         >
-          <option value="date">Fecha</option>
-          <option value="distance">Distancia</option>
-          <option value="ascent">Desnivel</option>
-          <option value="time">Tiempo</option>
-        </select>
+          <button
+            type="button"
+            class="custom-select__trigger"
+            (click)="toggleSortBy()"
+          >
+            <span>
+              {{
+                sortBy === 'distance' ? 'Distancia' :
+                sortBy === 'ascent' ? 'Desnivel' :
+                sortBy === 'time' ? 'Tiempo' :
+                'Fecha'
+              }}
+            </span>
+            <i class="bi bi-chevron-down custom-select__icon"></i>
+          </button>
+
+          <div class="custom-select__dropdown">
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="sortBy === 'date'"
+              (click)="sortBy = 'date'; closeSortBy()"
+            >
+              Fecha
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="sortBy === 'distance'"
+              (click)="sortBy = 'distance'; closeSortBy()"
+            >
+              Distancia
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="sortBy === 'ascent'"
+              (click)="sortBy = 'ascent'; closeSortBy()"
+            >
+              Desnivel
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="sortBy === 'time'"
+              (click)="sortBy = 'time'; closeSortBy()"
+            >
+              Tiempo
+            </button>
+          </div>
+        </div>
       </div>
 
+      <!-- === DIRECCIÓN (custom select) === -->
       <div class="filters__group">
         <label for="sortOrder">Dirección</label>
-        <select
-          id="sortOrder"
-          [(ngModel)]="sortOrder"
-          name="sortOrder"
+        <div
+          class="custom-select"
+          [class.custom-select--open]="isSortOrderOpen"
+          (click)="$event.stopPropagation()"
         >
-          <option value="desc">Desc</option>
-          <option value="asc">Asc</option>
-        </select>
+          <button
+            type="button"
+            class="custom-select__trigger"
+            (click)="toggleSortOrder()"
+          >
+            <span>
+              {{ sortOrder === 'asc' ? 'Ascendente' : 'Descendente' }}
+            </span>
+            <i class="bi bi-chevron-down custom-select__icon"></i>
+          </button>
+
+          <div class="custom-select__dropdown">
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="sortOrder === 'desc'"
+              (click)="sortOrder = 'desc'; closeSortOrder()"
+            >
+              Descendente
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              [class.custom-select__option--active]="sortOrder === 'asc'"
+              (click)="sortOrder = 'asc'; closeSortOrder()"
+            >
+              Ascendente
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -112,52 +285,10 @@
 
   <!-- Lista de tracks -->
   <section *ngIf="!loading && !error" class="tracks-list">
-    <div *ngIf="tracks.length === 0" class="home__status">
-      No se han encontrado rutas con esos filtros.
-    </div>
-
-    <article
-      class="track-card"
+    <app-card-track
       *ngFor="let track of tracks"
-    >
-      <div class="track-card__image-wrapper">
-        <img
-          *ngIf="trackImageUrl(track) as imgUrl"
-          [src]="imgUrl"
-          alt="Imagen de la ruta"
-        />
-        <div *ngIf="!trackImageUrl(track)" class="track-card__placeholder">
-          🏔️
-        </div>
-      </div>
-
-      <div class="track-card__content">
-        <header class="track-card__header">
-          <h2 class="track-card__title">{{ track.name }}</h2>
-          <span class="track-card__difficulty track-card__difficulty--{{ track.difficulty | lowercase }}">
-            {{ track.difficulty }}
-          </span>
-        </header>
-
-        <p class="track-card__meta">
-          <span>{{ track.routeType }}</span>
-          <span>·</span>
-          <span>{{ trackDistanceKm(track) }} km</span>
-          <span>·</span>
-          <span>{{ trackAscent(track) }} +</span>
-        </p>
-
-        <p class="track-card__description">
-          {{ track.description || 'Sin descripción.' }}
-        </p>
-
-        <footer class="track-card__footer">
-          <span class="track-card__date">
-            Fecha: {{ trackDate(track) }}
-          </span>
-        </footer>
-      </div>
-    </article>
+      [track]="track"
+    ></app-card-track>
   </section>
 
   <!-- Paginación -->
@@ -183,3 +314,23 @@
     </button>
   </section>
 </section>
+
+<!-- MODAL DE ERROR -->
+<div class="modal-backdrop" *ngIf="showErrorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Sin resultados</h2>
+      <button type="button" class="close-btn" (click)="closeErrorModal()">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>{{ errorMessage }}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-modal" (click)="closeErrorModal()">
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>

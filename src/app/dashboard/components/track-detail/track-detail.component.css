@@ -1,0 +1,306 @@
+/* src/app/dashboard/components/track-detail/track-detail.component.css */
+
+/* ==== CONTENEDOR GENERAL ==== */
+
+.track-page {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding-top: 1rem;
+  color: var(--text-color);
+  position: relative;
+  z-index: 1;
+}
+
+/* Si quieres mismo fondo que home, puedes descomentar esto
+.track-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(7, 20, 16, 0.94),
+      rgba(7, 20, 16, 0.1)
+    ),
+    url('/assets/images/1-old.jpg');
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  filter: blur(3px);
+}
+*/
+
+/* ==== HEADER ==== */
+
+.track-page__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.track-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.9rem 0.2rem;
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.track-page__back i {
+  font-size: 1rem;
+}
+
+.track-page__back:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(9, 30, 23, 0.7);
+}
+
+.track-page__header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.track-page__title {
+  margin: 0;
+  font-size: 2.1rem;
+}
+
+.track-page__subtitle {
+  margin: 0;
+  color: var(--text-muted-color);
+  font-size: 1.3rem;
+}
+
+.track-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Chips genéricos */
+
+.track-page__chip {
+  padding: 0.2rem 0.7rem 0.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 1.1rem;
+  color: var(--text-muted-color);
+  background-color: rgba(5, 16, 13, 0.9);
+}
+
+/* ==== PANEL GENÉRICO (misma estética que card) ==== */
+
+.track-panel {
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 1rem 1.1rem;
+  filter: drop-shadow(0 10px 25px rgba(0,0,0,0.45));
+}
+
+.track-panel__title {
+  margin: 0 0 0.8rem 0;
+  font-size: 1.4rem;
+  color: var(--text-muted-color);
+}
+
+/* ==== GRID PRINCIPAL ==== */
+
+.track-page__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.8fr);
+  grid-template-areas:
+    "summary gallery"
+    "description gallery";
+  gap: 1.25rem 1.5rem;
+  align-items: flex-start;
+}
+
+.track-page__summary {
+  grid-area: summary;
+}
+
+.track-page__description {
+  grid-area: description;
+}
+
+.track-page__gallery {
+  grid-area: gallery;
+}
+
+/* ==== STATS GRID ==== */
+
+.track-page__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+
+.track-page__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.track-page__stat-label {
+  font-size: 1.1rem;
+  color: var(--text-muted-color);
+}
+
+.track-page__stat-value {
+  font-size: 1.3rem;
+}
+
+/* ==== DIFICULTAD (badge) ==== */
+
+.track-detail__difficulty {
+  font-size: 0.85rem;
+  padding: 0.2rem 0.5rem 0;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.track-detail__difficulty--easy {
+  border-color: #66bb6a;
+  color: #a5d6a7;
+}
+
+.track-detail__difficulty--moderate {
+  border-color: #ffb300;
+  color: #ffe082;
+}
+
+.track-detail__difficulty--hard {
+  border-color: #ef5350;
+  color: #ef9a9a;
+}
+
+/* ==== DESCRIPCIÓN ==== */
+
+.track-page__description-text {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.track-page__description-text--muted {
+  color: var(--text-muted-color);
+}
+
+/* ==== GALERÍA ==== */
+
+.track-page__gallery-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr);
+  grid-auto-rows: 110px;
+  gap: 0.75rem;
+}
+
+.track-page__gallery-main {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  margin: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #101a16;
+}
+
+.track-page__gallery-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.track-page__gallery-thumb {
+  margin: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #101a16;
+}
+
+.track-page__gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.track-page__gallery--empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ==== RESPONSIVE ==== */
+
+@media (max-width: 960px) {
+  .track-page__header {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .track-page__chips {
+    justify-content: flex-start;
+  }
+
+  .track-page__layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "summary"
+      "gallery"
+      "description";
+  }
+
+  .track-page__gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 100px;
+  }
+
+  .track-page__gallery-main {
+    grid-row: auto;
+    grid-column: 1 / -1;
+    height: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .track-page {
+    padding-top: 0.5rem;
+  }
+
+  .track-page__title {
+    font-size: 1.7rem;
+  }
+
+  .track-page__subtitle {
+    font-size: 1.1rem;
+  }
+
+  .track-page__gallery-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: 140px;
+  }
+
+  .track-page__gallery-main {
+    height: 200px;
+  }
+}

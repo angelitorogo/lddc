@@ -39,7 +39,8 @@
         </a>
         <a
           class="nav-links__item"
-          routerLink="/dashboard/favorites"
+          *ngIf="authService.user?.role === 'ADMIN'"
+          routerLink="/dashboard/create"
           routerLinkActive="nav-links__item--active"
           (click)="onNavigate()"
         >

@@ -17,7 +17,7 @@
     url('/assets/images/1-old.jpg');
   background-repeat: no-repeat;
   background-size: cover;
-  background-position: center 30%;
+  background-position: 100% 50%;
 }
 
 /* Tarjeta de auth compartida */
@@ -187,94 +187,4 @@ hr {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* ===== MODAL DE ERROR ===== */
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(6px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.modal {
-  width: min(92vw, 400px);
-  background: var(--auth-card-bg);
-  border-radius: 14px;
-  padding: 1.6rem 1.8rem 1.2rem;
-  box-shadow: var(--auth-shadow-strong);
-  box-sizing: border-box;
-  color: var(--text-color);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.8rem;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  text-shadow: 1px 1px 2px #000;
-}
-
-.close-btn {
-  border: none;
-  background: transparent;
-  color: var(--text-muted-color);
-  font-size: 1.8rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s ease, transform 0.1s ease;
-}
-
-.close-btn:hover {
-  color: var(--text-color);
-  transform: scale(1.05);
-}
-
-.modal-body {
-  font-size: 0.95rem;
-  color: var(--text-color);
-  margin-bottom: 1.1rem;
-}
-
-.modal-body p {
-  margin: 0;
-  line-height: 1.5;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* Botón del modal, coherente con el tema */
-.btn-modal {
-  padding: 0.6rem 1.4rem;
-  background: transparent;
-  border-radius: 999px;
-  border: 2px solid var(--color-primary);
-  color: var(--color-primary);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-shadow: 1px 1px 2px #000;
-}
-
-.btn-modal:hover {
-  background: var(--color-primary);
-  color: #111;
 }

@@ -1,9 +1,11 @@
 // src/app/dashboard/pages/home/home.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Difficulty, RouteType, Track, TrackListResponse } from '../../../shared/models/track.model';
 import { TrackListParams, TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
 import { TracksService } from '../../services/track.service';
+import { Router } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 
 @Component({
@@ -12,6 +14,9 @@ import { TracksService } from '../../services/track.service';
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent implements OnInit {
+
+  
+
   tracks: Track[] = [];
   loading = false;
   error: string | null = null;
@@ -29,11 +34,20 @@ export class HomeComponent implements OnInit {
   sortBy: TrackSortBy = 'date';
   sortOrder: TrackSortOrder = 'desc';
 
+  // 🔹 Estado del modal de error
+  showErrorModal = false;
+  errorMessage = '';
+
+  isRouteTypeOpen = false;
+  isDifficultyOpen = false;
+  isSortByOpen = false;
+  isSortOrderOpen = false;
+
   // para mostrar en el template
   readonly routeTypes: { value: RouteType; label: string }[] = [
     { value: 'CIRCULAR', label: 'Circular' },
     { value: 'OUT_AND_BACK', label: 'Ida y vuelta' },
-    { value: 'POINT_TO_POINT', label: 'Punto a punto' },
+    { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
 
   constructor(private tracksService: TracksService) {}
@@ -76,14 +90,30 @@ export class HomeComponent implements OnInit {
         this.page = res.page;
         this.limit = res.limit;
         this.loading = false;
+
+        //console.log(this.tracks)
+
+        if(this.tracks.length === 0 ) {
+          // 🔹 Guardamos el mensaje y abrimos el modal
+          this.errorMessage = 'No se han encontrado rutas con esos filtros.'
+          this.showErrorModal = true;
+        }
+
+        
       },
       error: (err) => {
         console.error(err);
         this.error = 'Error cargando rutas';
         this.loading = false;
+
+        // 🔹 Guardamos el mensaje y abrimos el modal
+        this.errorMessage = this.error
+        this.showErrorModal = true;
       },
     });
   }
+
+  
 
   onApplyFilters(): void {
     this.page = 1;
@@ -125,23 +155,65 @@ export class HomeComponent implements OnInit {
     this.loadTracks();
   }
 
-  trackDistanceKm(track: Track): string {
-    return (track.totalDistanceMeters / 1000).toFixed(1);
+  
+  // 🔹 Cerrar el modal
+  closeErrorModal() {
+    this.showErrorModal = false;
   }
 
-  trackAscent(track: Track): string {
-    return `${track.totalAscent} m`;
+  // 🔹 Cierra TODOS los selects
+  private closeAllSelects() {
+    this.isRouteTypeOpen = false;
+    this.isDifficultyOpen = false;
+    this.isSortByOpen = false;
+    this.isSortOrderOpen = false;
   }
 
-  trackDate(track: Track): string {
-    if (!track.dateTrack) return '-';
-    return new Date(track.dateTrack).toLocaleDateString();
+
+  // 🔹 Toggler de cada select (cierra los demás antes de abrir)
+  toggleRouteType() {
+    const willOpen = !this.isRouteTypeOpen;
+    this.closeAllSelects();
+    this.isRouteTypeOpen = willOpen;
+  }
+  closeRouteType() {
+    this.isRouteTypeOpen = false;
   }
 
-  trackImageUrl(track: Track): string | null {
-    if (track.images && track.images.length > 0) {
-      return track.images[0].url;
-    }
-    return null;
+  toggleDifficulty() {
+    const willOpen = !this.isDifficultyOpen;
+    this.closeAllSelects();
+    this.isDifficultyOpen = willOpen;
   }
+  closeDifficulty() {
+    this.isDifficultyOpen = false;
+  }
+
+  toggleSortBy() {
+    const willOpen = !this.isSortByOpen;
+    this.closeAllSelects();
+    this.isSortByOpen = willOpen;
+  }
+  closeSortBy() {
+    this.isSortByOpen = false;
+  }
+
+  toggleSortOrder() {
+    const willOpen = !this.isSortOrderOpen;
+    this.closeAllSelects();
+    this.isSortOrderOpen = willOpen;
+  }
+  closeSortOrder() {
+    this.isSortOrderOpen = false;
+  }
+
+  // 🔹 Click en cualquier parte del documento → cerrar todos
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.closeAllSelects();
+  }
+
+  
+
+
 }

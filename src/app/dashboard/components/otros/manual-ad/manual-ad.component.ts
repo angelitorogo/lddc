@@ -1,6 +1,6 @@
 // src/app/shared/components/manual-ad/manual-ad.component.ts
 import { AfterViewInit, Component } from '@angular/core';
-import { AdsService } from '../../services/otros/ads.service';
+import { AdsService } from '../../../services/otros/ads.service';
 
 @Component({
   selector: 'app-manual-ad',

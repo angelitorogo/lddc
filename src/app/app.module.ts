@@ -9,7 +9,10 @@ import { registerLocaleData } from '@angular/common';
 
 import { LOCALE_ID } from '@angular/core';
 import localeEs from '@angular/common/locales/es';
-import { CookieBannerComponent } from './dashboard/components/cookie-banner/cookie-banner.component';
+import { CookieBannerComponent } from './dashboard/components/otros/cookie-banner/cookie-banner.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+import { GoogleMapsModule } from '@angular/google-maps';
 
 registerLocaleData(localeEs, 'es-ES');
 
@@ -22,6 +25,7 @@ registerLocaleData(localeEs, 'es-ES');
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
+    
   ],
   providers: [
     {

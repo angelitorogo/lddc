@@ -46,7 +46,7 @@
 }
 
 .brand__title {
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -317,7 +317,7 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 900px) {
+@media (max-width: 834px) {
   .nav-links {
     display: none;
   }

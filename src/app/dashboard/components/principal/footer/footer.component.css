@@ -1,11 +1,7 @@
 /* FOOTER */
 .dashboard-footer {
   border-top: 1px solid var(--footer-border-color);
-  background: linear-gradient(
-    to top,
-    var(--footer-bg-top),
-    var(--footer-bg-bottom)
-  );
+  background: linear-gradient(to bottom, rgb(15 31 26), rgb(15 31 26 / 73%), #00000070)
 }
 
 .dashboard-footer__inner {

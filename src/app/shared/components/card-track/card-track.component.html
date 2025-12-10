@@ -1,0 +1,35 @@
+<article class="track-card" (click)="onOpenDetail(track)">
+    <div class="track-card__image-wrapper">
+        <img *ngIf="trackImageUrl(track) as imgUrl" [src]="imgUrl" alt="Imagen de la ruta" />
+        <div *ngIf="!trackImageUrl(track)" class="track-card__placeholder">
+            🏔️
+        </div>
+    </div>
+
+    <div class="track-card__content">
+        <header class="track-card__header">
+            <h2 class="track-card__title">{{ track.name }}</h2>
+            <span class="track-card__difficulty track-card__difficulty--{{ track.difficulty | lowercase }}">
+                {{ track.difficulty }}
+            </span>
+        </header>
+
+        <p class="track-card__meta">
+            <span>{{ trackType(track) }}</span>
+            <span>·</span>
+            <span>{{ trackDistanceKm(track) }} km</span>
+            <span>·</span>
+            <span>{{ trackAscent(track) }} +</span>
+        </p>
+
+        <!--<p class="track-card__description">
+            {{ track.description || 'Sin descripción.' }}
+        </p>-->
+
+        <footer class="track-card__footer">
+            <span class="track-card__date">
+                Fecha: {{ trackDate(track) }}
+            </span>
+        </footer>
+    </div>
+</article>

@@ -1,7 +1,7 @@
 // src/app/features/legal/cookies-settings/cookies-settings.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { CookiePreferencesService, CookiePrefs } from '../../services/otros/cookie-preferences.service';
+import { CookiePreferencesService, CookiePrefs } from '../../../services/otros/cookie-preferences.service';
 
 
 @Component({

@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { DashboardComponent } from './components/principal/dashboard/dashboard.component';
 import { HomeComponent } from './components/home/home.component';
+import { TrackDetailComponent } from './components/track-detail/track-detail.component';
+import { TrackCreateComponent } from './components/track-create/track-create.component';
 
 
 
@@ -14,6 +16,14 @@ const routes: Routes = [
       {
         path: 'home',
         component: HomeComponent,
+      },
+      { 
+        path: 'track/:id', 
+        component: TrackDetailComponent 
+      },
+      { 
+        path: 'create', 
+        component: TrackCreateComponent
       },
       /*
       {
