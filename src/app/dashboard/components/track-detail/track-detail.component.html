@@ -1,5 +1,3 @@
-<!-- src/app/dashboard/components/track-detail/track-detail.component.html -->
-
 <section class="track-page" *ngIf="track">
   <!-- HEADER -->
   <header class="track-page__header">
@@ -44,61 +42,142 @@
     </div>
   </header>
 
-  <!-- GRID PRINCIPAL -->
-  <div class="track-page__layout">
-    <!-- RESUMEN / STATS -->
-    <section class="track-panel track-page__summary">
-      <h2 class="track-panel__title">Resumen de la ruta</h2>
-
-      <div class="track-page__stats-grid">
-        <div class="track-page__stat">
-          <span class="track-page__stat-label">Tipo</span>
-          <span class="track-page__stat-value">{{ getRouteTypeLabel() }}</span>
-        </div>
-
-        <div class="track-page__stat" *ngIf="track.totalDistanceMeters">
-          <span class="track-page__stat-label">Distancia</span>
-          <span class="track-page__stat-value">
-            {{ (track.totalDistanceMeters / 1000) | number : '1.1-1' }} km
-          </span>
-        </div>
-
-        <div class="track-page__stat" *ngIf="track.totalAscent">
-          <span class="track-page__stat-label">Desnivel positivo</span>
-          <span class="track-page__stat-value">
-            {{ track.totalAscent | number : '1.0-0' }} m
-          </span>
-        </div>
-
-        <div class="track-page__stat" *ngIf="track.totalDescent">
-          <span class="track-page__stat-label">Desnivel negativo</span>
-          <span class="track-page__stat-value">
-            {{ track.totalDescent | number : '1.0-0' }} m
-          </span>
-        </div>
-
-        <div class="track-page__stat" *ngIf="track.totalTimeSeconds">
-            <span class="track-page__stat-label">Tiempo estimado</span>
-            <span class="track-page__stat-value">
-                {{ getFormattedTime() }}
-            </span>
-        </div>
-
-        <div class="track-page__stat" *ngIf="track.difficulty">
-          <span class="track-page__stat-label">Dificultad</span>
-          <span class="track-page__stat-value">
-            {{ getDifficultyLabel() }}
-          </span>
-        </div>
-      </div>
+  <!-- LAYOUT PRINCIPAL -->
+  <div
+    class="track-page__layout"
+    [ngClass]="{
+      'track-page__layout--no-cover': !track.images || track.images.length === 0
+    }"
+  >
+    <!-- PORTADA (columna izquierda, primera fila) -->
+    <section
+      class="track-panel track-page__cover"
+      *ngIf="track.images && track.images.length > 0"
+    >
+      <figure class="track-page__cover-figure">
+        <img
+          [src]="getUrlImage(track.images[0])"
+          [alt]="track.name || 'Imagen principal de la ruta'"
+        />
+      </figure>
     </section>
 
-    <!-- DESCRIPCIÓN -->
+    <!-- COLUMNA DERECHA: resumen + galería secundaria, misma altura que portada -->
+    <div class="track-page__side">
+      <!-- RESUMEN / STATS -->
+      <section class="track-panel track-page__summary">
+        <h2 class="track-panel__title">Resumen de la ruta</h2>
+
+        <div class="track-page__stats-grid">
+          <div class="track-page__stat">
+            <span class="track-page__stat-label">Tipo</span>
+            <span class="track-page__stat-value">{{ getRouteTypeLabel() }}</span>
+          </div>
+
+          <div class="track-page__stat" *ngIf="track.totalDistanceMeters">
+            <span class="track-page__stat-label">Distancia</span>
+            <span class="track-page__stat-value">
+              {{ (track.totalDistanceMeters / 1000) | number : '1.1-1' }} km
+            </span>
+          </div>
+
+          <div class="track-page__stat" *ngIf="track.totalAscent">
+            <span class="track-page__stat-label">Desnivel positivo</span>
+            <span class="track-page__stat-value">
+              {{ track.totalAscent | number : '1.0-0' }} m
+            </span>
+          </div>
+
+          <div class="track-page__stat" *ngIf="track.totalDescent">
+            <span class="track-page__stat-label">Desnivel negativo</span>
+            <span class="track-page__stat-value">
+              {{ track.totalDescent | number : '1.0-0' }} m
+            </span>
+          </div>
+
+          <div class="track-page__stat" *ngIf="track.totalTimeSeconds">
+            <span class="track-page__stat-label">Tiempo estimado</span>
+            <span class="track-page__stat-value">
+              {{ getFormattedTime() }}
+            </span>
+          </div>
+
+          <div class="track-page__stat" *ngIf="track.difficulty">
+            <span class="track-page__stat-label">Dificultad</span>
+            <span class="track-page__stat-value">
+              {{ getDifficultyLabel() }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- GALERÍA SECUNDARIA (debajo del resumen, misma columna) -->
+      <section
+        class="track-panel track-page__gallery"
+        *ngIf="track.images && track.images.length > 1"
+      >
+        <h2 class="track-panel__title">Imágenes de la ruta</h2>
+
+        <div class="track-page__thumbs-grid">
+          <ng-container *ngFor="let image of track.images | slice:1:5">
+            <figure class="track-page__thumb-card">
+              <img
+                [src]="getUrlImage(image)"
+                [alt]="track.name || 'Imagen de la ruta'"
+              />
+            </figure>
+          </ng-container>
+        </div>
+
+        <button
+          *ngIf="track.images.length > 5"
+          type="button"
+          class="track-page__more-images"
+        >
+          Más imágenes...
+        </button>
+      </section>
+
+      <!-- Placeholder cuando no hay ninguna imagen -->
+      <section
+        class="track-panel track-page__gallery track-page__gallery--empty"
+        *ngIf="!track.images || track.images.length === 0"
+      >
+        <h2 class="track-panel__title">Imágenes de la ruta</h2>
+        <p class="track-page__description-text track-page__description-text--muted">
+          Esta ruta todavía no tiene fotos asociadas. Anímate a subir alguna
+          cuando compartas tu track.
+        </p>
+      </section>
+    </div>
+
+    <!-- DESCRIPCIÓN (2ª fila, ocupa todo el ancho) -->
     <section class="track-panel track-page__description">
       <h2 class="track-panel__title">Descripción</h2>
-      <p class="track-page__description-text" *ngIf="track.description; else noDescription">
-        {{ track.description }}
-      </p>
+
+      <ng-container *ngIf="track.description; else noDescription">
+        <div
+          class="track-page__description-wrapper"
+          [class.track-page__description-wrapper--expanded]="isDescriptionExpanded"
+        >
+          <p class="track-page__description-text">
+            {{ track.description }}
+          </p>
+
+          <div
+            class="track-page__description-fade"
+            *ngIf="!isDescriptionExpanded"
+          ></div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-link track-page__description-toggle"
+          (click)="toggleDescription()"
+        >
+          {{ isDescriptionExpanded ? 'Ver menos' : 'Ver descripción completa' }}
+        </button>
+      </ng-container>
 
       <ng-template #noDescription>
         <p class="track-page__description-text track-page__description-text--muted">
@@ -107,48 +186,26 @@
         </p>
       </ng-template>
     </section>
-
-    <!-- GALERÍA DE IMÁGENES -->
-    <section
-      class="track-panel track-page__gallery"
-      *ngIf=" track.images && track.images.length > 0"
-    >
-      <h2 class="track-panel__title">Imágenes de la ruta</h2>
-
-      <div class="track-page__gallery-grid">
-        <!-- Imagen principal -->
-        <figure class="track-page__gallery-main">
-          <img
-            [src]="getUrlImage(track.images[0])"
-            [alt]="track.name || 'Imagen principal de la ruta'"
-          />
-        </figure>
-
-        <!-- Thumbnails -->
-        <ng-container *ngFor="let image of track.images; let i = index">
-          <figure
-            *ngIf="i > 0"
-            class="track-page__gallery-thumb"
-          >
-            <img
-              [src]="getUrlImage(image)"
-              [alt]="track.name || 'Imagen de la ruta'"
-            />
-          </figure>
-        </ng-container>
-      </div>
-    </section>
-
-    <!-- Si no hay imágenes, mostramos un panel placeholder -->
-    <section
-      class="track-panel track-page__gallery track-page__gallery--empty"
-      *ngIf="!track.images || track.images.length === 0"
-    >
-      <h2 class="track-panel__title">Imágenes de la ruta</h2>
-      <p class="track-page__description-text track-page__description-text--muted">
-        Esta ruta todavía no tiene fotos asociadas. Anímate a subir alguna
-        cuando compartas tu track.
-      </p>
-    </section>
   </div>
+
+  <!-- FOOTER DE ACCIONES -->
+  <footer class="track-page__footer">
+    <button
+      type="button"
+      class="btn-outline track-page__footer-btn"
+      (click)="onEditTrack()"
+    >
+      <i class="bi bi-pencil"></i>
+      <span>Editar ruta</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn-danger track-page__footer-btn"
+      (click)="onDeleteTrack()"
+    >
+      <i class="bi bi-trash"></i>
+      <span>Eliminar ruta</span>
+    </button>
+  </footer>
 </section>

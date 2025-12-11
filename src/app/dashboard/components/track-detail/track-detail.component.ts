@@ -14,6 +14,7 @@ import { environment } from '../../../../environments/environment';
 export class TrackDetailComponent implements OnInit{
 
   private readonly baseUrl = `${environment.API_URL}/tracks`;
+  isDescriptionExpanded = false;
 
   track: DetailResponse | null = null;
 
@@ -91,6 +92,20 @@ export class TrackDetailComponent implements OnInit{
 
     const minutes = seconds / 60;
     return `${Math.round(minutes)} min`;
+  }
+
+  toggleDescription(): void {
+    this.isDescriptionExpanded = !this.isDescriptionExpanded;
+  }
+
+  onEditTrack(): void {
+    // TODO: implementar navegación a pantalla de edición
+    console.log('Editar ruta', this.track?.id);
+  }
+
+  onDeleteTrack(): void {
+    // TODO: implementar confirmación y borrado
+    console.log('Eliminar ruta', this.track?.id);
   }
 
 }

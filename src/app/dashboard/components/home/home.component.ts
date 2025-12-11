@@ -83,6 +83,7 @@ export class HomeComponent implements OnInit {
       params.maxDistance = Math.round(this.filterMaxDistanceKm * 1000);
     }
 
+
     this.tracksService.getTracks(params).subscribe({
       next: (res: TrackListResponse) => {
         this.tracks = res.items;
@@ -93,11 +94,22 @@ export class HomeComponent implements OnInit {
 
         //console.log(this.tracks)
 
-        if(this.tracks.length === 0 ) {
-          // 🔹 Guardamos el mensaje y abrimos el modal
-          this.errorMessage = 'No se han encontrado rutas con esos filtros.'
-          this.showErrorModal = true;
+        if(this.tracks.length === 0 && !this.filterRouteType && !this.filterDifficulty && !this.filterMinDistanceKm && !this.filterMaxDistanceKm && this.sortBy === 'date' && this.sortOrder === 'desc') {
+
+          this.error = 'No hay ninguna ruta subida aún';
+          this.loading = false;
+          
+        } else {
+
+          if(this.tracks.length === 0 ) {
+            this.errorMessage = 'No se han encontrado rutas con esos filtros.'
+            this.showErrorModal = true;
+          }
+
+          
         }
+
+        
 
         
       },

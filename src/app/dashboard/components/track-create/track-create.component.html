@@ -17,16 +17,8 @@
     <!-- NOMBRE -->
     <div class="form-field">
       <label for="name">Nombre de la ruta *</label>
-      <input
-        id="name"
-        type="text"
-        formControlName="name"
-        placeholder="P. ej. Circular a la Peña X..."
-      />
-      <div
-        class="form-field__error"
-        *ngIf="form.get('name')?.touched && form.get('name')?.invalid"
-      >
+      <input id="name" type="text" formControlName="name" placeholder="P. ej. Circular a la Peña X..." />
+      <div class="form-field__error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
         El nombre es obligatorio.
       </div>
     </div>
@@ -34,12 +26,8 @@
     <!-- DESCRIPCIÓN -->
     <div class="form-field">
       <label for="description">Descripción (opcional)</label>
-      <textarea
-        id="description"
-        rows="4"
-        formControlName="description"
-        placeholder="Aquí puedes escribir una descripción narrativa de la ruta..."
-      ></textarea>
+      <textarea id="description" rows="4" formControlName="description"
+        placeholder="Aquí puedes escribir una descripción narrativa de la ruta..."></textarea>
     </div>
 
     <!-- ARCHIVO GPX -->
@@ -47,23 +35,31 @@
       <label for="gpxFile">Archivo GPX</label>
 
       <div class="file-input-row">
-        <input
-          #fileInput
-          id="gpxFile"
-          type="file"
-          accept=".gpx"
-          (change)="onFileSelected($event)"
-        />
 
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="onCancelFile()"
-          [disabled]="!selectedFile && !isPreviewVisible"
-        >
+        <!-- INPUT REAL OCULTO -->
+        <input #fileInput id="gpxFile" type="file" accept=".gpx" (change)="onFileSelected($event)"
+          class="file-input__hidden" />
+
+        <!-- BOTÓN PERSONALIZADO -->
+        <button type="button" class="btn-upload" (click)="openFileDialog()">
+          <i class="bi bi-upload"></i>
+          <span>
+            {{ selectedFile ? 'Cambiar archivo' : 'Seleccionar GPX' }}
+          </span>
+        </button>
+
+        <!-- MOSTRAR NOMBRE DEL ARCHIVO -->
+        <span class="file-input__filename" *ngIf="selectedFile">
+          {{ selectedFile.name }}
+        </span>
+
+        <!-- BOTÓN QUITAR ARCHIVO -->
+        <button type="button" class="btn-secondary" (click)="onCancelFile()" [disabled]="!selectedFile">
           Quitar archivo
         </button>
+
       </div>
+
 
       <p class="form-field__hint">
         Selecciona un archivo .gpx para previsualizar el trazado en el mapa.
@@ -83,16 +79,8 @@
       <h2 class="track-create__preview-title">Vista previa del track</h2>
 
       <div class="track-create__map-wrapper">
-        <google-map
-          height="360px"
-          width="100%"
-          [options]="mapOptions"
-          (mapInitialized)="onMapReady($event)"
-        >
-          <map-polyline
-            [path]="previewPoints"
-            [options]="polylineOptions"
-          ></map-polyline>
+        <google-map height="360px" width="100%" [options]="mapOptions" (mapInitialized)="onMapReady($event)">
+          <map-polyline [path]="previewPoints" [options]="polylineOptions"></map-polyline>
         </google-map>
       </div>
 
@@ -100,6 +88,53 @@
         Si cambias de archivo GPX sin guardar, se actualizará esta vista previa.
       </p>
     </section>
+
+    <!-- IMÁGENES -->
+    <div class="form-field">
+      <label for="imageFile">Imágenes</label>
+
+      <div class="file-input-row">
+        <!-- INPUT IMAGES REAL OCULTO -->
+        <input #imageInput id="imageFile" type="file" accept=".jpg, .jpeg, .png, .webp" multiple
+          (change)="onImageSelected($event)" class="file-input__hidden" />
+
+        <!-- BOTÓN PERSONALIZADO -->
+        <button type="button" class="btn-upload" (click)="openImageDialog()">
+          <i class="bi bi-upload"></i>
+          <span>
+            {{ selectedImages.length ? 'Cambiar imágenes' : 'Seleccionar imágenes' }}
+          </span>
+        </button>
+
+        <!-- RESUMEN -->
+        <span class="file-input__filename" *ngIf="selectedImages.length">
+          {{ selectedImages.length }} imagen(es) seleccionada(s)
+        </span>
+
+        <!-- BOTÓN QUITAR IMÁGENES -->
+        <button type="button" class="btn-secondary" (click)="onCancelImages()" [disabled]="!selectedImages.length">
+          Quitar imágenes
+        </button>
+      </div>
+
+      <!-- PREVIEW DE IMÁGENES -->
+      <div class="image-preview-grid" *ngIf="imagePreviews.length">
+        <div class="image-preview-card" *ngFor="let img of imagePreviews; let i = index">
+          <div class="image-preview-thumb">
+            <img [src]="img.url" [alt]="img.file.name" />
+          </div>
+          <div class="image-preview-meta">
+            <span class="image-preview-name" [title]="img.file.name">
+              {{ img.file.name }}
+            </span>
+            <button type="button" class="image-preview-remove" (click)="removeImage(i)">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- ACCIONES -->
     <div class="track-create__actions">

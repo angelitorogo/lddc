@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { TrackListParams } from '../../shared/models/track-list-params-model';
 import { TrackListResponse } from '../../shared/models/track.model';
 import { DetailResponse } from '../../shared/responses/detail.response';
+import { CreateTrackResponse } from '../../shared/responses/create-track.response';
 
 
 @Injectable({
@@ -65,7 +66,39 @@ export class TracksService {
   getTrackById(id: string): Observable<DetailResponse> {
     return this.http.get<any>(
       `${this.baseUrl}/${id}`,
-      { withCredentials: true }
+      { withCredentials: true } // por si usas cookies de sesión (no afecta a GET)
     );
   }
+
+  createFromGpx(
+    name: string,
+    description: string | null,
+    gpxFile: File,
+    images: File[],
+  ): Observable<CreateTrackResponse> {
+    const formData = new FormData();
+
+    formData.append('name', name);
+    if (description) {
+      formData.append('description', description);
+    }
+
+    // campo "gpx" -> coincide con FileFieldsInterceptor({ name: 'gpx' })
+    formData.append('gpx', gpxFile, gpxFile.name);
+
+    // campo "images" -> puede haber varias
+    images.forEach((img) => {
+      formData.append('images', img, img.name);
+    });
+
+    return this.http.post<CreateTrackResponse>(
+      `${this.baseUrl}/gpx`,
+      formData,
+      {
+        withCredentials: true, // para cookies de sesión
+      },
+    );
+  }
+
+
 }

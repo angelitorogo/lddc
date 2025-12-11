@@ -12,10 +12,16 @@ import {
 } from '@angular/forms';
 import { GoogleMap } from '@angular/google-maps';
 import { Router } from '@angular/router';
+import { TracksService } from '../../services/track.service';
 
 interface LatLngLiteral {
   lat: number;
   lng: number;
+}
+
+interface ImagePreview {
+  file: File;
+  url: string;
 }
 
 @Component({
@@ -24,8 +30,9 @@ interface LatLngLiteral {
   styleUrls: ['./track-create.component.css'],
 })
 export class TrackCreateComponent {
-  @ViewChild('fileInput', { static: false })
-  fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
+
 
   @ViewChild(GoogleMap)
   mapComponent?: GoogleMap;
@@ -33,6 +40,8 @@ export class TrackCreateComponent {
   form: FormGroup;
 
   selectedFile: File | null = null;
+  selectedImages: File[] = [];
+  imagePreviews: ImagePreview[] = [];
 
   previewPoints: LatLngLiteral[] = [];
 
@@ -43,8 +52,12 @@ export class TrackCreateComponent {
   mapOptions: google.maps.MapOptions = {
     center: { lat: 40.4168, lng: -3.7038 },
     zoom: 8,
-    mapTypeId: 'terrain',
-    disableDefaultUI: false,
+    zoomControl: false,
+    mapTypeId: 'satellite',
+    disableDefaultUI: true,
+    scrollwheel: false,
+    disableDoubleClickZoom: true,
+    draggable: false,
   };
 
   polylineOptions: google.maps.PolylineOptions = {
@@ -55,7 +68,7 @@ export class TrackCreateComponent {
 
   private mapInstance?: google.maps.Map;
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(private fb: FormBuilder, private router: Router, private trackService: TracksService) {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(120)]],
       description: ['', [Validators.maxLength(5000)]],
@@ -83,6 +96,66 @@ export class TrackCreateComponent {
 
   onBack(): void {
     this.router.navigate(['/home']);
+  }
+
+  openFileDialog(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  openImageDialog(): void {
+    this.imageInput.nativeElement.click();
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+
+    // limpiar anteriores
+    this.clearImagePreviews();
+
+    if (!files || !files.length) {
+      this.selectedImages = [];
+      return;
+    }
+
+    // guardar todos los ficheros
+    this.selectedImages = Array.from(files);
+
+    // generar URLs de preview
+    this.imagePreviews = this.selectedImages.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+  }
+
+  onCancelImages(): void {
+    this.selectedImages = [];
+    this.clearImagePreviews();
+
+    if (this.imageInput?.nativeElement) {
+      this.imageInput.nativeElement.value = '';
+    }
+  }
+
+  private clearImagePreviews(): void {
+    this.imagePreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    this.imagePreviews = [];
+  }
+
+  removeImage(index: number): void {
+    const preview = this.imagePreviews[index];
+
+    if (preview) {
+      URL.revokeObjectURL(preview.url);
+    }
+
+    this.imagePreviews.splice(index, 1);
+    this.selectedImages.splice(index, 1);
+
+    // si ya no quedan imágenes, vaciamos el input
+    if (!this.selectedImages.length && this.imageInput?.nativeElement) {
+      this.imageInput.nativeElement.value = '';
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -195,14 +268,46 @@ export class TrackCreateComponent {
 
     const { name, description } = this.form.value;
 
+    // Aquí más adelante:
+    // const formData = new FormData();
+    // formData.append('gpx', this.selectedFile);
+    // this.selectedImages.forEach(img => formData.append('images', img));
+    // ...
+
     // Aquí prepararías el FormData o payload real
-    console.log('Crear track (preview):', {
+    console.log('Crear track con imágenes:', {
       name,
       description,
-      fileName: this.selectedFile.name,
-      pointsCount: this.previewPoints.length,
+      gpxFile: this.selectedFile.name,
+      images: this.selectedImages.map(f => f.name),
     });
 
     // TODO: llamada al servicio HTTP que suba el GPX + datos al backend.
+    this.trackService
+    .createFromGpx(
+      name,
+      description || null,
+      this.selectedFile,
+      this.selectedImages,
+    )
+    .subscribe({
+      next: (res) => {
+        console.log('Track creado:', res);
+        // si quieres limpiar el formulario:
+        this.form.reset();
+        this.clearFileAndPreview(true);
+        this.onCancelImages();
+
+        // navegar a home o a detail del track:
+        //this.router.navigate(['/home']);
+        this.router.navigate(['/tracks', res.id]);
+      },
+      error: (err) => {
+        console.error('Error creando track', err);
+        this.fileError = 'Ha ocurrido un error al crear el track.';
+      },
+    });
+
+
   }
 }

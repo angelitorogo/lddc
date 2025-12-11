@@ -51,7 +51,7 @@ export class CardTrackComponent {
   }
 
   onOpenDetail(track: Track) {
-    console.log(track)
+    //console.log(track)
     this.router.navigate(['/dashboard/track', track.id]);
   }
 
