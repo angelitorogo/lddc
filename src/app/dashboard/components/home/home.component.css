@@ -217,18 +217,20 @@
 }
 
 .btn--primary {
-  background-color: var(--color-primary);
-  color: #0a1a14;
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
 }
 
 .btn--primary:hover {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-primary);
+  color: #0f1a15;
 }
 
 .btn--secondary {
   background-color: transparent;
   border-color: var(--color-border);
-  color: var(--text-color);
+  color: var(--color-primary);
 }
 
 .btn--secondary:hover:not(:disabled) {

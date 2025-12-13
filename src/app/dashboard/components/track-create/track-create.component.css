@@ -193,16 +193,18 @@
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
-  color: #0a1a14;
+  background-color: transparent;
+  color: var(--color-primary);
 }
 
 .btn-primary:hover {
   background-color: var(--color-primary-hover);
+  color: #0f1a15;
 }
 
 .btn-secondary:hover {
   border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* PREVIEW MAPA */

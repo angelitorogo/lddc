@@ -35,6 +35,8 @@ export interface Track {
   startEle?: number | null;
   startTime?: string | null;
 
+  profilePoints?: { distanceMeters: number; elevationMeters: number }[];
+
   created_at: string;
   updated_at: string;
 

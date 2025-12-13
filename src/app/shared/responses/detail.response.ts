@@ -20,6 +20,13 @@ export interface DetailResponse {
     startEle:            number;
     startTime:           Date;
     images:              Image[];
+    elevationProfile:    ElevationProfile[];
+    trackPointsForFront: TrackPoint[];
+}
+
+export interface ElevationProfile {
+    distanceMeters:  number;
+    elevationMeters: number;
 }
 
 export interface Image {
@@ -28,4 +35,12 @@ export interface Image {
     trackId:    string;
     url:        string;
     order:      number;
+}
+
+
+export interface TrackPoint {
+    ele:    number;
+    lat:    number;
+    lon:    number;
+    time:   Date;
 }

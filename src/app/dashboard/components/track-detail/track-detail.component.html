@@ -49,20 +49,36 @@
       'track-page__layout--no-cover': !track.images || track.images.length === 0
     }"
   >
-    <!-- PORTADA (columna izquierda, primera fila) -->
+    <!-- PORTADA (col izquierda, fila 1) -->
     <section
       class="track-panel track-page__cover"
-      *ngIf="track.images && track.images.length > 0"
+      *ngIf="polylinePath.length"
     >
-      <figure class="track-page__cover-figure">
-        <img
-          [src]="getUrlImage(track.images[0])"
-          [alt]="track.name || 'Imagen principal de la ruta'"
-        />
+      <figure class="track-page__cover-figure track-page__cover-figure--map">
+        <google-map
+          #detailMap
+          height="320px"
+          width="100%"
+          [center]="mapCenter || { lat: 0, lng: 0 }"
+          [zoom]="mapZoom"
+          [options]="mapOptions"
+        >
+          <map-polyline
+            [path]="polylinePath"
+            [options]="polylineOptions"
+          ></map-polyline>
+
+          <map-marker
+            *ngIf="hoverMapPoint"
+            [position]="hoverMapPoint"
+            [options]="hoverMarkerOptions"
+          ></map-marker>
+
+        </google-map>
       </figure>
     </section>
 
-    <!-- COLUMNA DERECHA: resumen + galería secundaria, misma altura que portada -->
+    <!-- COLUMNA DERECHA (fila 1): resumen + galería, misma altura que portada -->
     <div class="track-page__side">
       <!-- RESUMEN / STATS -->
       <section class="track-panel track-page__summary">
@@ -151,7 +167,61 @@
       </section>
     </div>
 
-    <!-- DESCRIPCIÓN (2ª fila, ocupa todo el ancho) -->
+
+    <!-- FILA 2: PERFIL DE ELEVACIÓN -->
+    <section class="track-panel track-page__profile">
+      <h2 class="track-panel__title">Perfil de elevación</h2>
+
+      <div class="track-page__profile-chart" 
+            #profileWrap 
+            (mouseleave)="onProfileLeave()"
+            (touchstart)="onProfileTouch($event)"
+            (touchmove)="onProfileTouch($event)"
+            (touchend)="onProfileLeave()"
+     >
+        <canvas #elevationCanvas (mouseout)="onProfileLeave()" ></canvas>
+
+        <!-- Tooltip HTML justo encima de la línea vertical con la altitud -->
+        <div
+          class="elev-tooltip-up"
+          *ngIf="elevTooltip.visible"
+          [style.left.px]="elevTooltip.x"
+          [style.top.px]="elevTooltip.y"
+        >
+          <div class="elev-tooltip__row">
+            <span class="elev-tooltip__label">Altitud</span>
+            <span class="elev-tooltip__value">
+              {{ elevTooltip.altitudeM | number : '1.0-0' }} m
+            </span>
+          </div>
+        </div>
+        <!-- Tooltip HTML justo debajo de la línea vertical con la distancia -->
+         <div
+          class="elev-tooltip-down"
+          *ngIf="elevTooltip.visible"
+          [style.left.px]="elevTooltip.x"
+          [style.top.px]="elevTooltip.y"
+        >
+          <div class="elev-tooltip__row">
+            <span class="elev-tooltip__label">Distancia</span>
+            <span class="elev-tooltip__value">
+              {{ elevTooltip.distanceKm | number : '1.2-2' }} km
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p
+        *ngIf="!hasElevationProfile()"
+        class="track-page__description-text track-page__description-text--muted"
+      >
+        No hay suficientes datos de altitud para mostrar un perfil.
+      </p>
+    </section>
+
+
+
+    <!-- FILA 3: DESCRIPCIÓN (full width) -->
     <section class="track-panel track-page__description">
       <h2 class="track-panel__title">Descripción</h2>
 
