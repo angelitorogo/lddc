@@ -13,12 +13,12 @@ import { environment } from '../../../../environments/environment';
 
 import Chart from 'chart.js/auto';
 import {
-  ChartConfiguration,
-  ChartData,
   ChartOptions,
 } from 'chart.js';
 
 import { GoogleMap } from '@angular/google-maps';
+import { Track } from '../../../shared/models/track.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-track-detail',
@@ -27,6 +27,8 @@ import { GoogleMap } from '@angular/google-maps';
 })
 export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
+
+  private routeSub?: Subscription;
 
   track: DetailResponse | null = null;
 
@@ -68,6 +70,9 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('profileWrap', { static: false })
   profileWrap!: ElementRef<HTMLDivElement>;
 
+  yAutoMin?: number;
+  yAutoMax?: number;
+
   elevTooltip = {
     visible: false,
     x: 0,          // px dentro del contenedor
@@ -88,7 +93,20 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private cumulativeDistancesMeters: number[] = [];
 
-  private isMobileView = window.matchMedia('(max-width: 960px)').matches;
+  public isMobileView = window.matchMedia('(max-width: 960px)').matches;
+  
+  @ViewChild('tooltipUpEl', { static: false })
+  tooltipUpEl?: ElementRef<HTMLDivElement>;
+
+  @ViewChild('tooltipDownEl', { static: false })
+  tooltipDownEl?: ElementRef<HTMLDivElement>;
+
+  public pendiente?: string;
+
+
+  nearbyTracks: any[] = [];
+  isLoadingNearby = false;
+  nearbyError: string | null = null;
 
   constructor(
     private router: Router,
@@ -99,12 +117,63 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   // ========== CICLO DE VIDA ==========
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) return;
+    this.routeSub = this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (!id) return;
+
+      this.loadDetailTrack(id);
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.viewInitialized = true;
+    //console.log('👀 AfterViewInit, canvas:', this.elevationCanvas);
+
+    // Puede que el track ya esté cargado; esperamos un tick para que exista el mapa
+    setTimeout(() => {
+      this.fitMapToPolyline();
+      if (this.hasElevationProfile()) {
+        this.buildElevationChart();
+      }
+    }, 50);
+
+    // Si ya tenemos datos (por ejemplo en cargas muy rápidas), pintamos
+    if (this.hasElevationProfile()) {
+      this.buildElevationChart();
+    }
+
+    window.addEventListener('resize', () => {
+      this.isMobileView = window.matchMedia('(max-width: 960px)').matches;
+    }, { passive: true });
+
+  }
+
+  ngOnDestroy(): void {
+    this.routeSub?.unsubscribe();
+    if (this.elevationChart) {
+      this.elevationChart.destroy();
+      this.elevationChart = undefined;
+    }
+    this.elevTooltip.visible = false;
+  }
+
+  
+
+  // ========== NAVEGACIÓN ==========
+
+  onBack(): void {
+    this.router.navigate(['/dashboard/home']);
+  }
+
+  private loadDetailTrack(id: string) {
+
+    this.resetElevationChartHard();
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
       this.track = resp;
-      console.log(this.track);
+      //console.log(this.track);
+
+      this.loadNearbyTracks();
 
       if (!this.track.trackPointsForFront) {
         this.track.trackPointsForFront = [];
@@ -138,45 +207,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
     });
-  }
-
-  ngAfterViewInit(): void {
-    this.viewInitialized = true;
-    //console.log('👀 AfterViewInit, canvas:', this.elevationCanvas);
-
-    // Puede que el track ya esté cargado; esperamos un tick para que exista el mapa
-    setTimeout(() => {
-      this.fitMapToPolyline();
-      if (this.hasElevationProfile()) {
-        this.buildElevationChart();
-      }
-    }, 50);
-
-    // Si ya tenemos datos (por ejemplo en cargas muy rápidas), pintamos
-    if (this.hasElevationProfile()) {
-      this.buildElevationChart();
-    }
-
-    window.addEventListener('resize', () => {
-      this.isMobileView = window.matchMedia('(max-width: 960px)').matches;
-    }, { passive: true });
-
-  }
-
-  ngOnDestroy(): void {
-    if (this.elevationChart) {
-      this.elevationChart.destroy();
-      this.elevationChart = undefined;
-    }
-    this.elevTooltip.visible = false;
-  }
-
-  
-
-  // ========== NAVEGACIÓN ==========
-
-  onBack(): void {
-    this.router.navigate(['/dashboard/home']);
   }
 
   // ========= MAPA / POLILÍNEA =========
@@ -398,6 +428,30 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ========== PERFIL DE ELEVACIÓN ==========
 
+  private resetElevationChartHard(): void {
+    // Limpia hover/tooltip (por si se quedó activo)
+    this.clearElevationHover(false);
+
+    // Resetea rango auto (para que no se herede entre tracks)
+    this.yAutoMin = undefined;
+    this.yAutoMax = undefined;
+
+    // Destruye chart
+    if (this.elevationChart) {
+      this.elevationChart.destroy();
+      this.elevationChart = undefined;
+    }
+
+    // Limpia canvas a pelo (evita “restos” visuales o escalas pegadas)
+    if (this.elevationCanvas?.nativeElement) {
+      const ctx = this.elevationCanvas.nativeElement.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, this.elevationCanvas.nativeElement.width, this.elevationCanvas.nativeElement.height);
+      }
+    }
+  }
+
+
   hasElevationProfile(): boolean {
     return !!this.elevationProfile && this.elevationProfile.length > 1;
   }
@@ -424,6 +478,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     const data = this.elevationProfile.map(p => p.elevationMeters);
+
 
     // 🔥 Plugin: dibuja la línea vertical como crosshair
     const verticalLinePlugin = {
@@ -478,6 +533,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         {
           label: 'Altitud (m)',
           data,
+          yAxisID: 'y',
           tension: 0.3,
           borderWidth: 2,
           pointRadius: 0,
@@ -569,6 +625,9 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           return;
         }
 
+        // ✅ Desktop: reutilizamos la misma lógica que móvil
+        this.applyHoverIndex(activeEls[0].index);
+
         if (this.recenterResetTimer) {
           clearTimeout(this.recenterResetTimer);
           this.recenterResetTimer = null;
@@ -584,8 +643,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           title: { display: !this.isMobileView, text: 'Distancia (km)' },
           grid: { color: 'rgba(255, 255, 255, 0.05)' },
           ticks: {
-            display: !this.isMobileView,      // en móvil, fuera ticks del eje X también
-            maxTicksLimit: this.isMobileView ? 3 : 8,
+            display: true,      // en móvil, fuera ticks del eje X también
+            maxTicksLimit: this.isMobileView ? 6 : 8,
             maxRotation: 0,
             minRotation: 0,
           },
@@ -593,12 +652,41 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         },
 
         y: {
-          grace: '3%',
+          position: 'left',
+          grace: '5%',
+          min: this.yAutoMin,
+          max: this.yAutoMax,
           title: { display: !this.isMobileView, text: 'Altitud (m)' },
 
           // ✅ en móvil: fuera números del eje Y
           ticks: {
+            display: true,
+            callback: (value) => `${value} m`,
+          },
+
+          // ✅ en móvil: fuera la línea del eje Y
+          border: {
             display: !this.isMobileView,
+          },
+
+          // ✅ grid horizontal (si la quieres mantener suave)
+          grid: {
+            color: 'rgba(255, 255, 255, 0.08)',
+            drawTicks: !this.isMobileView,     // quita las “marquitas” del eje
+          },
+        },
+
+        yRight: {
+          display: !this.isMobileView,
+          min: this.yAutoMin,
+          max: this.yAutoMax,
+          position: 'right',
+          grace: '5%',
+          title: { display: !this.isMobileView, text: 'Altitud (m)' },
+
+          // ✅ en móvil: fuera números del eje Y
+          ticks: {
+            display: true,
             callback: (value) => `${value} m`,
           },
 
@@ -622,8 +710,33 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       type: 'line',
       data: chartData,
       options,
-      plugins: [verticalLinePlugin],
+      plugins: [verticalLinePlugin]
     });
+
+    requestAnimationFrame(() => {
+      const chart: any = this.elevationChart;
+      if (!chart) return;
+
+      const y: any = chart.scales?.y;
+      if (!y) return;
+
+      // ✅ valores reales calculados por Chart.js (incluye grace)
+      this.yAutoMin = y.min;
+      this.yAutoMax = y.max;
+
+      //console.log('📐 Y auto range:', this.yAutoMin, this.yAutoMax);
+
+      // ✅ aplicar esos valores al eje derecho
+      const yRightOpts = chart.options?.scales?.yRight;
+      if (yRightOpts) {
+        yRightOpts.min = this.yAutoMin;
+        yRightOpts.max = this.yAutoMax;
+      }
+
+      chart.update('none'); // refresco sin animación
+    });
+
+
   }
 
   private buildCumulativeDistances(): void {
@@ -696,6 +809,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     // Ocultar tooltip + marcador
     this.elevTooltip.visible = false;
     this.hoverMapPoint = null;
+    this.pendiente = undefined;
 
     // Limpiar estado “active” interno de Chart.js (muy importante)
     if (this.elevationChart) {
@@ -753,6 +867,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
   private applyHoverIndex(idx: number): void {
+    
     const p = this.elevationProfile[idx];
     if (!p) return;
 
@@ -767,28 +882,151 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const wrapRect = this.profileWrap.nativeElement.getBoundingClientRect();
     const xInWrap = x + (canvasRect.left - wrapRect.left);
 
-    const wrapWidth = wrapRect.width;
-    const PADDING = 12;
-    const clampedX = Math.max(PADDING, Math.min(wrapWidth - PADDING, xInWrap));
-
     // ✅ En móvil normalmente quieres tooltip abajo (para no tapar el gráfico)
     const isMobile = this.isMobileView;
     const tooltipY = isMobile ? (wrapRect.height - 44) : Math.max(6, yTop - 46);
 
+    const wrapWidth = wrapRect.width;
+
+    // 1) ponemos visible primero para que Angular cree los tooltips
     this.elevTooltip.visible = true;
-    this.elevTooltip.x = clampedX;
+
+    // 2) primer cálculo (puede usar fallback si aún no están en DOM)
+    this.elevTooltip.x = this.computeStickyTooltipX(xInWrap, wrapWidth);
     this.elevTooltip.y = tooltipY;
     this.elevTooltip.distanceKm = p.distanceMeters / 1000;
     this.elevTooltip.altitudeM = p.elevationMeters;
 
+
+    const slope = this.getSlopePercentAt(idx);
+    if (slope !== null) {
+      //console.log(`📐 Pendiente: ${slope.toFixed(1)}%`);
+      this.pendiente = slope.toFixed(1);
+    }
+    
+
+    // 3) recalcular en el siguiente frame ya con anchos reales (clave para evitar cortes)
+    requestAnimationFrame(() => {
+      if (!this.elevTooltip.visible) return;
+      const wrapRect2 = this.profileWrap.nativeElement.getBoundingClientRect();
+      this.elevTooltip.x = this.computeStickyTooltipX(xInWrap, wrapRect2.width);
+      
+    });
+
     // mover punto en mapa
-    if (this.polylinePath?.length && this.cumulativeDistancesMeters.length === this.polylinePath.length) {
+    if (
+      this.polylinePath?.length &&
+      this.cumulativeDistancesMeters.length === this.polylinePath.length
+    ) {
       const nearestIdx = this.findNearestPolylineIndexByDistance(p.distanceMeters);
       this.hoverMapPoint = this.polylinePath[nearestIdx];
     }
+
+    
   }
 
 
+  private getActiveTooltipWidth(): number {
+    const fallback = 180;
 
+    // Down siempre existe cuando visible=true
+    const downW = this.tooltipDownEl?.nativeElement?.offsetWidth ?? 0;
+
+    // Up solo existe en desktop
+    const upW = this.tooltipUpEl?.nativeElement?.offsetWidth ?? 0;
+
+    // Usamos el mayor de los visibles para que ninguno se corte
+    const w = Math.max(downW, upW);
+
+    return w > 0 ? w : fallback;
+  }
+
+  private computeStickyTooltipX(xInWrap: number, wrapWidth: number): number {
+    const EDGE_MARGIN = 8;
+    const tooltipWidth = this.getActiveTooltipWidth();
+
+    let x = xInWrap;
+    const leftEdge = x - tooltipWidth / 2;
+    const rightEdge = x + tooltipWidth / 2;
+
+    if (leftEdge < EDGE_MARGIN) {
+      x = tooltipWidth / 2 + EDGE_MARGIN;
+    } else if (rightEdge > wrapWidth - EDGE_MARGIN) {
+      x = wrapWidth - tooltipWidth / 2 - EDGE_MARGIN;
+    }
+
+    return x;
+  }
+
+  private loadNearbyTracks(): void {
+    if (!this.track) return;
+
+    // ✅ Necesitamos un punto base (inicio de la ruta)
+    const first = this.track.trackPointsForFront?.[0];
+    if (!first) return;
+
+    this.isLoadingNearby = true;
+    this.nearbyError = null;
+
+    this.trackService.getNearbyTracks({
+      lat: first.lat,
+      lon: first.lon,
+      radiusMeters: 50000,
+      limit: 20,
+      trackExcluded: this.track.id,
+    }).subscribe({
+      next: (items) => {
+        this.nearbyTracks = (items ?? []).filter(t => t?.id && t.id !== this.track?.id);
+        //console.log(this.nearbyTracks)
+        this.isLoadingNearby = false;
+      },
+      error: (err) => {
+        console.error('❌ nearby error', err);
+        this.nearbyTracks = [];
+        this.nearbyError = 'No se han podido cargar las rutas cercanas.';
+        this.isLoadingNearby = false;
+      }
+    });
+  }
+
+
+  navigateNearbyTrack(track: Track): void {
+
+    //console.log(track)
+    this.router.navigate(['/dashboard/track', track.id]);
+
+  }
+
+
+  private getSlopePercentAt(idx: number): number | null {
+    if (!this.elevationProfile || this.elevationProfile.length < 2) return null;
+    if (idx < 0 || idx >= this.elevationProfile.length) return null;
+
+    // usamos un pequeño "window" para que no sea tan ruidoso
+    const i0 = Math.max(0, idx - 2);
+    const i1 = Math.min(this.elevationProfile.length - 1, idx + 2);
+
+    const p0 = this.elevationProfile[i0];
+    const p1 = this.elevationProfile[i1];
+
+    const d = (p1.distanceMeters ?? 0) - (p0.distanceMeters ?? 0);     // metros
+    const h = (p1.elevationMeters ?? 0) - (p0.elevationMeters ?? 0);   // metros
+
+    if (!d || d <= 0) return null;
+
+    return (h / d) * 100;
+  }
+
+  getSlopeClass(slope: number | null | undefined): string {
+
+    if (slope == null) return 'slope--none';
+
+    const abs = Math.abs(slope); // 🔥 muy importante (bajada también cuenta)
+
+    if (abs < 10) return 'slope--easy';
+    if (abs < 17) return 'slope--moderate';
+    if (abs < 25) return 'slope--hard';
+    return 'slope--extreme';
+  }
 
 }

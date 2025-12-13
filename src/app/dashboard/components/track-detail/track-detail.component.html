@@ -170,7 +170,10 @@
 
     <!-- FILA 2: PERFIL DE ELEVACIÓN -->
     <section class="track-panel track-page__profile">
-      <h2 class="track-panel__title">Perfil de elevación</h2>
+      <h2 class="track-panel__title title__perfil">
+        <span>Perfil de elevación</span>
+        <span style="width: 14rem;" *ngIf="pendiente">Pendiente: <span class="slope" [ngClass]="getSlopeClass(+pendiente)">{{pendiente}}%</span></span>
+      </h2>
 
       <div class="track-page__profile-chart" 
             #profileWrap 
@@ -184,7 +187,8 @@
         <!-- Tooltip HTML justo encima de la línea vertical con la altitud -->
         <div
           class="elev-tooltip-up"
-          *ngIf="elevTooltip.visible"
+          #tooltipUpEl
+          *ngIf="elevTooltip.visible && !this.isMobileView"
           [style.left.px]="elevTooltip.x"
           [style.top.px]="elevTooltip.y"
         >
@@ -198,10 +202,17 @@
         <!-- Tooltip HTML justo debajo de la línea vertical con la distancia -->
          <div
           class="elev-tooltip-down"
+          tooltipDownEl
           *ngIf="elevTooltip.visible"
           [style.left.px]="elevTooltip.x"
           [style.top.px]="elevTooltip.y"
         >
+          <div class="elev-tooltip__row" *ngIf="this.isMobileView">
+            <span class="elev-tooltip__label">Altitud</span>
+            <span class="elev-tooltip__value">
+              {{ elevTooltip.altitudeM | number : '1.0-0' }} m
+            </span>
+          </div> 
           <div class="elev-tooltip__row">
             <span class="elev-tooltip__label">Distancia</span>
             <span class="elev-tooltip__value">
@@ -256,6 +267,71 @@
         </p>
       </ng-template>
     </section>
+
+    <!-- FILA 4: RUTAS CERCANAS -->
+    <section class="track-panel track-page__nearby" *ngIf="track">
+      <div class="track-page__nearby-header">
+        <h2 class="track-panel__title">Rutas cercanas</h2>
+
+        <span class="track-page__nearby-muted" *ngIf="isLoadingNearby">
+          Cargando...
+        </span>
+      </div>
+
+      <p class="track-page__description-text track-page__description-text--muted" *ngIf="nearbyError">
+        {{ nearbyError }}
+      </p>
+
+      <p
+        class="track-page__description-text track-page__description-text--muted"
+        *ngIf="!isLoadingNearby && !nearbyError && (!nearbyTracks || nearbyTracks.length === 0)"
+      >
+        No hay rutas cercanas disponibles para este punto.
+      </p>
+
+      <div class="nearby-row" *ngIf="!isLoadingNearby && nearbyTracks && nearbyTracks.length > 0">
+        <article
+          class="nearby-card"
+          *ngFor="let t of nearbyTracks"
+          (click)="navigateNearbyTrack(t)"
+          role="button"
+          tabindex="0"
+        >
+          <div class="nearby-card__img">
+            <img
+              *ngIf="t.images?.length"
+              [src]="getUrlImage(t.images[0])"
+              [alt]="t.name || 'Ruta cercana'"
+            />
+            <div class="nearby-card__img-placeholder" *ngIf="!t.images?.length">
+              Sin foto
+            </div>
+
+            <span class="nearby-card__badge" *ngIf="t.distanceMeters != null">
+              a {{ (t.distanceMeters / 1000) | number:'1.1-1' }} km
+            </span>
+          </div>
+
+          <div class="nearby-card__body">
+            <div class="nearby-card__title" [title]="t.name">{{ t.name }}</div>
+
+            <div class="nearby-card__meta">
+              <span *ngIf="t.totalDistanceMeters">
+                {{ (t.totalDistanceMeters / 1000) | number:'1.1-1' }} km
+              </span>
+              <span *ngIf="t.totalAscent">
+                +{{ t.totalAscent | number:'1.0-0' }} m
+              </span>
+              <span *ngIf="t.dateTrack">
+                {{ t.dateTrack | date:'d/M/yyyy' }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+
   </div>
 
   <!-- FOOTER DE ACCIONES -->

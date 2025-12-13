@@ -1,11 +1,12 @@
 // src/app/dashboard/pages/home/home.component.ts
 
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Difficulty, RouteType, Track, TrackListResponse } from '../../../shared/models/track.model';
+import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
 import { TrackListParams, TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
 import { TracksService } from '../../services/track.service';
 import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { TrackListResponse } from '../../../shared/responses/list.response';
 
 
 @Component({

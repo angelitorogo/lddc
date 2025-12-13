@@ -5,9 +5,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TrackListParams } from '../../shared/models/track-list-params-model';
-import { TrackListResponse } from '../../shared/models/track.model';
 import { DetailResponse } from '../../shared/responses/detail.response';
 import { CreateTrackResponse } from '../../shared/responses/create-track.response';
+import { TrackListResponse } from '../../shared/responses/list.response';
+import { NearbyTrackItem } from '../../shared/models/track.model';
 
 
 @Injectable({
@@ -100,5 +101,24 @@ export class TracksService {
     );
   }
 
+  getNearbyTracks(params: {
+    lat: number;
+    lon: number;
+    radiusMeters?: number;
+    limit?: number;
+    trackExcluded?: string;
+  }): Observable<NearbyTrackItem[]> {
+    let httpParams = new HttpParams()
+      .set('lat', String(params.lat))
+      .set('lon', String(params.lon))
+      .set('radiusMeters', String(params.radiusMeters ?? 50000))
+      .set('limit', String(params.limit ?? 20));
+
+    if (params.trackExcluded) {
+      httpParams = httpParams.set('trackExcluded', params.trackExcluded);
+    }
+
+    return this.http.get<NearbyTrackItem[]>(`${this.baseUrl}/nearby`, { params: httpParams });
+  }
 
 }
