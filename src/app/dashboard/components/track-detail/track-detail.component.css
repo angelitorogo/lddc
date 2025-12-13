@@ -256,6 +256,7 @@
 .title__perfil {
   display: flex;
   justify-content: space-between;
+  height: 25px;
 }
 
 .track-page__profile-chart {
@@ -267,6 +268,8 @@
   padding: 0.4rem;
   display: flex;
   align-items: stretch;
+
+  margin-top: 1rem;
 }
 
 .track-page__profile-chart canvas {
@@ -682,11 +685,11 @@
 
 .slope {
   display: inline-block;
-  padding: 0.3rem 0.6rem 0.2rem;
+  padding: 0.4rem 0.6rem 0.4rem;
   width: 5rem;
   border-radius: 999px;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   letter-spacing: 0.04em;
   border: 1px solid;
   text-align: center;

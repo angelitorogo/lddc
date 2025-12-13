@@ -172,7 +172,7 @@
     <section class="track-panel track-page__profile">
       <h2 class="track-panel__title title__perfil">
         <span>Perfil de elevación</span>
-        <span style="width: 14rem;" *ngIf="pendiente">Pendiente: <span class="slope" [ngClass]="getSlopeClass(+pendiente)">{{pendiente}}%</span></span>
+        <span style="width: 14rem; margin-bottom: 0;" *ngIf="pendiente">Pendiente: <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{pendiente}}%</span></span>
       </h2>
 
       <div class="track-page__profile-chart" 
