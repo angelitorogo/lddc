@@ -1,0 +1,159 @@
+<section class="track-edit">
+
+  <header class="track-edit__header">
+    <button type="button" class="track-edit__back" (click)="onBack()">
+      <i class="bi bi-arrow-left"></i>
+      <span>Volver</span>
+    </button>
+
+    <h1 class="track-edit__title">Editar ruta</h1>
+    <p class="track-edit__subtitle muted">
+      Puedes actualizar el nombre, la descripción y gestionar imágenes (la imagen 0 del mapa no aparece aquí).
+    </p>
+  </header>
+
+  <div class="track-edit__panel">
+
+    <!-- ERROR -->
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <!-- NOMBRE -->
+    <div class="form-field">
+      <label for="name">Nombre</label>
+      <input
+        id="name"
+        type="text"
+        [(ngModel)]="name"
+        placeholder="Nombre de la ruta"
+      />
+    </div>
+
+    <!-- DESCRIPCIÓN -->
+    <div class="form-field">
+      <label for="description">Descripción</label>
+      <textarea
+        id="description"
+        rows="8"
+        [(ngModel)]="description"
+        placeholder="Descripción de la ruta"
+      ></textarea>
+    </div>
+
+    <!-- IMÁGENES EXISTENTES (IGUAL QUE TRACK-CREATE) -->
+    <h3 class="section-title">Imágenes actuales</h3>
+
+    <p class="muted" *ngIf="!editableExistingImages.length">
+    No hay imágenes editables (la portada del mapa no se muestra aquí).
+    </p>
+
+    <div class="image-preview-grid" *ngIf="editableExistingImages.length">
+    <div class="image-preview-card" *ngFor="let img of editableExistingImages">
+        <div class="image-preview-thumb">
+        <img [src]="getUrlImage(img)" loading="lazy" />
+        </div>
+
+        <div class="image-preview-meta">
+        <span class="image-preview-name" [title]="img.originalName || 'Imagen'">
+            {{ img.originalName || 'Imagen' }}
+        </span>
+
+        <button
+            type="button"
+            class="image-preview-remove"
+            (click)="requestDeleteExistingImage(img.id)"
+            [disabled]="deletingImageIds.has(img.id)"
+            aria-label="Eliminar imagen"
+            title="Eliminar"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+        </div>
+    </div>
+    </div>
+
+
+    <!-- IMÁGENES NUEVAS (IGUAL QUE TRACK-CREATE) -->
+    <div class="form-field">
+      <label for="imageFile">Añadir imágenes</label>
+
+      <div class="file-input-row">
+        <!-- INPUT IMAGES REAL OCULTO -->
+        <input
+          #imageInput
+          id="imageFile"
+          type="file"
+          accept=".jpg, .jpeg, .png, .webp"
+          multiple
+          (change)="onImageSelected($event)"
+          class="file-input__hidden"
+        />
+
+        <!-- BOTÓN PERSONALIZADO -->
+        <button type="button" class="btn-upload" (click)="openImageDialog()">
+          <i class="bi bi-upload"></i>
+          <span>
+            {{ selectedImages.length ? 'Cambiar imágenes' : 'Seleccionar imágenes' }}
+          </span>
+        </button>
+
+        <!-- RESUMEN -->
+        <span class="file-input__filename" *ngIf="selectedImages.length">
+          {{ selectedImages.length }} imagen(es) seleccionada(s)
+        </span>
+
+        <!-- BOTÓN QUITAR IMÁGENES -->
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="onCancelImages()"
+          [disabled]="!selectedImages.length"
+        >
+          Quitar imágenes
+        </button>
+      </div>
+
+      <!-- PREVIEW DE IMÁGENES (GRID COMO TRACK-CREATE) -->
+      <div class="image-preview-grid" *ngIf="imagePreviews.length">
+        <div class="image-preview-card" *ngFor="let img of imagePreviews; let i = index">
+          <div class="image-preview-thumb">
+            <img [src]="img.url" [alt]="img.file.name" />
+          </div>
+          <div class="image-preview-meta">
+            <span class="image-preview-name" [title]="img.file.name">
+              {{ img.file.name }}
+            </span>
+            <button type="button" class="image-preview-remove" (click)="removeImage(i)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <footer class="actions">
+      <button class="btn-outline" (click)="onCancel()">Cancelar</button>
+      <button class="btn-primary" [disabled]="isSaving" (click)="onSave()">
+        Guardar cambios
+      </button>
+    </footer>
+  </div>
+</section>
+
+<!-- MODAL CONFIRM -->
+<div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDelete()">
+  <div class="modal__panel" (click)="$event.stopPropagation()">
+    <h3 class="modal__title">{{titleModal}}</h3>
+    <p class="modal__text">
+      ¿{{textModal}}
+    </p>
+
+    <div class="modal__actions" *ngIf="typeModal == 'DELETE'">
+      <button class="btn-outline" (click)="cancelDelete()">Cancelar</button>
+      <button class="btn-danger" (click)="confirmDelete()">Eliminar</button>
+    </div>
+    <div class="modal__actions" *ngIf="typeModal == 'SUCCESS'">
+      <button class="btn-outline" (click)="successOk()">Aceptar</button>
+    </div>
+  </div>
+</div>

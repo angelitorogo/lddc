@@ -18,6 +18,7 @@ import { FooterComponent } from './components/principal/footer/footer.component'
 import { TrackDetailComponent } from './components/track-detail/track-detail.component';
 import { TrackCreateComponent } from './components/track-create/track-create.component';
 import { GoogleMapsModule } from '@angular/google-maps';
+import { TrackEditComponent } from './components/track-edit/track-edit.component';
 
 
 
@@ -32,7 +33,8 @@ import { GoogleMapsModule } from '@angular/google-maps';
     NavbarComponent,
     FooterComponent,
     TrackDetailComponent,
-    TrackCreateComponent
+    TrackCreateComponent,
+    TrackEditComponent,
   ],
   imports: [
     CommonModule,

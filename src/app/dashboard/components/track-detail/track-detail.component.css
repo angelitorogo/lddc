@@ -37,7 +37,7 @@
 }
 
 .track-page__back i {
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 
 .track-page__back:hover {
@@ -48,8 +48,8 @@
 
 .track-page__header-main {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-direction: row;
+  gap: 0.6rem;
 }
 
 .track-page__title {
@@ -58,7 +58,7 @@
 }
 
 .track-page__subtitle {
-  margin: 0;
+  margin: 0.3rem 0 0 0;
   color: var(--text-muted-color);
   font-size: 1.3rem;
 }
@@ -79,6 +79,7 @@
   border: 1px solid var(--color-border);
   color: var(--text-muted-color);
   background-color: rgba(5, 16, 13, 0.9);
+  transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
 .track-page__chip:hover {
@@ -102,6 +103,13 @@
   margin: 0 0 0.8rem 0;
   font-size: 1.4rem;
   color: var(--text-muted-color);
+}
+
+.track-panel__button {
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 1rem;
+  margin-top: 0.5rem;
 }
 
 /* ==== LAYOUT PRINCIPAL (3 filas) ==== */
@@ -194,6 +202,32 @@
   display: flex;
   flex-direction: column;
 }
+
+.track-page__thumbs-row{
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+
+  padding: 0.35rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.track-page__thumbs-row::-webkit-scrollbar{
+  height: 6px;
+}
+.track-page__thumbs-row::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+}
+
+/* Reutilizamos tu card, pero con ancho fijo tipo carrusel */
+.track-page__thumbs-row .track-page__thumb-card{
+  flex: 0 0 180px;              /* ajusta a gusto: 160–220 */
+  scroll-snap-align: start;
+  aspect-ratio: 4 / 3;          /* mantiene tu look */
+}
+
 
 /* ==== STATS GRID ==== */
 
@@ -350,7 +384,7 @@
   font-size: 1.4rem;
   line-height: 1.6;
   text-align: justify;
-  padding: 1rem 3rem;
+  padding: 1rem;
 }
 
 .track-page__description-text--muted {
@@ -379,7 +413,6 @@
 .btn-link {
   background: none;
   border: none;
-  padding-left: 3rem;
   color: var(--color-primary);
   font-size: 1.2rem;
   cursor: pointer;
@@ -406,6 +439,14 @@
   overflow: hidden;
   background-color: #101a16;
   aspect-ratio: 4 / 3;
+  border: 1px solid transparent;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.track-page__thumb-card:hover {
+  border: 1px solid rgba(0, 230, 118, 0.55);
+  cursor: pointer;
+  transform: translateY(-1px);
 }
 
 .track-page__thumb-card img {
@@ -414,9 +455,7 @@
   object-fit: cover;
 }
 
-.track-page__gallery--empty {
-  /* panel “sin imágenes” */
-}
+
 
 .track-page__more-images {
   margin-top: 0.8rem;
@@ -441,7 +480,7 @@
 
 .track-page__footer-btn {
   display: inline-flex;
-  align-items: encenter;
+  align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.9rem 0.2rem;
   border-radius: 4px;
@@ -462,6 +501,10 @@
     border-color 0.15s ease,
     color 0.15s ease,
     background-color 0.15s ease;
+}
+
+.btn-outline i {
+  font-size: 1.4rem;
 }
 
 .btn-outline:hover {
@@ -502,6 +545,10 @@
     padding: 0;
   }
 
+  .track-panel__button {
+    padding-right: 0;
+  }
+
 
   .btn-link {
     padding-left: 0;
@@ -528,6 +575,9 @@
     padding: 0.25rem;   /* opcional, para compactar */
   }
 
+  .track-page__thumbs-row .track-page__thumb-card{
+    flex-basis: 210px;
+  }
 
   .track-page__cover-figure {
     max-height: 280px;
@@ -542,6 +592,10 @@
     transform: translateX(-50%) translateY(10px) !important;
     bottom: 10px;
     top: auto !important;
+  }
+
+  .track-page__footer-btn {
+    width: 19rem;
   }
 
 }
@@ -619,7 +673,7 @@
 }
 
 .nearby-card:hover{
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   border-color: rgba(0, 230, 118, 0.55);
 }
 
@@ -729,4 +783,128 @@
   color: var(--text-muted-color);
   border-color: var(--color-border);
   background-color: transparent;
+}
+
+
+/* ===== Lightbox ===== */
+
+html.no-scroll,
+body.no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+body.no-scroll {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+.lightbox{
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+
+  background: rgba(0,0,0,0.70);
+  backdrop-filter: blur(6px);
+}
+
+.lightbox__panel{
+  position: relative;
+  width: min(1100px, 100%);
+  height: min(720px, 80%);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(5, 16, 13, 0.82);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+  overflow: hidden;
+
+  display: grid;
+  grid-template-columns: 52px 1fr 52px;
+}
+
+.lightbox__stage{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lightbox__img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.lightbox__close{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(5,16,13,0.75);
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.lightbox__close:hover{
+  border-color: var(--color-primary);
+  background: rgba(9,30,23,0.70);
+}
+
+.lightbox__nav{
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.lightbox__nav:hover{
+  background: rgba(255,255,255,0.04);
+  color: var(--color-primary);
+}
+
+.lightbox__nav:disabled{
+  opacity: 0.25;
+  cursor: default;
+}
+
+.lightbox__nav i{
+  font-size: 1.8rem;
+}
+
+.lightbox__counter{
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 2;
+
+  padding: 0.5rem 0.9rem 0.2rem;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  background: rgba(5, 16, 13, 0.85);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: var(--text-muted-color);
+}
+
+@media (max-width: 960px){
+  .lightbox__panel{
+    grid-template-columns: 44px 1fr 44px;
+  }
+  .lightbox__nav i{
+    font-size: 1.6rem;
+  }
 }

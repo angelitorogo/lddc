@@ -121,4 +121,42 @@ export class TracksService {
     return this.http.get<NearbyTrackItem[]>(`${this.baseUrl}/nearby`, { params: httpParams });
   }
 
+  downloadGpx(trackId: string): void {
+    const url = `${environment.API_URL}/files/gpx/${trackId}`;
+    window.open(url, '_self');
+  }
+
+  updateTrack(
+    trackId: string,
+    data: { name?: string; description?: string },
+    images: File[] = [],
+  ): Observable<any> {
+    const form = new FormData();
+
+    if (data.name != null) form.append('name', data.name);
+    if (data.description != null) form.append('description', data.description);
+
+    for (const file of images) {
+      form.append('images', file, file.name); // 👈 importante: field name = "images"
+    }
+
+    return this.http.put<any>(`${this.baseUrl}/${trackId}`, form, {
+      withCredentials: true,
+    });
+  }
+
+  // ✅ NUEVO: borrar imagen existente
+  deleteTrackImage(trackId: string, imageId: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${trackId}/images/${imageId}`, {
+      withCredentials: true,
+    });
+  }
+
+  // ✅ si ya tienes esto en TrackDetail, puedes reutilizarlo aquí también
+  getUrlImage(image: any): string {
+    return `${this.baseUrl}/images/${image.id}`;
+  }
+
+  
+
 }

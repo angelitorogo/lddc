@@ -4,6 +4,7 @@ import { DashboardComponent } from './components/principal/dashboard/dashboard.c
 import { HomeComponent } from './components/home/home.component';
 import { TrackDetailComponent } from './components/track-detail/track-detail.component';
 import { TrackCreateComponent } from './components/track-create/track-create.component';
+import { TrackEditComponent } from './components/track-edit/track-edit.component';
 
 
 
@@ -24,6 +25,10 @@ const routes: Routes = [
       { 
         path: 'create', 
         component: TrackCreateComponent
+      },
+      { 
+        path: 'edit/:id', 
+        component: TrackEditComponent 
       },
       /*
       {

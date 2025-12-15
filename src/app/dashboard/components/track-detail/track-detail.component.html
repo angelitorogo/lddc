@@ -11,7 +11,7 @@
         {{ track.name }}
       </h1>
       <p class="track-page__subtitle">
-        {{ getRouteTypeLabel() }}
+        - {{getRouteTypeLabel()}}
       </p>
     </div>
 
@@ -43,12 +43,8 @@
   </header>
 
   <!-- LAYOUT PRINCIPAL -->
-  <div
-    class="track-page__layout"
-    [ngClass]="{
-      'track-page__layout--no-cover': !track.images || track.images.length === 0
-    }"
-  >
+  <div class="track-page__layout">
+
     <!-- PORTADA (col izquierda, fila 1) -->
     <section
       class="track-panel track-page__cover"
@@ -134,39 +130,50 @@
       >
         <h2 class="track-panel__title">Imágenes de la ruta</h2>
 
-        <div class="track-page__thumbs-grid">
-          <ng-container *ngFor="let image of track.images | slice:1:5">
-            <figure class="track-page__thumb-card">
+        <div class="track-page__thumbs-row">
+          <ng-container *ngFor="let image of track.images | slice:1; let i = index">
+            <figure
+              class="track-page__thumb-card"
+              role="button"
+              tabindex="0"
+              (click)="openGallery(i + 1)"
+              (keydown.enter)="openGallery(i + 1)"
+              (keydown.space)="openGallery(i + 1)"
+            >
               <img
                 [src]="getUrlImage(image)"
                 [alt]="track.name || 'Imagen de la ruta'"
+                loading="lazy"
               />
             </figure>
           </ng-container>
         </div>
 
-        <button
-          *ngIf="track.images.length > 5"
-          type="button"
-          class="track-page__more-images"
-        >
-          Más imágenes...
-        </button>
       </section>
 
       <!-- Placeholder cuando no hay ninguna imagen -->
       <section
         class="track-panel track-page__gallery track-page__gallery--empty"
-        *ngIf="!track.images || track.images.length === 0"
+        *ngIf="!track.images || track.images.length === 1"
       >
         <h2 class="track-panel__title">Imágenes de la ruta</h2>
         <p class="track-page__description-text track-page__description-text--muted">
           Esta ruta todavía no tiene fotos asociadas. Anímate a subir alguna
           cuando compartas tu track.
         </p>
+        <div class="track-panel__button" *ngIf="authService.user?.id === track.authorUserId">
+          <button
+            type="button"
+            class="btn-outline track-page__footer-btn"
+            (click)="onEditTrack()"
+          >
+            <i class="bi bi-pencil"></i>
+            <span>Añadir imágenes</span>
+          </button>
+        </div>
+        
       </section>
     </div>
-
 
     <!-- FILA 2: PERFIL DE ELEVACIÓN -->
     <section class="track-panel track-page__profile">
@@ -202,7 +209,7 @@
         <!-- Tooltip HTML justo debajo de la línea vertical con la distancia -->
          <div
           class="elev-tooltip-down"
-          tooltipDownEl
+          #tooltipDownEl
           *ngIf="elevTooltip.visible"
           [style.left.px]="elevTooltip.x"
           [style.top.px]="elevTooltip.y"
@@ -229,8 +236,6 @@
         No hay suficientes datos de altitud para mostrar un perfil.
       </p>
     </section>
-
-
 
     <!-- FILA 3: DESCRIPCIÓN (full width) -->
     <section class="track-panel track-page__description">
@@ -265,6 +270,16 @@
           Esta ruta aún no tiene una descripción detallada. Próximamente añadiremos
           una crónica completa del recorrido.
         </p>
+        <div class="track-panel__button" *ngIf="authService.user?.id === track.authorUserId">
+          <button
+            type="button"
+            class="btn-outline track-page__footer-btn"
+            (click)="onEditTrack()"
+          >
+            <i class="bi bi-pencil"></i>
+            <span>Añadir descripción</span>
+          </button>
+        </div>
       </ng-template>
     </section>
 
@@ -334,24 +349,86 @@
 
   </div>
 
+  <!-- ===== Lightbox / Visor de imágenes ===== -->
+  <div
+    class="lightbox"
+    *ngIf="isGalleryOpen"
+    (click)="closeGallery()"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="lightbox__panel" (click)="$event.stopPropagation()">
+      <button class="lightbox__close" type="button" (click)="closeGallery()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <button
+        class="lightbox__nav lightbox__nav--prev"
+        type="button"
+        (click)="prevImage()"
+        [disabled]="!hasPrevImage()"
+        aria-label="Anterior"
+      >
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <div
+        class="lightbox__stage"
+        (touchstart)="onLightboxTouchStart($event)"
+        (touchmove)="onLightboxTouchMove($event)"
+        (touchend)="onLightboxTouchEnd()"
+      >
+        <img
+          class="lightbox__img"
+          [src]="getUrlImage(track!.images[galleryIndex])"
+          [alt]="track.name || 'Imagen de la ruta'"
+        />
+
+        <div class="lightbox__counter" *ngIf="track.images.length">
+          {{ galleryIndex  }} / {{ track!.images.length - 1 }}
+        </div>
+      </div>
+
+      <button
+        class="lightbox__nav lightbox__nav--next"
+        type="button"
+        (click)="nextImage()"
+        [disabled]="!hasNextImage()"
+        aria-label="Siguiente"
+      >
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+
   <!-- FOOTER DE ACCIONES -->
   <footer class="track-page__footer">
-    <button
-      type="button"
-      class="btn-outline track-page__footer-btn"
-      (click)="onEditTrack()"
-    >
+    <button type="button" class="btn-outline track-page__footer-btn" (click)="onDownloadGpx()" *ngIf="authService.user?.id === track.authorUserId">
+      <i class="bi bi-download"></i>
+      <span>Descarga GPX</span>
+    </button>
+    <!-- NUEVO: compartir/copy -->
+    <button type="button" class="btn-outline track-page__footer-btn" (click)="onCopyLink()">
+      <i class="bi bi-link-45deg"></i>
+      <span>Copiar enlace</span>
+    </button>
+  
+    <button type="button" class="btn-outline track-page__footer-btn" (click)="onShareLink()">
+      <i class="bi bi-share"></i>
+      <span>Compartir</span>
+    </button>
+  
+    <!-- EXISTENTES -->
+    <button type="button" class="btn-outline track-page__footer-btn" (click)="onEditTrack()" *ngIf="authService.user?.id === track.authorUserId">
       <i class="bi bi-pencil"></i>
       <span>Editar ruta</span>
     </button>
-
-    <button
-      type="button"
-      class="btn-danger track-page__footer-btn"
-      (click)="onDeleteTrack()"
-    >
+  
+    <button type="button" class="btn-danger track-page__footer-btn" (click)="onDeleteTrack()" *ngIf="authService.user?.id === track.authorUserId">
       <i class="bi bi-trash"></i>
       <span>Eliminar ruta</span>
     </button>
   </footer>
-</section>
+  
+  </section>

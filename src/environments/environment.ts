@@ -1,6 +1,6 @@
 export const environment = {
     API_URL: 'https://auth.argomez.com/api',
-    DOMAIN_URL: 'http://localhost:4200/',
+    DOMAIN_URL: 'http://localhost:4200',
     APP_NAME: 'La Dama del Cancho',
     PRODUCTION: false,
     TMDBAPIKEY: "e506ed25c73b39419bba25940a82d6e5",

@@ -5,6 +5,7 @@ import {
   OnInit,
   ViewChild,
   AfterViewInit,
+  HostListener,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TracksService } from '../../services/track.service';
@@ -19,6 +20,7 @@ import {
 import { GoogleMap } from '@angular/google-maps';
 import { Track } from '../../../shared/models/track.model';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-track-detail',
@@ -30,14 +32,21 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private routeSub?: Subscription;
 
+  public isMobileView = window.matchMedia('(max-width: 960px)').matches;
+
+  // ✅ 1) guardamos la referencia del handler
+  private readonly onResize = () => {
+    this.isMobileView = window.matchMedia('(max-width: 960px)').matches;
+  };
+
   track: DetailResponse | null = null;
 
   // ====== MAPA / POLILÍNEA ======
   @ViewChild('detailMap') mapComponent?: GoogleMap;
 
   mapOptions: google.maps.MapOptions = {
-    mapTypeId: 'satellite',
-    disableDefaultUI: true,
+    mapTypeId: 'hybrid',
+    disableDefaultUI: false,
     draggable: true,
     scrollwheel: true,
     disableDoubleClickZoom: true,
@@ -70,9 +79,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('profileWrap', { static: false })
   profileWrap!: ElementRef<HTMLDivElement>;
 
-  yAutoMin?: number;
-  yAutoMax?: number;
-
   elevTooltip = {
     visible: false,
     x: 0,          // px dentro del contenedor
@@ -92,8 +98,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   };
 
   private cumulativeDistancesMeters: number[] = [];
-
-  public isMobileView = window.matchMedia('(max-width: 960px)').matches;
   
   @ViewChild('tooltipUpEl', { static: false })
   tooltipUpEl?: ElementRef<HTMLDivElement>;
@@ -108,10 +112,23 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   isLoadingNearby = false;
   nearbyError: string | null = null;
 
+  isGalleryOpen = false;
+  galleryIndex = 0;
+
+  // swipe
+  private touchStartX: number | null = null;
+  private touchCurrentX: number | null = null;
+  private scrollYBeforeGallery = 0;
+
+  private scrollLocked = false;
+  private lockedEls: Array<{ el: HTMLElement; prevOverflow: string; prevOverscroll: string }> = []
+
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private trackService: TracksService,
+    public authService: AuthService
   ) {}
 
   // ========== CICLO DE VIDA ==========
@@ -137,18 +154,16 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }, 50);
 
-    // Si ya tenemos datos (por ejemplo en cargas muy rápidas), pintamos
-    if (this.hasElevationProfile()) {
-      this.buildElevationChart();
-    }
-
-    window.addEventListener('resize', () => {
-      this.isMobileView = window.matchMedia('(max-width: 960px)').matches;
-    }, { passive: true });
+    window.addEventListener('resize', this.onResize, { passive: true });
 
   }
 
   ngOnDestroy(): void {
+
+    window.removeEventListener('resize', this.onResize);
+
+    this.unlockScrollEverywhere();
+
     this.routeSub?.unsubscribe();
     if (this.elevationChart) {
       this.elevationChart.destroy();
@@ -171,7 +186,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
       this.track = resp;
-      //console.log(this.track);
+      console.log(this.track);
 
       this.loadNearbyTracks();
 
@@ -419,7 +434,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onEditTrack(): void {
-    console.log('Editar ruta', this.track?.id);
+    this.router.navigate(['/dashboard/edit', this.track?.id]);
   }
 
   onDeleteTrack(): void {
@@ -431,10 +446,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private resetElevationChartHard(): void {
     // Limpia hover/tooltip (por si se quedó activo)
     this.clearElevationHover(false);
-
-    // Resetea rango auto (para que no se herede entre tracks)
-    this.yAutoMin = undefined;
-    this.yAutoMax = undefined;
 
     // Destruye chart
     if (this.elevationChart) {
@@ -531,7 +542,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       labels,
       datasets: [
         {
-          label: 'Altitud (m)',
+          label: this.isMobileView ? '' : 'Altitud (m)',
           data,
           yAxisID: 'y',
           tension: 0.3,
@@ -654,8 +665,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         y: {
           position: 'left',
           grace: '5%',
-          min: this.yAutoMin,
-          max: this.yAutoMax,
           title: { display: !this.isMobileView, text: 'Altitud (m)' },
 
           // ✅ en móvil: fuera números del eje Y
@@ -676,31 +685,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           },
         },
 
-        yRight: {
-          display: !this.isMobileView,
-          min: this.yAutoMin,
-          max: this.yAutoMax,
-          position: 'right',
-          grace: '5%',
-          title: { display: !this.isMobileView, text: 'Altitud (m)' },
-
-          // ✅ en móvil: fuera números del eje Y
-          ticks: {
-            display: true,
-            callback: (value) => `${value} m`,
-          },
-
-          // ✅ en móvil: fuera la línea del eje Y
-          border: {
-            display: !this.isMobileView,
-          },
-
-          // ✅ grid horizontal (si la quieres mantener suave)
-          grid: {
-            color: 'rgba(255, 255, 255, 0.08)',
-            drawTicks: !this.isMobileView,     // quita las “marquitas” del eje
-          },
-        },
+        
       },
 
 
@@ -711,29 +696,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       data: chartData,
       options,
       plugins: [verticalLinePlugin]
-    });
-
-    requestAnimationFrame(() => {
-      const chart: any = this.elevationChart;
-      if (!chart) return;
-
-      const y: any = chart.scales?.y;
-      if (!y) return;
-
-      // ✅ valores reales calculados por Chart.js (incluye grace)
-      this.yAutoMin = y.min;
-      this.yAutoMax = y.max;
-
-      //console.log('📐 Y auto range:', this.yAutoMin, this.yAutoMax);
-
-      // ✅ aplicar esos valores al eje derecho
-      const yRightOpts = chart.options?.scales?.yRight;
-      if (yRightOpts) {
-        yRightOpts.min = this.yAutoMin;
-        yRightOpts.max = this.yAutoMax;
-      }
-
-      chart.update('none'); // refresco sin animación
     });
 
 
@@ -838,9 +800,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const touch = ev.touches[0];
     if (!touch) return;
-
-    const wrapRect = this.profileWrap.nativeElement.getBoundingClientRect();
-    const xInWrap = touch.clientX - wrapRect.left;
 
     // Convertimos la X del wrapper a X del canvas
     const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
@@ -1028,5 +987,242 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (abs < 25) return 'slope--hard';
     return 'slope--extreme';
   }
+
+  private buildPublicTrackUrl(): string {
+    if (!this.track?.id) return environment.DOMAIN_URL;
+
+    // ruta pública final
+    return `${environment.DOMAIN_URL}/dashboard/track/${this.track.id}`;
+  }
+
+  async onCopyLink(): Promise<void> {
+    const url = this.buildPublicTrackUrl();
+
+    try {
+      // Clipboard API moderna
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        //console.log('✅ Enlace copiado al portapapeles:', url);
+        return;
+      }
+
+      // Fallback antiguo (por si clipboard no existe o no tiene permisos)
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      ta.style.top = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+
+      //console.log('✅ Enlace copiado (fallback):', url);
+    } catch (err) {
+      console.error('❌ No se pudo copiar el enlace', err);
+    }
+  }
+
+  async onShareLink(): Promise<void> {
+    const url = this.buildPublicTrackUrl();
+    const title = this.track?.name ?? 'Ruta';
+    const text = 'Mira esta ruta';
+
+    try {
+      // ✅ Web Share API (móvil / algunos desktop)
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        //console.log('✅ Compartido con Web Share:', url);
+        return;
+      }
+
+      // Fallback: si no hay share, copiamos el enlace
+      //console.log('ℹ️ Web Share no disponible; copiando enlace...');
+      await this.onCopyLink();
+    } catch (err) {
+      // Importante: si el usuario cancela el share, salta excepción.
+      // No lo tratamos como error real.
+      console.log('ℹ️ Share cancelado o no disponible', err);
+    }
+  }
+
+  onDownloadGpx(): void {
+    this.trackService.downloadGpx(this.track?.id ?? '');
+  }
+
+  openGallery(index: number): void {
+    if (!this.track?.images?.length) return;
+
+    // clamp por seguridad
+    const max = this.track.images.length - 1;
+    this.galleryIndex = Math.max(0, Math.min(max, index));
+
+    this.isGalleryOpen = true;
+
+    // guarda scroll
+    this.scrollYBeforeGallery = window.scrollY || 0;
+    document.body.style.top = `-${this.scrollYBeforeGallery}px`;
+
+    // 🔥 bloqueo universal
+    this.lockScrollEverywhere();
+
+  }
+
+  closeGallery(): void {
+    this.isGalleryOpen = false;
+    this.touchStartX = null;
+    this.touchCurrentX = null;
+
+    // 🔥 desbloqueo
+    this.unlockScrollEverywhere();
+
+    // restaura scroll
+    const y = this.scrollYBeforeGallery || 0;
+    window.scrollTo(0, y);
+
+  }
+
+  hasPrevImage(): boolean {
+    return !!this.track?.images?.length && this.galleryIndex > 1;
+  }
+
+  hasNextImage(): boolean {
+    return !!this.track?.images?.length && this.galleryIndex < (this.track!.images.length - 1);
+  }
+
+  prevImage(): void {
+    if (!this.hasPrevImage() || this.galleryIndex === 1) return;
+    this.galleryIndex -= 1;
+  }
+
+  nextImage(): void {
+    if (!this.hasNextImage()) return;
+    this.galleryIndex += 1;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(ev: KeyboardEvent): void {
+    if (!this.isGalleryOpen) return;
+
+    if (ev.key === 'Escape') {
+      this.closeGallery();
+      return;
+    }
+
+    if (ev.key === 'ArrowLeft') {
+      this.prevImage();
+      return;
+    }
+
+    if (ev.key === 'ArrowRight') {
+      this.nextImage();
+      return;
+    }
+  }
+
+  // ===== Swipe móvil =====
+  onLightboxTouchStart(ev: TouchEvent): void {
+    const t = ev.touches?.[0];
+    if (!t) return;
+    this.touchStartX = t.clientX;
+    this.touchCurrentX = t.clientX;
+  }
+
+  onLightboxTouchMove(ev: TouchEvent): void {
+    const t = ev.touches?.[0];
+    if (!t) return;
+    this.touchCurrentX = t.clientX;
+  }
+
+  onLightboxTouchEnd(): void {
+    if (this.touchStartX == null || this.touchCurrentX == null) return;
+
+    const delta = this.touchCurrentX - this.touchStartX;
+    const THRESHOLD = 40; // px
+
+    if (delta > THRESHOLD) {
+      this.prevImage();
+    } else if (delta < -THRESHOLD) {
+      this.nextImage();
+    }
+
+    this.touchStartX = null;
+    this.touchCurrentX = null;
+  }
+
+  private preventScrollHandler = (e: Event) => {
+    // bloquea scroll por wheel/touchmove (iOS/Android)
+    e.preventDefault();
+  };
+
+  private getScrollableElements(): HTMLElement[] {
+    const all = Array.from(document.querySelectorAll<HTMLElement>('body *'));
+    const res: HTMLElement[] = [];
+
+    for (const el of all) {
+      const style = getComputedStyle(el);
+      const overflowY = style.overflowY;
+      const overflowX = style.overflowX;
+
+      const canScrollY = (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1;
+      const canScrollX = (overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 1;
+
+      if (canScrollY || canScrollX) res.push(el);
+    }
+
+    // normalmente el principal es el que más scrollHeight tiene
+    res.sort((a, b) => (b.scrollHeight - b.clientHeight) - (a.scrollHeight - a.clientHeight));
+    return res;
+  }
+
+  private lockScrollEverywhere(): void {
+    if (this.scrollLocked) return;
+    this.scrollLocked = true;
+
+    // 1) bloquear html/body también (por si acaso)
+    document.documentElement.classList.add('no-scroll');
+    document.body.classList.add('no-scroll');
+
+    // 2) bloquear contenedores scrolleables reales
+    const scrollables = this.getScrollableElements();
+
+    // si hay alguno, bloqueamos los 1-2 más grandes (evitas romper layouts)
+    const targets = scrollables.slice(0, 2);
+
+    this.lockedEls = targets.map(el => {
+      const prevOverflow = el.style.overflow;
+      const prevOverscroll = el.style.overscrollBehavior;
+      el.style.overflow = 'hidden';
+      el.style.overscrollBehavior = 'none';
+      return { el, prevOverflow, prevOverscroll };
+    });
+
+    // 3) bloquear wheel + touchmove (clave en móviles/iOS)
+    document.addEventListener('wheel', this.preventScrollHandler, { passive: false });
+    document.addEventListener('touchmove', this.preventScrollHandler, { passive: false });
+  }
+
+  private unlockScrollEverywhere(): void {
+    if (!this.scrollLocked) return;
+    this.scrollLocked = false;
+
+    document.documentElement.classList.remove('no-scroll');
+    document.body.classList.remove('no-scroll');
+    document.body.style.top = '';
+
+    for (const item of this.lockedEls) {
+      item.el.style.overflow = item.prevOverflow;
+      item.el.style.overscrollBehavior = item.prevOverscroll;
+    }
+    this.lockedEls = [];
+
+    document.removeEventListener('wheel', this.preventScrollHandler as any);
+    document.removeEventListener('touchmove', this.preventScrollHandler as any);
+  }
+
+
+
+
 
 }

@@ -1,0 +1,532 @@
+/* =============== */
+/* TRACK EDIT PAGE */
+/* =============== */
+
+.track-edit {
+  max-width: 900px;
+  margin: 0 auto 2rem;
+  padding-top: 1rem;
+  color: var(--text-color);
+}
+
+/* HEADER */
+
+.track-edit__header {
+  margin-bottom: 1.5rem;
+}
+
+.track-edit__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.9rem 0.2rem;
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+  margin-bottom: 0.75rem;
+}
+
+.track-edit__back:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(9, 30, 23, 0.7);
+}
+
+.track-edit__title {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.track-edit__subtitle {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+}
+
+.muted {
+  color: var(--text-muted-color);
+}
+
+.error {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #ff8a80;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 83, 80, 0.5);
+  background: rgba(127, 25, 25, 0.12);
+}
+
+/* PANEL (igual que track-create__form) */
+
+.track-edit__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 1.1rem 1.2rem;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.4));
+}
+
+/* FORM-FIELD (igual que track-create) */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field label {
+  font-weight: 500;
+}
+
+.form-field input[type="text"],
+.form-field textarea {
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.9rem 0.2rem;
+  background-color: rgba(4, 12, 10, 0.9);
+  color: var(--text-color);
+  font-size: 1.4rem;
+}
+
+.form-field input[type="text"]:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* SECTION TITLES */
+
+.section-title {
+  margin: 0.25rem 0 0.15rem 0;
+  font-size: 1.25rem;
+  color: var(--text-muted-color);
+}
+
+/* ===== INPUT REAL OCULTO (igual que track-create) ===== */
+
+.file-input__hidden {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ===== FILA INPUT + BOTONES (igual que track-create) ===== */
+
+.file-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* ===== BOTÓN SUBIDA (igual que track-create) ===== */
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  padding: 0.5rem 0.9rem 0.2rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+
+  background-color: rgba(5, 16, 13, 0.7);
+  color: var(--text-muted-color);
+
+  font-size: 1.4rem;
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-upload i {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.btn-upload:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(5, 16, 13, 0.9);
+}
+
+/* ===== RESUMEN (igual que track-create) ===== */
+
+.file-input__filename {
+  font-size: 1.4rem;
+  color: var(--text-muted-color);
+  padding: 0.5rem 0.9rem 0.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: rgba(4, 12, 10, 0.6);
+  max-width: 280px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* =============================== */
+/* TEXTAREA: sin resize + scroll OK */
+/* =============================== */
+
+textarea {
+  resize: none;
+}
+
+/* Solo dentro de esta página, para no afectar otras vistas */
+.track-edit textarea {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) rgba(4, 12, 10, 0.35);
+}
+
+/* Chrome / Edge / Safari */
+.track-edit textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.track-edit textarea::-webkit-scrollbar-track {
+  background: rgba(4, 12, 10, 0.35);
+  border-radius: 999px;
+}
+
+.track-edit textarea::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12); /* EXACTO a tus scroll horizontales */
+  border-radius: 999px;
+  border: 2px solid rgba(4, 12, 10, 0.35);
+}
+
+.track-edit textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+/* BOTONES genéricos (igual idea que track-create) */
+
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-danger {
+  border-radius: 4px;
+  padding: 0.5rem 0.9rem 0.2rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: var(--text-color);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-primary {
+  background-color: transparent;
+  color: var(--color-primary);
+  font-weight: 800;
+  border: 1px solid var(--color-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  color: #0f1a15;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-outline {
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-primary-hover);
+  color: #0f1a15;
+}
+
+.btn-danger {
+  border: 1px solid rgba(239, 83, 80, 0.75);
+  background: rgba(127, 25, 25, 0.18);
+  color: #ff8a80;
+  font-weight: 800;
+}
+
+.btn-danger:hover {
+  border-color: rgba(239, 83, 80, 0.95);
+  background: rgba(127, 25, 25, 0.35);
+}
+
+/* ========================= */
+/* EXISTING IMAGES (SERVER)  */
+/* ========================= */
+
+.previews {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.35rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.previews::-webkit-scrollbar {
+  height: 6px;
+}
+.previews::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.preview {
+  position: relative;
+  flex: 0 0 200px;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: #0b1411;
+  scroll-snap-align: start;
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.preview__remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(5, 16, 13, 0.75);
+  color: var(--text-muted-color);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.preview__remove:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(5, 16, 13, 0.92);
+  color: var(--color-primary);
+}
+
+.preview__remove--danger {
+  color: #ff8a80;
+}
+
+.preview__remove--danger:hover {
+  border-color: rgba(239, 83, 80, 0.6);
+  background: rgba(127, 25, 25, 0.35);
+  color: #ff8a80;
+}
+
+.preview__remove:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* =============================================== */
+/* NEW IMAGES: 1 FILA + SCROLL HORIZONTAL (IGUAL)  */
+/* =============================================== */
+
+/* Antes era grid; ahora es fila tipo "thumbs-row/nearby-row" */
+.image-preview-grid {
+  margin-top: 0.75rem;
+
+  display: flex;
+  gap: 0.75rem;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 0.35rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll horizontal EXACTO a tus otros contenedores */
+.image-preview-grid::-webkit-scrollbar {
+  height: 6px;
+}
+.image-preview-grid::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+}
+
+/* Card con ancho fijo para que no se aplaste */
+.image-preview-card {
+  flex: 0 0 180px;          /* 160–220 a gusto */
+  scroll-snap-align: start;
+
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: rgba(4, 12, 10, 0.9);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-preview-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.image-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-preview-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.3rem 0.45rem;
+}
+
+.image-preview-name {
+  font-size: 0.8rem;
+  color: var(--text-muted-color);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.image-preview-remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem;
+  border-radius: 999px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.image-preview-remove:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #ff6b6b;
+}
+
+/* ACCIONES */
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ============ */
+/* MODAL ALERT  */
+/* ============ */
+
+.modal {
+  position: fixed;
+  width: 100%;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  background: rgba(0, 0, 0, 0.70);
+  backdrop-filter: blur(6px);
+}
+
+.modal__panel {
+  width: min(520px, 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(5, 16, 13, 0.88);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  padding: 1.1rem 1.2rem;
+}
+
+.modal__title {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.4rem;
+  color: var(--text-color);
+}
+
+.modal__text {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted-color);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 600px) {
+  .track-edit__panel {
+    padding: 0.9rem;
+  }
+
+  .track-edit__title {
+    font-size: 1.6rem;
+  }
+
+  .file-input-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  /* en móvil, un pelín más grandes para dedo */
+  .image-preview-card {
+    flex-basis: 210px;
+  }
+}
