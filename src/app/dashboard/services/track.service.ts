@@ -9,6 +9,7 @@ import { DetailResponse } from '../../shared/responses/detail.response';
 import { CreateTrackResponse } from '../../shared/responses/create-track.response';
 import { TrackListResponse } from '../../shared/responses/list.response';
 import { NearbyTrackItem } from '../../shared/models/track.model';
+import { compressImages } from '../../shared/helpers/compressor.helper';
 
 
 @Injectable({
@@ -17,7 +18,7 @@ import { NearbyTrackItem } from '../../shared/models/track.model';
 export class TracksService {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Lista tracks con filtros y paginación.
@@ -77,28 +78,37 @@ export class TracksService {
     gpxFile: File,
     images: File[],
   ): Observable<CreateTrackResponse> {
-    const formData = new FormData();
 
-    formData.append('name', name);
-    if (description) {
-      formData.append('description', description);
-    }
+    // OJO: esto es async, así que lo convertimos a Observable con from(...)
+    return new Observable<CreateTrackResponse>((observer) => {
+      (async () => {
+        try {
+          const compressed = await compressImages(images, {
+            maxWidth: 1920, //1600
+            maxHeight: 1920, //1600
+            quality: 0.82, //0.78
+            mimeType: 'image/webp',
+          });
 
-    // campo "gpx" -> coincide con FileFieldsInterceptor({ name: 'gpx' })
-    formData.append('gpx', gpxFile, gpxFile.name);
+          const formData = new FormData();
+          formData.append('name', name);
+          if (description) formData.append('description', description);
+          formData.append('gpx', gpxFile, gpxFile.name);
 
-    // campo "images" -> puede haber varias
-    images.forEach((img) => {
-      formData.append('images', img, img.name);
+          compressed.forEach((img) => formData.append('images', img, img.name));
+
+          this.http.post<CreateTrackResponse>(`${this.baseUrl}/gpx`, formData, {
+            withCredentials: true,
+          }).subscribe({
+            next: (res) => { observer.next(res); observer.complete(); },
+            error: (err) => observer.error(err),
+          });
+
+        } catch (e) {
+          observer.error(e);
+        }
+      })();
     });
-
-    return this.http.post<CreateTrackResponse>(
-      `${this.baseUrl}/gpx`,
-      formData,
-      {
-        withCredentials: true, // para cookies de sesión
-      },
-    );
   }
 
   getNearbyTracks(params: {
@@ -131,17 +141,36 @@ export class TracksService {
     data: { name?: string; description?: string },
     images: File[] = [],
   ): Observable<any> {
-    const form = new FormData();
 
-    if (data.name != null) form.append('name', data.name);
-    if (data.description != null) form.append('description', data.description);
+    return new Observable<any>((observer) => {
+      (async () => {
+        try {
+          const compressed = await compressImages(images, {
+            maxWidth: 1920, //1600
+            maxHeight: 1920, //1600
+            quality: 0.82, //0.78
+            mimeType: 'image/webp',
+          });
 
-    for (const file of images) {
-      form.append('images', file, file.name); // 👈 importante: field name = "images"
-    }
+          const form = new FormData();
+          if (data.name != null) form.append('name', data.name);
+          if (data.description != null) form.append('description', data.description);
 
-    return this.http.put<any>(`${this.baseUrl}/${trackId}`, form, {
-      withCredentials: true,
+          for (const file of compressed) {
+            form.append('images', file, file.name);
+          }
+
+          this.http.put<any>(`${this.baseUrl}/${trackId}`, form, {
+            withCredentials: true,
+          }).subscribe({
+            next: (res) => { observer.next(res); observer.complete(); },
+            error: (err) => observer.error(err),
+          });
+
+        } catch (e) {
+          observer.error(e);
+        }
+      })();
     });
   }
 
@@ -157,6 +186,6 @@ export class TracksService {
     return `${this.baseUrl}/images/${image.id}`;
   }
 
-  
+
 
 }

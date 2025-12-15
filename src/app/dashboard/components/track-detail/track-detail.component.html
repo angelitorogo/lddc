@@ -11,7 +11,7 @@
         {{ track.name }}
       </h1>
       <p class="track-page__subtitle">
-        - {{getRouteTypeLabel()}}
+        - {{ getRouteTypeLabel() }}
       </p>
     </div>
 
@@ -46,10 +46,7 @@
   <div class="track-page__layout">
 
     <!-- PORTADA (col izquierda, fila 1) -->
-    <section
-      class="track-panel track-page__cover"
-      *ngIf="polylinePath.length"
-    >
+    <section class="track-panel track-page__cover" *ngIf="polylinePath.length">
       <figure class="track-page__cover-figure track-page__cover-figure--map">
         <google-map
           #detailMap
@@ -59,10 +56,7 @@
           [zoom]="mapZoom"
           [options]="mapOptions"
         >
-          <map-polyline
-            [path]="polylinePath"
-            [options]="polylineOptions"
-          ></map-polyline>
+          <map-polyline [path]="polylinePath" [options]="polylineOptions"></map-polyline>
 
           <map-marker
             *ngIf="hoverMapPoint"
@@ -70,11 +64,17 @@
             [options]="hoverMarkerOptions"
           ></map-marker>
 
+          <!-- ✅ POIs: solo marcadores, sin click -->
+          <map-marker
+            *ngFor="let m of poiMarkers; trackBy: trackByPoiId"
+            [position]="m.position"
+            [options]="m.options"
+          ></map-marker>
         </google-map>
       </figure>
     </section>
 
-    <!-- COLUMNA DERECHA (fila 1): resumen + galería, misma altura que portada -->
+    <!-- COLUMNA DERECHA (fila 1): resumen + galería -->
     <div class="track-page__side">
       <!-- RESUMEN / STATS -->
       <section class="track-panel track-page__summary">
@@ -123,7 +123,7 @@
         </div>
       </section>
 
-      <!-- GALERÍA SECUNDARIA (debajo del resumen, misma columna) -->
+      <!-- GALERÍA SECUNDARIA -->
       <section
         class="track-panel track-page__gallery"
         *ngIf="track.images && track.images.length > 1"
@@ -148,7 +148,6 @@
             </figure>
           </ng-container>
         </div>
-
       </section>
 
       <!-- Placeholder cuando no hay ninguna imagen -->
@@ -171,7 +170,6 @@
             <span>Añadir imágenes</span>
           </button>
         </div>
-        
       </section>
     </div>
 
@@ -179,19 +177,22 @@
     <section class="track-panel track-page__profile">
       <h2 class="track-panel__title title__perfil">
         <span>Perfil de elevación</span>
-        <span style="width: 14rem; margin-bottom: 0;" *ngIf="pendiente">Pendiente: <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{pendiente}}%</span></span>
+        <span style="width: 14rem; margin-bottom: 0;" *ngIf="pendiente">
+          Pendiente:
+          <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{ pendiente }}%</span>
+        </span>
       </h2>
 
-      <div class="track-page__profile-chart" 
-            #profileWrap 
-            (mouseleave)="onProfileLeave()"
-            (touchstart)="onProfileTouch($event)"
-            (touchmove)="onProfileTouch($event)"
-            (touchend)="onProfileLeave()"
-     >
-        <canvas #elevationCanvas (mouseout)="onProfileLeave()" ></canvas>
+      <div
+        class="track-page__profile-chart"
+        #profileWrap
+        (mouseleave)="onProfileLeave()"
+        (touchstart)="onProfileTouch($event)"
+        (touchmove)="onProfileTouch($event)"
+        (touchend)="onProfileLeave()"
+      >
+        <canvas #elevationCanvas (mouseout)="onProfileLeave()"></canvas>
 
-        <!-- Tooltip HTML justo encima de la línea vertical con la altitud -->
         <div
           class="elev-tooltip-up"
           #tooltipUpEl
@@ -206,8 +207,8 @@
             </span>
           </div>
         </div>
-        <!-- Tooltip HTML justo debajo de la línea vertical con la distancia -->
-         <div
+
+        <div
           class="elev-tooltip-down"
           #tooltipDownEl
           *ngIf="elevTooltip.visible"
@@ -219,7 +220,8 @@
             <span class="elev-tooltip__value">
               {{ elevTooltip.altitudeM | number : '1.0-0' }} m
             </span>
-          </div> 
+          </div>
+
           <div class="elev-tooltip__row">
             <span class="elev-tooltip__label">Distancia</span>
             <span class="elev-tooltip__value">
@@ -237,7 +239,7 @@
       </p>
     </section>
 
-    <!-- FILA 3: DESCRIPCIÓN (full width) -->
+    <!-- FILA 3: DESCRIPCIÓN -->
     <section class="track-panel track-page__description">
       <h2 class="track-panel__title">Descripción</h2>
 
@@ -250,10 +252,7 @@
             {{ track.description }}
           </p>
 
-          <div
-            class="track-page__description-fade"
-            *ngIf="!isDescriptionExpanded"
-          ></div>
+          <div class="track-page__description-fade" *ngIf="!isDescriptionExpanded"></div>
         </div>
 
         <button
@@ -345,11 +344,9 @@
         </article>
       </div>
     </section>
-
-
   </div>
 
-  <!-- ===== Lightbox / Visor de imágenes ===== -->
+  <!-- ===== Lightbox ===== -->
   <div
     class="lightbox"
     *ngIf="isGalleryOpen"
@@ -385,7 +382,7 @@
         />
 
         <div class="lightbox__counter" *ngIf="track.images.length">
-          {{ galleryIndex  }} / {{ track!.images.length - 1 }}
+          {{ galleryIndex }} / {{ track!.images.length - 1 }}
         </div>
       </div>
 
@@ -401,34 +398,46 @@
     </div>
   </div>
 
-
   <!-- FOOTER DE ACCIONES -->
   <footer class="track-page__footer">
-    <button type="button" class="btn-outline track-page__footer-btn" (click)="onDownloadGpx()" *ngIf="authService.user?.id === track.authorUserId">
+    <button
+      type="button"
+      class="btn-outline track-page__footer-btn"
+      (click)="onDownloadGpx()"
+      *ngIf="authService.user?.id === track.authorUserId"
+    >
       <i class="bi bi-download"></i>
       <span>Descarga GPX</span>
     </button>
-    <!-- NUEVO: compartir/copy -->
+
     <button type="button" class="btn-outline track-page__footer-btn" (click)="onCopyLink()">
       <i class="bi bi-link-45deg"></i>
       <span>Copiar enlace</span>
     </button>
-  
+
     <button type="button" class="btn-outline track-page__footer-btn" (click)="onShareLink()">
       <i class="bi bi-share"></i>
       <span>Compartir</span>
     </button>
-  
-    <!-- EXISTENTES -->
-    <button type="button" class="btn-outline track-page__footer-btn" (click)="onEditTrack()" *ngIf="authService.user?.id === track.authorUserId">
+
+    <button
+      type="button"
+      class="btn-outline track-page__footer-btn"
+      (click)="onEditTrack()"
+      *ngIf="authService.user?.id === track.authorUserId"
+    >
       <i class="bi bi-pencil"></i>
       <span>Editar ruta</span>
     </button>
-  
-    <button type="button" class="btn-danger track-page__footer-btn" (click)="onDeleteTrack()" *ngIf="authService.user?.id === track.authorUserId">
+
+    <button
+      type="button"
+      class="btn-danger track-page__footer-btn"
+      (click)="onDeleteTrack()"
+      *ngIf="authService.user?.id === track.authorUserId"
+    >
       <i class="bi bi-trash"></i>
       <span>Eliminar ruta</span>
     </button>
   </footer>
-  
-  </section>
+</section>

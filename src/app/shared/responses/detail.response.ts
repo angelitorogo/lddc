@@ -22,6 +22,7 @@ export interface DetailResponse {
     images:              Image[];
     elevationProfile:    ElevationProfile[];
     trackPointsForFront: TrackPoint[];
+    pois: Poi[];
 }
 
 export interface ElevationProfile {
@@ -43,4 +44,33 @@ export interface TrackPoint {
     lat:    number;
     lon:    number;
     time:   Date;
+}
+
+
+export type PoiType =
+  | 'DRINKING_WATER'
+  | 'VIEWPOINT'
+  | 'SHELTER'
+  | 'PARKING'
+  | 'CAMP_SITE'
+  | 'PICNIC_SITE'
+  | 'INFORMATION';
+
+export interface Poi {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+
+  trackId: string;
+
+  type: PoiType;
+  name?: string | null;
+
+  osmType?: string | null; // node/way/relation
+  osmId?: string | null;
+
+  lat: number;
+  lon: number;
+
+  distanceFromStart?: number | null;
 }

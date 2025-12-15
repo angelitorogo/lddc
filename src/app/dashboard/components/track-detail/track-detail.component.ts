@@ -13,14 +13,14 @@ import { DetailResponse, ElevationProfile, TrackPoint } from '../../../shared/re
 import { environment } from '../../../../environments/environment';
 
 import Chart from 'chart.js/auto';
-import {
-  ChartOptions,
-} from 'chart.js';
+import { ChartOptions } from 'chart.js';
 
 import { GoogleMap } from '@angular/google-maps';
 import { Track } from '../../../shared/models/track.model';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../auth/services/auth.service';
+
+import { Poi, PoiType } from '../../../shared/responses/detail.response';
 
 @Component({
   selector: 'app-track-detail',
@@ -34,7 +34,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public isMobileView = window.matchMedia('(max-width: 960px)').matches;
 
-  // ✅ 1) guardamos la referencia del handler
   private readonly onResize = () => {
     this.isMobileView = window.matchMedia('(max-width: 960px)').matches;
   };
@@ -45,7 +44,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('detailMap') mapComponent?: GoogleMap;
 
   mapOptions: google.maps.MapOptions = {
-    mapTypeId: 'hybrid',
+    mapTypeId: 'satellite',
     disableDefaultUI: false,
     draggable: true,
     scrollwheel: true,
@@ -81,8 +80,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   elevTooltip = {
     visible: false,
-    x: 0,          // px dentro del contenedor
-    y: 0,          // px dentro del contenedor (arriba)
+    x: 0,
+    y: 0,
     distanceKm: 0,
     altitudeM: 0,
   };
@@ -98,7 +97,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   };
 
   private cumulativeDistancesMeters: number[] = [];
-  
+
   @ViewChild('tooltipUpEl', { static: false })
   tooltipUpEl?: ElementRef<HTMLDivElement>;
 
@@ -107,7 +106,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public pendiente?: string;
 
-
   nearbyTracks: any[] = [];
   isLoadingNearby = false;
   nearbyError: string | null = null;
@@ -115,14 +113,20 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   isGalleryOpen = false;
   galleryIndex = 0;
 
-  // swipe
   private touchStartX: number | null = null;
   private touchCurrentX: number | null = null;
   private scrollYBeforeGallery = 0;
 
   private scrollLocked = false;
-  private lockedEls: Array<{ el: HTMLElement; prevOverflow: string; prevOverscroll: string }> = []
+  private lockedEls: Array<{ el: HTMLElement; prevOverflow: string; prevOverscroll: string }> = [];
 
+  // ===== POIs (solo markers) =====
+  poiMarkers: Array<{
+    id: string;
+    position: google.maps.LatLngLiteral;
+    options: google.maps.MarkerOptions;
+    data: Poi;
+  }> = [];
 
   constructor(
     private router: Router,
@@ -132,34 +136,26 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {}
 
   // ========== CICLO DE VIDA ==========
-
   ngOnInit(): void {
     this.routeSub = this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (!id) return;
-
       this.loadDetailTrack(id);
     });
   }
 
   ngAfterViewInit(): void {
     this.viewInitialized = true;
-    //console.log('👀 AfterViewInit, canvas:', this.elevationCanvas);
 
-    // Puede que el track ya esté cargado; esperamos un tick para que exista el mapa
     setTimeout(() => {
       this.fitMapToPolyline();
-      if (this.hasElevationProfile()) {
-        this.buildElevationChart();
-      }
+      if (this.hasElevationProfile()) this.buildElevationChart();
     }, 50);
 
     window.addEventListener('resize', this.onResize, { passive: true });
-
   }
 
   ngOnDestroy(): void {
-
     window.removeEventListener('resize', this.onResize);
 
     this.unlockScrollEverywhere();
@@ -172,55 +168,39 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.elevTooltip.visible = false;
   }
 
-  
-
   // ========== NAVEGACIÓN ==========
-
   onBack(): void {
     this.router.navigate(['/dashboard/home']);
   }
 
   private loadDetailTrack(id: string) {
-
     this.resetElevationChartHard();
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
       this.track = resp;
-      console.log(this.track);
 
+      this.preparePoiMarkers();
       this.loadNearbyTracks();
 
       if (!this.track.trackPointsForFront) {
         this.track.trackPointsForFront = [];
       }
 
-      // 🔹 polilínea para el mapa
       this.preparePolylineFromTrack();
-
       this.loadElevationProfileFromTrack();
-      //console.log('📈 elevationProfile length:', this.elevationProfile.length);
 
-      // Si la vista ya está lista y tenemos perfil, pintamos
       if (this.viewInitialized && this.hasElevationProfile()) {
         setTimeout(() => {
-          if (this.elevationCanvas) {
-            this.buildElevationChart();
-          } else {
-            console.error("Canvas sigue sin existir!");
-          }
+          if (this.elevationCanvas) this.buildElevationChart();
         }, 50);
       }
 
       if (this.viewInitialized) {
-        // 🔹 Esperamos a que Angular pinte el <google-map>
         setTimeout(() => {
           this.fitMapToPolyline();
-          if (this.hasElevationProfile()) {
-            this.buildElevationChart();
-          }
+          if (this.hasElevationProfile()) this.buildElevationChart();
         }, 50);
       }
-
     });
   }
 
@@ -233,9 +213,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const points: TrackPoint[] = this.track.trackPointsForFront ?? [];
-
-    //console.log('📌 TrackPoints para front:', points.length);
-
     if (!points.length) {
       this.polylinePath = [];
       this.mapCenter = null;
@@ -249,39 +226,24 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.buildCumulativeDistances();
 
-    // centro aproximado por si acaso antes de fitBounds
     const middleIndex = Math.floor(this.polylinePath.length / 2);
     this.mapCenter = this.polylinePath[middleIndex];
-
   }
 
-
   private fitMapToPolyline(): void {
-
     if (!this.mapComponent) return;
     if (!this.polylinePath || this.polylinePath.length === 0) return;
 
     const bounds = new google.maps.LatLngBounds();
     this.polylinePath.forEach((p) => bounds.extend(p));
 
-    const PADDING: google.maps.Padding = {
-      top: 20,
-      bottom: 20,
-      left: 20,
-      right: 20,
-    };
-
-    //console.log(bounds.toJSON())
-
-    // 👉 usamos el wrapper de Angular
+    const PADDING: google.maps.Padding = { top: 20, bottom: 20, left: 20, right: 20 };
     this.mapComponent.fitBounds(bounds, PADDING);
 
-    // ✅ Guardamos el encuadre original
     this.originalBounds = bounds;
-    this.originalCenter = this.mapCenter; // aproximado; luego lo refinamos si hay mapa real
+    this.originalCenter = this.mapCenter;
     this.originalZoom = this.mapZoom;
 
-    // Si ya tenemos instancia real del mapa, guardamos center/zoom reales tras el fitBounds
     setTimeout(() => {
       const map = this.mapComponent?.googleMap;
       if (!map) return;
@@ -292,23 +254,20 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       const z = map.getZoom();
       if (typeof z === 'number') this.originalZoom = z;
     }, 80);
-
   }
 
   private buildHoverMarkerIcon(): google.maps.Icon {
-    // Colores (igual que en el gráfico)
-    const halo = 'rgba(180, 123, 245, 0.589)';     // glow
-    const core = 'rgb(156, 91, 231)';              // punto sólido
-    const stroke = 'rgba(5, 16, 13, 0.95)';        // borde oscuro
+    const halo = 'rgba(180, 123, 245, 0.589)';
+    const core = 'rgb(156, 91, 231)';
+    const stroke = 'rgba(5, 16, 13, 0.95)';
 
-    // Medidas (en px dentro del SVG)
-    const size = 40;           // canvas del icono
+    const size = 40;
     const cx = 20;
     const cy = 20;
 
-    const haloR = 8;           // como tu ctx.arc(..., 8)
-    const coreR = 4.2;         // como tu ctx.arc(..., 4.2)
-    const strokeW = 1;         // como tu ctx.lineWidth = 1
+    const haloR = 8;
+    const coreR = 4.2;
+    const strokeW = 1;
 
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
@@ -317,20 +276,16 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
             <feGaussianBlur stdDeviation="1.6"/>
           </filter>
         </defs>
-
         <circle cx="${cx}" cy="${cy}" r="${haloR}" fill="${halo}" filter="url(#blur)" />
         <circle cx="${cx}" cy="${cy}" r="${coreR}" fill="${core}" stroke="${stroke}" stroke-width="${strokeW}" />
       </svg>
     `.trim();
 
-    // SVG -> data URL (robusto: encodeURIComponent)
     const url = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 
     return {
       url,
-      // el tamaño visual que verá el usuario
       scaledSize: new google.maps.Size(size, size),
-      // ancla en el centro exacto del SVG para que “caiga” justo en la coordenada
       anchor: new google.maps.Point(cx, cy),
     };
   }
@@ -343,11 +298,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!bounds) return;
 
     const latLng = new google.maps.LatLng(point.lat, point.lng);
-
-    // ✅ si ya está visible, no hacemos nada (evita mareo)
     if (bounds.contains(latLng)) return;
 
-    // ✅ si está fuera, centramos suave
     map.panTo(latLng);
   }
 
@@ -355,80 +307,58 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const map = this.mapComponent?.googleMap;
     if (!map) return;
 
-    // Si tenemos bounds originales, mejor: vuelve al encuadre exacto
     if (this.originalBounds) {
       const PADDING: google.maps.Padding = { top: 20, bottom: 20, left: 20, right: 20 };
       this.mapComponent?.fitBounds(this.originalBounds, PADDING);
       return;
     }
 
-    // fallback: center/zoom
     if (this.originalCenter) map.panTo(this.originalCenter);
     if (typeof this.originalZoom === 'number') map.setZoom(this.originalZoom);
   }
 
-
   // ========== HELPERS DE PRESENTACIÓN ==========
-
   getUrlImage(trackImage: any): string {
     return `${this.baseUrl}/images/${trackImage.id}`;
   }
 
   getDifficultyLabel(): string {
     switch (this.track?.difficulty) {
-      case 'EASY':
-        return 'FÁCIL';
-      case 'MODERATE':
-        return 'MODERADA';
-      case 'HARD':
-        return 'DIFÍCIL';
-      default:
-        return 'SIN DATOS';
+      case 'EASY': return 'FÁCIL';
+      case 'MODERATE': return 'MODERADA';
+      case 'HARD': return 'DIFÍCIL';
+      default: return 'SIN DATOS';
     }
   }
 
   getDifficultyClass(): string {
     switch (this.track?.difficulty) {
-      case 'EASY':
-        return 'track-detail__difficulty--easy';
-      case 'MODERATE':
-        return 'track-detail__difficulty--moderate';
-      case 'HARD':
-        return 'track-detail__difficulty--hard';
-      default:
-        return '';
+      case 'EASY': return 'track-detail__difficulty--easy';
+      case 'MODERATE': return 'track-detail__difficulty--moderate';
+      case 'HARD': return 'track-detail__difficulty--hard';
+      default: return '';
     }
   }
 
   getRouteTypeLabel(): string {
     switch (this.track?.routeType) {
-      case 'CIRCULAR':
-        return 'Circular';
-      case 'OUT_AND_BACK':
-        return 'Ida y vuelta';
-      case 'POINT_TO_POINT':
-        return 'Lineal';
-      default:
-        return 'Ruta';
+      case 'CIRCULAR': return 'Circular';
+      case 'OUT_AND_BACK': return 'Ida y vuelta';
+      case 'POINT_TO_POINT': return 'Lineal';
+      default: return 'Ruta';
     }
   }
 
   getFormattedTime(): string {
     if (!this.track?.totalTimeSeconds) return '';
-
     const seconds = this.track.totalTimeSeconds;
     const hours = seconds / 3600;
-
-    if (hours >= 1) {
-      return `${hours.toFixed(1)} h`;
-    }
-
+    if (hours >= 1) return `${hours.toFixed(1)} h`;
     const minutes = seconds / 60;
     return `${Math.round(minutes)} min`;
   }
 
   // ========== DESCRIPCIÓN ==========
-
   toggleDescription(): void {
     this.isDescriptionExpanded = !this.isDescriptionExpanded;
   }
@@ -442,26 +372,19 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // ========== PERFIL DE ELEVACIÓN ==========
-
   private resetElevationChartHard(): void {
-    // Limpia hover/tooltip (por si se quedó activo)
     this.clearElevationHover(false);
 
-    // Destruye chart
     if (this.elevationChart) {
       this.elevationChart.destroy();
       this.elevationChart = undefined;
     }
 
-    // Limpia canvas a pelo (evita “restos” visuales o escalas pegadas)
     if (this.elevationCanvas?.nativeElement) {
       const ctx = this.elevationCanvas.nativeElement.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, this.elevationCanvas.nativeElement.width, this.elevationCanvas.nativeElement.height);
-      }
+      if (ctx) ctx.clearRect(0, 0, this.elevationCanvas.nativeElement.width, this.elevationCanvas.nativeElement.height);
     }
   }
-
 
   hasElevationProfile(): boolean {
     return !!this.elevationProfile && this.elevationProfile.length > 1;
@@ -484,14 +407,9 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const ctx = this.elevationCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.elevationProfile.map(p =>
-      (p.distanceMeters / 1000).toFixed(2)
-    );
-
+    const labels = this.elevationProfile.map(p => (p.distanceMeters / 1000).toFixed(2));
     const data = this.elevationProfile.map(p => p.elevationMeters);
 
-
-    // 🔥 Plugin: dibuja la línea vertical como crosshair
     const verticalLinePlugin = {
       id: 'verticalLinePlugin',
       afterDraw: (chart: any) => {
@@ -499,24 +417,21 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         if (!active || !active.length) return;
 
         const ctx = chart.ctx;
-        const { top, bottom, left, right } = chart.chartArea;
+        const { top, bottom } = chart.chartArea;
 
         const activePoint = active[0];
         const x = activePoint.element.x;
-        const y = activePoint.element.y; // 👈 intersección real con el perfil
+        const y = activePoint.element.y;
 
-        // ===== Línea vertical =====
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(x, top);
         ctx.lineTo(x, bottom);
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)'; // cámbialo a tu gusto
+        ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
         ctx.stroke();
         ctx.restore();
 
-        // ===== Punto de intersección =====
-        // 1) Halo (glow)
         ctx.save();
         ctx.beginPath();
         ctx.arc(x, y, 8, 0, Math.PI * 2);
@@ -524,15 +439,13 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         ctx.fill();
         ctx.restore();
 
-        // 2) Punto sólido con borde
         ctx.save();
         ctx.beginPath();
         ctx.arc(x, y, 4.2, 0, Math.PI * 2);
         ctx.fillStyle = 'rgb(156, 91, 231)';
         ctx.fill();
-
         ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)'; // “borde oscuro” para contraste
+        ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
         ctx.stroke();
         ctx.restore();
       },
@@ -558,28 +471,21 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const options: ChartOptions<'line'> = {
       responsive: true,
       maintainAspectRatio: false,
-
-      // 🔥 Desactivamos tooltip
       plugins: {
-        tooltip: {
-          enabled: false,
-        },
-        legend: {
-          display: false,
-        },
+        tooltip: { enabled: false },
+        legend: { display: false },
       },
-
-      // 🔥 Necesario para que funcione la línea vertical
       interaction: {
         mode: 'index',
         intersect: false,
       },
-
-      // 👇 aquí está la magia
       onHover: (event: any, activeEls: any[], chart: any) => {
         if (!this.profileWrap) return;
 
-        
+        if (!activeEls || activeEls.length === 0) {
+          this.clearElevationHover(true);
+          return;
+        }
 
         const idx = activeEls[0].index;
         const p = this.elevationProfile[idx];
@@ -588,23 +494,16 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           return;
         }
 
-        // X exacta del punto (la misma donde dibujas la línea vertical)
         const el = activeEls[0].element;
-        const x = el.x; // px dentro del canvas
-        const yTop = chart.chartArea.top; // px dentro del canvas
+        const x = el.x;
+        const yTop = chart.chartArea.top;
 
-        // Convertimos coords de canvas -> coords del contenedor (profileWrap)
-        // Como el canvas ocupa todo el contenedor, normalmente coincide,
-        // pero esto lo hace robusto ante paddings/bordes.
         const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
         const wrapRect = this.profileWrap.nativeElement.getBoundingClientRect();
-
         const xInWrap = x + (canvasRect.left - wrapRect.left);
 
-        // Tooltip arriba del área del gráfico (un poco por encima del chartArea)
         const tooltipY = Math.max(6, yTop - 46);
 
-        // Evitar que se salga por los bordes
         const wrapWidth = wrapRect.width;
         const PADDING = 12;
         const clampedX = Math.max(PADDING, Math.min(wrapWidth - PADDING, xInWrap));
@@ -615,13 +514,10 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         this.elevTooltip.distanceKm = p.distanceMeters / 1000;
         this.elevTooltip.altitudeM = p.elevationMeters;
 
-        // ===== mover punto en el mapa según la distancia del perfil =====
         if (this.polylinePath && this.polylinePath.length > 0 && this.cumulativeDistancesMeters.length === this.polylinePath.length) {
-          const targetDist = p.distanceMeters; // del elevationProfile
+          const targetDist = p.distanceMeters;
           const nearestIdx = this.findNearestPolylineIndexByDistance(targetDist);
           this.hoverMapPoint = this.polylinePath[nearestIdx];
-          
-          // ✅ opcional UX: aseguramos que el punto esté visible sin marear
           this.ensurePointVisibleOnMap(this.hoverMapPoint);
         }
 
@@ -630,80 +526,47 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           this.recenterResetTimer = null;
         }
 
-        // Si no hay punto activo (fuera del área)
-        if (!activeEls || activeEls.length === 0) {
-          this.clearElevationHover(true);
-          return;
-        }
-
-        // ✅ Desktop: reutilizamos la misma lógica que móvil
-        this.applyHoverIndex(activeEls[0].index);
-
-        if (this.recenterResetTimer) {
-          clearTimeout(this.recenterResetTimer);
-          this.recenterResetTimer = null;
-        }
-        
-
-
+        this.applyHoverIndex(idx);
       },
-
-
       scales: {
         x: {
           title: { display: !this.isMobileView, text: 'Distancia (km)' },
           grid: { color: 'rgba(255, 255, 255, 0.05)' },
           ticks: {
-            display: true,      // en móvil, fuera ticks del eje X también
+            display: true,
             maxTicksLimit: this.isMobileView ? 6 : 8,
             maxRotation: 0,
             minRotation: 0,
           },
-          border: { display: !this.isMobileView }, // opcional
+          border: { display: !this.isMobileView },
         },
-
         y: {
           position: 'left',
           grace: '5%',
           title: { display: !this.isMobileView, text: 'Altitud (m)' },
-
-          // ✅ en móvil: fuera números del eje Y
           ticks: {
             display: true,
             callback: (value) => `${value} m`,
           },
-
-          // ✅ en móvil: fuera la línea del eje Y
-          border: {
-            display: !this.isMobileView,
-          },
-
-          // ✅ grid horizontal (si la quieres mantener suave)
+          border: { display: !this.isMobileView },
           grid: {
             color: 'rgba(255, 255, 255, 0.08)',
-            drawTicks: !this.isMobileView,     // quita las “marquitas” del eje
+            drawTicks: !this.isMobileView,
           },
         },
-
-        
       },
-
-
     };
 
     this.elevationChart = new Chart(ctx, {
       type: 'line',
       data: chartData,
       options,
-      plugins: [verticalLinePlugin]
+      plugins: [verticalLinePlugin],
     });
-
-
   }
 
   private buildCumulativeDistances(): void {
     this.cumulativeDistancesMeters = [];
-
     if (!this.polylinePath || this.polylinePath.length === 0) return;
 
     let acc = 0;
@@ -715,11 +578,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private haversineMeters(
-    a: google.maps.LatLngLiteral,
-    b: google.maps.LatLngLiteral
-  ): number {
-    const R = 6371000; // metros
+  private haversineMeters(a: google.maps.LatLngLiteral, b: google.maps.LatLngLiteral): number {
+    const R = 6371000;
     const toRad = (d: number) => (d * Math.PI) / 180;
 
     const dLat = toRad(b.lat - a.lat);
@@ -741,7 +601,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const arr = this.cumulativeDistancesMeters;
     if (!arr || arr.length === 0) return 0;
 
-    // Búsqueda binaria (rápida)
     let lo = 0;
     let hi = arr.length - 1;
 
@@ -751,11 +610,9 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       else hi = mid;
     }
 
-    // lo es el primer índice con arr[lo] >= targetMeters
     const i = lo;
     if (i === 0) return 0;
 
-    // Comparamos i con i-1 para el más cercano
     const prev = i - 1;
     const d1 = Math.abs(arr[i] - targetMeters);
     const d0 = Math.abs(arr[prev] - targetMeters);
@@ -768,65 +625,51 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private clearElevationHover(resetMap: boolean): void {
-    // Ocultar tooltip + marcador
     this.elevTooltip.visible = false;
     this.hoverMapPoint = null;
     this.pendiente = undefined;
 
-    // Limpiar estado “active” interno de Chart.js (muy importante)
     if (this.elevationChart) {
       this.elevationChart.setActiveElements([]);
-      // Limpia tooltip interno por si acaso
       // @ts-ignore
       this.elevationChart.tooltip?.setActiveElements([], { x: 0, y: 0 });
       this.elevationChart.update('none');
     }
 
-    // Reset del mapa (si lo estás usando)
     if (resetMap) {
       if (this.recenterResetTimer) clearTimeout(this.recenterResetTimer);
-      this.recenterResetTimer = setTimeout(() => {
-        this.resetMapToOriginalFitBounds();
-      }, 200);
+      this.recenterResetTimer = setTimeout(() => this.resetMapToOriginalFitBounds(), 200);
     }
   }
-
 
   onProfileTouch(ev: TouchEvent): void {
     if (!this.elevationChart) return;
     if (!this.profileWrap) return;
 
-    ev.preventDefault(); // evita scroll mientras arrastras por el gráfico
+    ev.preventDefault();
 
     const touch = ev.touches[0];
     if (!touch) return;
 
-    // Convertimos la X del wrapper a X del canvas
     const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
     const xInCanvas = touch.clientX - canvasRect.left;
 
-    // Buscamos el índice más cercano usando la escala X
     const xScale = (this.elevationChart as any).scales?.x;
     if (!xScale) return;
 
     const idxFloat = xScale.getValueForPixel(xInCanvas);
     let idx = Math.round(idxFloat);
-
     idx = Math.max(0, Math.min(this.elevationProfile.length - 1, idx));
 
-    // Activamos el elemento en Chart.js (para que tu plugin pinte línea + punto)
     this.elevationChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
     // @ts-ignore
     this.elevationChart.tooltip?.setActiveElements([{ datasetIndex: 0, index: idx }], { x: xInCanvas, y: 0 });
     this.elevationChart.update('none');
 
-    // Y ahora reutilizamos tu lógica: actualizamos tooltip + mapa por idx
     this.applyHoverIndex(idx);
   }
 
-
   private applyHoverIndex(idx: number): void {
-    
     const p = this.elevationProfile[idx];
     if (!p) return;
 
@@ -841,62 +684,38 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const wrapRect = this.profileWrap.nativeElement.getBoundingClientRect();
     const xInWrap = x + (canvasRect.left - wrapRect.left);
 
-    // ✅ En móvil normalmente quieres tooltip abajo (para no tapar el gráfico)
     const isMobile = this.isMobileView;
     const tooltipY = isMobile ? (wrapRect.height - 44) : Math.max(6, yTop - 46);
 
     const wrapWidth = wrapRect.width;
 
-    // 1) ponemos visible primero para que Angular cree los tooltips
     this.elevTooltip.visible = true;
 
-    // 2) primer cálculo (puede usar fallback si aún no están en DOM)
     this.elevTooltip.x = this.computeStickyTooltipX(xInWrap, wrapWidth);
     this.elevTooltip.y = tooltipY;
     this.elevTooltip.distanceKm = p.distanceMeters / 1000;
     this.elevTooltip.altitudeM = p.elevationMeters;
 
-
     const slope = this.getSlopePercentAt(idx);
-    if (slope !== null) {
-      //console.log(`📐 Pendiente: ${slope.toFixed(1)}%`);
-      this.pendiente = slope.toFixed(1);
-    }
-    
+    if (slope !== null) this.pendiente = slope.toFixed(1);
 
-    // 3) recalcular en el siguiente frame ya con anchos reales (clave para evitar cortes)
     requestAnimationFrame(() => {
       if (!this.elevTooltip.visible) return;
       const wrapRect2 = this.profileWrap.nativeElement.getBoundingClientRect();
       this.elevTooltip.x = this.computeStickyTooltipX(xInWrap, wrapRect2.width);
-      
     });
 
-    // mover punto en mapa
-    if (
-      this.polylinePath?.length &&
-      this.cumulativeDistancesMeters.length === this.polylinePath.length
-    ) {
+    if (this.polylinePath?.length && this.cumulativeDistancesMeters.length === this.polylinePath.length) {
       const nearestIdx = this.findNearestPolylineIndexByDistance(p.distanceMeters);
       this.hoverMapPoint = this.polylinePath[nearestIdx];
     }
-
-    
   }
-
 
   private getActiveTooltipWidth(): number {
     const fallback = 180;
-
-    // Down siempre existe cuando visible=true
     const downW = this.tooltipDownEl?.nativeElement?.offsetWidth ?? 0;
-
-    // Up solo existe en desktop
     const upW = this.tooltipUpEl?.nativeElement?.offsetWidth ?? 0;
-
-    // Usamos el mayor de los visibles para que ninguno se corte
     const w = Math.max(downW, upW);
-
     return w > 0 ? w : fallback;
   }
 
@@ -908,11 +727,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const leftEdge = x - tooltipWidth / 2;
     const rightEdge = x + tooltipWidth / 2;
 
-    if (leftEdge < EDGE_MARGIN) {
-      x = tooltipWidth / 2 + EDGE_MARGIN;
-    } else if (rightEdge > wrapWidth - EDGE_MARGIN) {
-      x = wrapWidth - tooltipWidth / 2 - EDGE_MARGIN;
-    }
+    if (leftEdge < EDGE_MARGIN) x = tooltipWidth / 2 + EDGE_MARGIN;
+    else if (rightEdge > wrapWidth - EDGE_MARGIN) x = wrapWidth - tooltipWidth / 2 - EDGE_MARGIN;
 
     return x;
   }
@@ -920,7 +736,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   private loadNearbyTracks(): void {
     if (!this.track) return;
 
-    // ✅ Necesitamos un punto base (inicio de la ruta)
     const first = this.track.trackPointsForFront?.[0];
     if (!first) return;
 
@@ -936,7 +751,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     }).subscribe({
       next: (items) => {
         this.nearbyTracks = (items ?? []).filter(t => t?.id && t.id !== this.track?.id);
-        //console.log(this.nearbyTracks)
         this.isLoadingNearby = false;
       },
       error: (err) => {
@@ -948,40 +762,30 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-
   navigateNearbyTrack(track: Track): void {
-
-    //console.log(track)
     this.router.navigate(['/dashboard/track', track.id]);
-
   }
-
 
   private getSlopePercentAt(idx: number): number | null {
     if (!this.elevationProfile || this.elevationProfile.length < 2) return null;
     if (idx < 0 || idx >= this.elevationProfile.length) return null;
 
-    // usamos un pequeño "window" para que no sea tan ruidoso
     const i0 = Math.max(0, idx - 2);
     const i1 = Math.min(this.elevationProfile.length - 1, idx + 2);
 
     const p0 = this.elevationProfile[i0];
     const p1 = this.elevationProfile[i1];
 
-    const d = (p1.distanceMeters ?? 0) - (p0.distanceMeters ?? 0);     // metros
-    const h = (p1.elevationMeters ?? 0) - (p0.elevationMeters ?? 0);   // metros
+    const d = (p1.distanceMeters ?? 0) - (p0.distanceMeters ?? 0);
+    const h = (p1.elevationMeters ?? 0) - (p0.elevationMeters ?? 0);
 
     if (!d || d <= 0) return null;
-
     return (h / d) * 100;
   }
 
   getSlopeClass(slope: number | null | undefined): string {
-
     if (slope == null) return 'slope--none';
-
-    const abs = Math.abs(slope); // 🔥 muy importante (bajada también cuenta)
-
+    const abs = Math.abs(slope);
     if (abs < 10) return 'slope--easy';
     if (abs < 17) return 'slope--moderate';
     if (abs < 25) return 'slope--hard';
@@ -990,8 +794,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private buildPublicTrackUrl(): string {
     if (!this.track?.id) return environment.DOMAIN_URL;
-
-    // ruta pública final
     return `${environment.DOMAIN_URL}/dashboard/track/${this.track.id}`;
   }
 
@@ -999,14 +801,11 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const url = this.buildPublicTrackUrl();
 
     try {
-      // Clipboard API moderna
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        //console.log('✅ Enlace copiado al portapapeles:', url);
         return;
       }
 
-      // Fallback antiguo (por si clipboard no existe o no tiene permisos)
       const ta = document.createElement('textarea');
       ta.value = url;
       ta.style.position = 'fixed';
@@ -1017,8 +816,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-
-      //console.log('✅ Enlace copiado (fallback):', url);
     } catch (err) {
       console.error('❌ No se pudo copiar el enlace', err);
     }
@@ -1030,19 +827,12 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const text = 'Mira esta ruta';
 
     try {
-      // ✅ Web Share API (móvil / algunos desktop)
       if (navigator.share) {
         await navigator.share({ title, text, url });
-        //console.log('✅ Compartido con Web Share:', url);
         return;
       }
-
-      // Fallback: si no hay share, copiamos el enlace
-      //console.log('ℹ️ Web Share no disponible; copiando enlace...');
       await this.onCopyLink();
     } catch (err) {
-      // Importante: si el usuario cancela el share, salta excepción.
-      // No lo tratamos como error real.
       console.log('ℹ️ Share cancelado o no disponible', err);
     }
   }
@@ -1054,19 +844,15 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   openGallery(index: number): void {
     if (!this.track?.images?.length) return;
 
-    // clamp por seguridad
     const max = this.track.images.length - 1;
     this.galleryIndex = Math.max(0, Math.min(max, index));
 
     this.isGalleryOpen = true;
 
-    // guarda scroll
     this.scrollYBeforeGallery = window.scrollY || 0;
     document.body.style.top = `-${this.scrollYBeforeGallery}px`;
 
-    // 🔥 bloqueo universal
     this.lockScrollEverywhere();
-
   }
 
   closeGallery(): void {
@@ -1074,13 +860,10 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.touchStartX = null;
     this.touchCurrentX = null;
 
-    // 🔥 desbloqueo
     this.unlockScrollEverywhere();
 
-    // restaura scroll
     const y = this.scrollYBeforeGallery || 0;
     window.scrollTo(0, y);
-
   }
 
   hasPrevImage(): boolean {
@@ -1105,23 +888,11 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   onKeyDown(ev: KeyboardEvent): void {
     if (!this.isGalleryOpen) return;
 
-    if (ev.key === 'Escape') {
-      this.closeGallery();
-      return;
-    }
-
-    if (ev.key === 'ArrowLeft') {
-      this.prevImage();
-      return;
-    }
-
-    if (ev.key === 'ArrowRight') {
-      this.nextImage();
-      return;
-    }
+    if (ev.key === 'Escape') return this.closeGallery();
+    if (ev.key === 'ArrowLeft') return this.prevImage();
+    if (ev.key === 'ArrowRight') return this.nextImage();
   }
 
-  // ===== Swipe móvil =====
   onLightboxTouchStart(ev: TouchEvent): void {
     const t = ev.touches?.[0];
     if (!t) return;
@@ -1139,20 +910,16 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.touchStartX == null || this.touchCurrentX == null) return;
 
     const delta = this.touchCurrentX - this.touchStartX;
-    const THRESHOLD = 40; // px
+    const THRESHOLD = 40;
 
-    if (delta > THRESHOLD) {
-      this.prevImage();
-    } else if (delta < -THRESHOLD) {
-      this.nextImage();
-    }
+    if (delta > THRESHOLD) this.prevImage();
+    else if (delta < -THRESHOLD) this.nextImage();
 
     this.touchStartX = null;
     this.touchCurrentX = null;
   }
 
   private preventScrollHandler = (e: Event) => {
-    // bloquea scroll por wheel/touchmove (iOS/Android)
     e.preventDefault();
   };
 
@@ -1171,7 +938,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       if (canScrollY || canScrollX) res.push(el);
     }
 
-    // normalmente el principal es el que más scrollHeight tiene
     res.sort((a, b) => (b.scrollHeight - b.clientHeight) - (a.scrollHeight - a.clientHeight));
     return res;
   }
@@ -1180,14 +946,10 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.scrollLocked) return;
     this.scrollLocked = true;
 
-    // 1) bloquear html/body también (por si acaso)
     document.documentElement.classList.add('no-scroll');
     document.body.classList.add('no-scroll');
 
-    // 2) bloquear contenedores scrolleables reales
     const scrollables = this.getScrollableElements();
-
-    // si hay alguno, bloqueamos los 1-2 más grandes (evitas romper layouts)
     const targets = scrollables.slice(0, 2);
 
     this.lockedEls = targets.map(el => {
@@ -1198,7 +960,6 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       return { el, prevOverflow, prevOverscroll };
     });
 
-    // 3) bloquear wheel + touchmove (clave en móviles/iOS)
     document.addEventListener('wheel', this.preventScrollHandler, { passive: false });
     document.addEventListener('touchmove', this.preventScrollHandler, { passive: false });
   }
@@ -1221,8 +982,115 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     document.removeEventListener('touchmove', this.preventScrollHandler as any);
   }
 
+  // ===== POIs (solo markers) =====
+  private preparePoiMarkers(): void {
+    if (!this.track?.pois?.length) {
+      this.poiMarkers = [];
+      return;
+    }
 
+    const MAX = 250;
 
+    this.poiMarkers = this.track.pois.slice(0, MAX).map((p) => {
+      const icon = this.buildPoiMarkerIcon(p.type);
+      const title = this.getPoiTitle(p);
 
+      return {
+        id: p.id,
+        data: p,
+        position: { lat: p.lat, lng: p.lon },
+        options: {
+          title,
+          clickable: true,
+          zIndex: 50,
+          optimized: true,
+          icon,
+        },
+      };
+    });
+  }
 
+  private buildPoiMarkerIcon(type: PoiType): google.maps.Icon {
+    const { svg, size, anchorX, anchorY } = this.getPoiSvg(type);
+    const url = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+
+    return {
+      url,
+      scaledSize: new google.maps.Size(size, size),
+      anchor: new google.maps.Point(anchorX, anchorY),
+    };
+  }
+
+  private getPoiSvg(type: PoiType): { svg: string; size: number; anchorX: number; anchorY: number } {
+    const size = 34;
+    const cx = 17;
+    const cy = 17;
+
+    const color = this.getPoiColor(type);
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 34 34">
+        <defs>
+          <filter id="s" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.55)"/>
+          </filter>
+        </defs>
+
+        <circle cx="${cx}" cy="${cy}" r="12" fill="${color}" filter="url(#s)"/>
+        <circle cx="${cx}" cy="${cy}" r="11" fill="rgba(5,16,13,0.45)"/>
+        <text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="14" font-family="Arial" fill="white">
+          ${this.getPoiEmoji(type)}
+        </text>
+      </svg>
+    `.trim();
+
+    return { svg, size, anchorX: cx, anchorY: cy };
+  }
+
+  private getPoiColor(type: PoiType): string {
+    switch (type) {
+      case 'DRINKING_WATER': return '#1e88e5';
+      case 'VIEWPOINT': return '#8e24aa';
+      case 'SHELTER': return '#43a047';
+      case 'PARKING': return '#546e7a';
+      case 'CAMP_SITE': return '#f9a825';
+      case 'PICNIC_SITE': return '#fb8c00';
+      case 'INFORMATION': return '#00acc1';
+      default: return '#607d8b';
+    }
+  }
+
+  private getPoiEmoji(type: PoiType): string {
+    switch (type) {
+      case 'DRINKING_WATER': return '💧';
+      case 'VIEWPOINT': return '👁️';
+      case 'SHELTER': return '🛖';
+      case 'PARKING': return '🅿️';
+      case 'CAMP_SITE': return '⛺';
+      case 'PICNIC_SITE': return '🧺';
+      case 'INFORMATION': return 'ℹ️';
+      default: return '📍';
+    }
+  }
+
+  private getPoiTypeLabel(type: PoiType): string {
+    switch (type) {
+      case 'DRINKING_WATER': return 'Fuente';
+      case 'VIEWPOINT': return 'Mirador';
+      case 'SHELTER': return 'Refugio';
+      case 'PARKING': return 'Aparcamiento';
+      case 'CAMP_SITE': return 'Camping';
+      case 'PICNIC_SITE': return 'Merendero';
+      case 'INFORMATION': return 'Información';
+      default: return 'POI';
+    }
+  }
+
+  private getPoiTitle(p: Poi): string {
+    const base = this.getPoiTypeLabel(p.type);
+    if (p.name && p.name.trim().length) return p.name.trim();
+    return base;
+  }
+
+  trackByPoiId = (_: number, item: any) => item.id;
 }
