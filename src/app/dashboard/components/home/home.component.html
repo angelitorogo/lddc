@@ -286,13 +286,21 @@
   <!-- Lista de tracks -->
   <section *ngIf="!loading && !error" class="tracks-list">
     <app-card-track
-      *ngFor="let track of tracks"
+      *ngFor="let track of tracks; trackBy: trackById"
       [track]="track"
     ></app-card-track>
   </section>
 
+  <div *ngIf="isMobile && loadingMore" class="home__status">
+    Cargando más rutas...
+  </div>
+
+  <div *ngIf="isMobile && !loading && !error && tracks.length > 0 && !canLoadMore" class="home__status">
+    No hay más rutas.
+  </div>
+
   <!-- Paginación -->
-  <section *ngIf="!loading && !error && tracks.length > 0" class="pagination">
+  <section *ngIf="!isMobile && !loading && !error && tracks.length > 0" class="pagination">
     <button
       class="btn btn--secondary"
       [disabled]="!canGoPrev()"

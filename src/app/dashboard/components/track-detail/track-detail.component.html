@@ -270,9 +270,13 @@
           class="track-page__description-wrapper"
           [class.track-page__description-wrapper--expanded]="isDescriptionExpanded"
         >
-          <p class="track-page__description-text">
-            {{ track.description }}
-          </p>
+          <textarea
+            #descTa
+            class="track-page__description-text"
+            rows="8"
+            readonly
+            [value]="track.description"
+          ></textarea>
 
           <div class="track-page__description-fade" *ngIf="!isDescriptionExpanded"></div>
         </div>

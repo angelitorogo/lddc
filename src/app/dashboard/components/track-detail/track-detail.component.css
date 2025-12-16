@@ -519,6 +519,60 @@
   padding: 1rem;
 }
 
+.track-page__description-wrapper textarea {
+  border-radius: 6px;
+  width: 100%;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.9rem 0.2rem;
+  background-color: var(--color-surface);
+  color: var(--text-color);
+  font-size: 1.4rem;
+}
+
+/* =============================== */
+/* TEXTAREA: sin resize + scroll OK */
+/* =============================== */
+
+textarea {
+  resize: none;
+}
+
+textarea:focus {
+  outline: none;
+  border: none;
+}
+
+/* Solo dentro de esta página, para no afectar otras vistas */
+.track-page__description-wrapper textarea {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) rgba(4, 12, 10, 0.35);
+}
+
+/* Chrome / Edge / Safari */
+.track-page__description-wrapper textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.track-page__description-wrapper textarea::-webkit-scrollbar-track {
+  background: rgba(4, 12, 10, 0.35);
+  border-radius: 999px;
+}
+
+.track-page__description-wrapper textarea::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12); /* EXACTO a tus scroll horizontales */
+  border-radius: 999px;
+  border: 2px solid rgba(4, 12, 10, 0.35);
+}
+
+.track-page__description-wrapper textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+.track-page__description-wrapper textarea {
+  overflow: hidden;
+}
+
 .track-page__description-text--muted {
   color: var(--text-muted-color);
 }
@@ -1053,3 +1107,41 @@ body.no-scroll {
     font-size: 1rem;
   }
 }
+
+
+.track-page__description-wrapper {
+  position: relative;
+  max-height: 10.5em;
+  overflow: hidden;
+}
+
+.track-page__description-wrapper--expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.track-page__description-wrapper textarea.track-page__description-text {
+  width: 100%;
+  display: block;
+
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.6;
+  text-align: justify;
+
+  padding: 1rem;
+
+  background: transparent;
+  border: none;
+  outline: none;
+
+  resize: none;
+
+  overflow-y: scroll; /* ✅ con scroll */
+}
+
+.track-page__description-wrapper textarea.track-page__description-text:focus {
+  outline: none;
+  border: none;
+}
+

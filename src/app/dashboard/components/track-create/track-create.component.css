@@ -87,6 +87,43 @@
   border-color: var(--color-primary);
 }
 
+textarea {
+  resize: none;
+}
+
+textarea:focus {
+  outline: none;
+  border: none;
+}
+
+/* Solo dentro de esta página, para no afectar otras vistas */
+.form-field textarea {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) rgba(4, 12, 10, 0.35);
+}
+
+/* Chrome / Edge / Safari */
+.form-field textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.form-field textarea::-webkit-scrollbar-track {
+  background: rgba(4, 12, 10, 0.35);
+  border-radius: 999px;
+}
+
+.form-field textarea::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12); /* EXACTO a tus scroll horizontales */
+  border-radius: 999px;
+  border: 2px solid rgba(4, 12, 10, 0.35);
+}
+
+.form-field textarea::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+
 .form-field__hint {
   font-size: 1.4rem;
   color: var(--text-muted-color);

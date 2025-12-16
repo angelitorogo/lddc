@@ -90,14 +90,12 @@ export class TrackDetailComponent
 
   isDescriptionExpanded = false;
 
-  @ViewChild('elevationCanvas', { static: false })
-  elevationCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('elevationCanvas', { static: false }) elevationCanvas!: ElementRef<HTMLCanvasElement>;
   private elevationChart?: Chart;
   private viewInitialized = false;
   elevationProfile: ElevationProfile[] = [];
 
-  @ViewChild('profileWrap', { static: false })
-  profileWrap!: ElementRef<HTMLDivElement>;
+  @ViewChild('profileWrap', { static: false }) profileWrap!: ElementRef<HTMLDivElement>;
 
   elevTooltip = {
     visible: false,
@@ -119,11 +117,9 @@ export class TrackDetailComponent
 
   private cumulativeDistancesMeters: number[] = [];
 
-  @ViewChild('tooltipUpEl', { static: false })
-  tooltipUpEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('tooltipUpEl', { static: false }) tooltipUpEl?: ElementRef<HTMLDivElement>;
 
-  @ViewChild('tooltipDownEl', { static: false })
-  tooltipDownEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('tooltipDownEl', { static: false }) tooltipDownEl?: ElementRef<HTMLDivElement>;
 
   public pendiente?: string;
 
@@ -166,6 +162,8 @@ export class TrackDetailComponent
   private readonly POI_HOVER_THRESHOLD_INDEX = 2; // 1-3 suele ir bien
 
   showPois = false;
+
+  @ViewChild('descTa', { static: false }) descTa?: ElementRef<HTMLTextAreaElement>;
 
   constructor(
     private router: Router,
@@ -256,6 +254,9 @@ export class TrackDetailComponent
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
       this.track = resp;
+
+      setTimeout(() => this.autoResizeDesc(), 0);
+      this.preparePoiMarkers();
 
       this.preparePoiMarkers();
       this.loadNearbyTracks();
@@ -612,9 +613,10 @@ export class TrackDetailComponent
   /**
    * Alterna la expansión/colapso del bloque de descripción.
    */
+  /*
   toggleDescription(): void {
     this.isDescriptionExpanded = !this.isDescriptionExpanded;
-  }
+  }*/
 
   /**
    * Navega al editor del track actual.
@@ -1951,4 +1953,33 @@ export class TrackDetailComponent
     if (best && bestDelta <= this.POI_HOVER_THRESHOLD_INDEX) return best;
     return null;
   }
+
+  toggleDescription(): void {
+    this.isDescriptionExpanded = !this.isDescriptionExpanded;
+
+    // al cambiar, recalculamos altura
+    setTimeout(() => this.autoResizeDesc(), 0);
+  }
+
+  private autoResizeDesc(): void {
+    const ta = this.descTa?.nativeElement;
+    if (!ta) return;
+
+    // 1) reset para recalcular bien
+    ta.style.height = 'auto';
+
+    // 2) altura real del contenido
+    const full = ta.scrollHeight;
+
+    // 3) si está expandido: toda la altura
+    //    si está colapsado: lo dejamos en la altura por rows (CSS + wrapper recortan)
+    if (this.isDescriptionExpanded) {
+      ta.style.height = `${full}px`;
+    } else {
+      // al colapsar, volvemos a “altura natural” del rows
+      // (auto + wrapper con max-height hace el recorte)
+      ta.style.height = '';
+    }
+  }
+
 }

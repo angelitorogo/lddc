@@ -105,6 +105,8 @@
   border-color: var(--color-primary);
 }
 
+
+
 /* SECTION TITLES */
 
 .section-title {
@@ -187,6 +189,11 @@
 
 textarea {
   resize: none;
+}
+
+textarea:focus {
+  outline: none;
+  border: none;
 }
 
 /* Solo dentro de esta página, para no afectar otras vistas */

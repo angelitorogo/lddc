@@ -317,7 +317,7 @@
 }
 
 /* RESPONSIVE */
-@media (max-width: 834px) {
+@media (max-width: 1127px) {
   .nav-links {
     display: none;
   }
