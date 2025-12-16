@@ -50,7 +50,7 @@
       <figure class="track-page__cover-figure track-page__cover-figure--map">
         <google-map
           #detailMap
-          height="320px"
+          [height]="isMobileView ? '277px' : '320px'"
           width="100%"
           [center]="mapCenter || { lat: 0, lng: 0 }"
           [zoom]="mapZoom"
@@ -65,11 +65,13 @@
           ></map-marker>
 
           <!-- ✅ POIs: solo marcadores, sin click -->
-          <map-marker
-            *ngFor="let m of poiMarkers; trackBy: trackByPoiId"
-            [position]="m.position"
-            [options]="m.options"
-          ></map-marker>
+          <ng-container *ngIf="showPois">
+            <map-marker
+              *ngFor="let m of poiMarkers; trackBy: trackByPoiId"
+              [position]="m.position"
+              [options]="m.options"
+            ></map-marker>
+          </ng-container>
         </google-map>
       </figure>
     </section>
@@ -177,10 +179,22 @@
     <section class="track-panel track-page__profile">
       <h2 class="track-panel__title title__perfil">
         <span>Perfil de elevación</span>
-        <span style="width: 14rem; margin-bottom: 0;" *ngIf="pendiente">
-          Pendiente:
-          <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{ pendiente }}%</span>
-        </span>
+        <div class="track-panel__poi_pend">
+          <span class="track-panel__pend" *ngIf="pendiente">
+            {{isMobileView ? 'Pend.' : 'Pendiente'}}
+            <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{ pendiente }}%</span>
+          </span>
+          <button
+            type="button"
+            class="poi-toggle"
+            (click)="togglePois()"
+            [attr.aria-pressed]="showPois"
+          >
+            <i class="bi" [ngClass]="showPois ? 'bi-geo-alt-fill' : 'bi-geo-alt'"></i>
+            <span>{{ showPois ? 'Ocultar POIs' : 'Mostrar POIs' }}</span>
+          </button>
+        </div>
+       
       </h2>
 
       <div
@@ -226,6 +240,14 @@
             <span class="elev-tooltip__label">Distancia</span>
             <span class="elev-tooltip__value">
               {{ elevTooltip.distanceKm | number : '1.2-2' }} km
+            </span>
+          </div>
+
+          <!-- ✅ NUEVO: POI -->
+          <div class="elev-tooltip__row" *ngIf="hoverPoi">
+            <span class="elev-tooltip__label">POI</span>
+            <span class="elev-tooltip__value">
+              {{ hoverPoi.name }}
             </span>
           </div>
         </div>
@@ -433,11 +455,34 @@
     <button
       type="button"
       class="btn-danger track-page__footer-btn"
-      (click)="onDeleteTrack()"
+      (click)="openDeleteTrackModal()"
       *ngIf="authService.user?.id === track.authorUserId"
     >
       <i class="bi bi-trash"></i>
       <span>Eliminar ruta</span>
     </button>
+
+    <!-- MODAL CONFIRM (ELIMINAR RUTA) -->
+    <div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDelete()">
+      <div class="modal__panel" (click)="$event.stopPropagation()">
+        <h3 class="modal__title">{{ titleModal }}</h3>
+
+        <p class="modal__text">
+          {{ textModal }}
+        </p>
+
+        <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
+          <button class="btn-outline track-modal-btn" (click)="cancelDelete()">Cancelar</button>
+          <button class="btn-danger track-modal-btn" (click)="confirmDelete()">Eliminar</button>
+        </div>
+
+        <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
+          <button class="btn-outline track-modal-btn" (click)="successOk()">Aceptar</button>
+        </div>
+      </div>
+    </div>
+
   </footer>
 </section>
+
+

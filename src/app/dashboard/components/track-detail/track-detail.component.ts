@@ -22,6 +22,22 @@ import { AuthService } from '../../../auth/services/auth.service';
 
 import { Poi, PoiType } from '../../../shared/responses/detail.response';
 
+type ModalType = 'DELETE' | 'SUCCESS';
+type PoiOnProfile = {
+  id: string;
+  name: string;
+  type: PoiType;
+  lat: number;
+  lon: number;
+  // “anclaje” al perfil
+  index: number;            // índice en elevationProfile / polylinePath
+  distanceMeters: number;   // X
+  elevationMeters: number;  // Y
+};
+
+
+
+
 @Component({
   selector: 'app-track-detail',
   templateUrl: './track-detail.component.html',
@@ -128,12 +144,26 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     data: Poi;
   }> = [];
 
+  confirmDeleteOpen = false;
+  typeModal: ModalType = 'DELETE';
+  titleModal = '';
+  textModal = '';
+
+  private deleteInProgress = false;
+
+  poiOnProfile: PoiOnProfile[] = [];
+  hoverPoi: PoiOnProfile | null = null;
+
+  private readonly POI_HOVER_THRESHOLD_INDEX = 2; // 1-3 suele ir bien
+
+  showPois = false;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private trackService: TracksService,
     public authService: AuthService
-  ) {}
+  ) { }
 
   // ========== CICLO DE VIDA ==========
   ngOnInit(): void {
@@ -173,7 +203,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/dashboard/home']);
   }
 
-  private loadDetailTrack(id: string) {
+  private loadDetailTrack(id: string): void {
     this.resetElevationChartHard();
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
@@ -188,6 +218,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.preparePolylineFromTrack();
       this.loadElevationProfileFromTrack();
+      this.buildPoiOnProfile();
 
       if (this.viewInitialized && this.hasElevationProfile()) {
         setTimeout(() => {
@@ -229,6 +260,98 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const middleIndex = Math.floor(this.polylinePath.length / 2);
     this.mapCenter = this.polylinePath[middleIndex];
   }
+
+  private buildPoiOnProfile(): void {
+    if (!this.track?.pois?.length) {
+      this.poiOnProfile = [];
+      return;
+    }
+    if (!this.elevationProfile?.length) {
+      this.poiOnProfile = [];
+      return;
+    }
+    if (!this.polylinePath?.length || this.cumulativeDistancesMeters.length !== this.polylinePath.length) {
+      this.poiOnProfile = [];
+      return;
+    }
+
+    const MAX = 250;
+
+    // Para cada POI -> buscamos el punto de la polilínea más cercano,
+    // y lo convertimos en (distancia, elevación)
+    const list: PoiOnProfile[] = [];
+
+    for (const p of this.track.pois.slice(0, MAX)) {
+      const poiPos: google.maps.LatLngLiteral = { lat: p.lat, lng: p.lon };
+
+      const nearestIdx = this.findNearestPolylineIndexByLatLng(poiPos);
+      const dist = this.cumulativeDistancesMeters[nearestIdx] ?? 0;
+
+      // Elevación del perfil: tenemos distanceMeters por cada punto del perfil.
+      // Como tu perfil ya lleva distanceMeters acumulada, buscamos el índice del perfil
+      // más cercano a esa distancia.
+      const profIdx = this.findNearestElevationIndexByDistance(dist);
+      const ep = this.elevationProfile[profIdx];
+
+      if (!ep) continue;
+
+      list.push({
+        id: p.id,
+        name: this.getPoiTitle(p),
+        type: p.type,
+        lat: p.lat,
+        lon: p.lon,
+        index: profIdx,
+        distanceMeters: ep.distanceMeters,
+        elevationMeters: ep.elevationMeters,
+      });
+    }
+
+    // Opcional: si hay varios POIs muy pegados, puedes filtrar por distancia mínima.
+    // Aquí lo dejamos tal cual.
+    this.poiOnProfile = list;
+  }
+
+  private findNearestPolylineIndexByLatLng(target: google.maps.LatLngLiteral): number {
+    if (!this.polylinePath?.length) return 0;
+
+    let bestIdx = 0;
+    let best = Number.POSITIVE_INFINITY;
+
+    for (let i = 0; i < this.polylinePath.length; i++) {
+      const d = this.haversineMeters(this.polylinePath[i], target);
+      if (d < best) {
+        best = d;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
+  }
+
+  private findNearestElevationIndexByDistance(targetMeters: number): number {
+    const arr = this.elevationProfile;
+    if (!arr?.length) return 0;
+
+    // Búsqueda binaria en elevationProfile por distanceMeters
+    let lo = 0;
+    let hi = arr.length - 1;
+
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if ((arr[mid].distanceMeters ?? 0) < targetMeters) lo = mid + 1;
+      else hi = mid;
+    }
+
+    const i = lo;
+    if (i === 0) return 0;
+
+    const prev = i - 1;
+    const d1 = Math.abs((arr[i].distanceMeters ?? 0) - targetMeters);
+    const d0 = Math.abs((arr[prev].distanceMeters ?? 0) - targetMeters);
+
+    return d0 <= d1 ? prev : i;
+  }
+
 
   private fitMapToPolyline(): void {
     if (!this.mapComponent) return;
@@ -390,6 +513,49 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     return !!this.elevationProfile && this.elevationProfile.length > 1;
   }
 
+  private computeNiceYBounds(values: number[], gracePct: number = 0.12): { min: number; max: number } {
+    const finite = values.filter(v => Number.isFinite(v));
+    if (!finite.length) return { min: 0, max: 100 };
+
+    const realMin = Math.min(...finite);
+    const realMax = Math.max(...finite);
+    const realRange = Math.max(1, realMax - realMin);
+
+    // 1) Si el track es muy plano, forzamos un rango mínimo para que no se vea exagerado
+    const MIN_RANGE_METERS = 120;          // ajusta: 80-150
+    const baseRange = Math.max(realRange, MIN_RANGE_METERS);
+
+    // 2) “Grace” manual (aire arriba/abajo) aplicado al rango base
+    //    ejemplo: 0.12 => 12% de padding por arriba y por abajo
+    const pad = Math.max(8, baseRange * gracePct);
+
+    // centrado en el centro real
+    const mid = (realMin + realMax) / 2;
+    let min = mid - baseRange / 2 - pad;
+    let max = mid + baseRange / 2 + pad;
+
+    // redondeo bonito a múltiplos de 10
+    const step = 10;
+    min = Math.floor(min / step) * step;
+    max = Math.ceil(max / step) * step;
+
+    if (min < 0) min = 0;
+
+    return { min, max };
+  }
+
+
+  private computeYTickStep(min: number, max: number): number {
+    const range = Math.max(1, max - min);
+    // escalado simple para que no salgan 200 ticks
+    if (range <= 80) return 10;
+    if (range <= 160) return 20;
+    if (range <= 300) return 50;
+    if (range <= 600) return 100;
+    return 200;
+  }
+
+
   private loadElevationProfileFromTrack(): void {
     if (!this.track) return;
     this.elevationProfile = this.track.elevationProfile ?? [];
@@ -407,46 +573,146 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     const ctx = this.elevationCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const labels = this.elevationProfile.map(p => (p.distanceMeters / 1000).toFixed(2));
-    const data = this.elevationProfile.map(p => p.elevationMeters);
+    //const labels = this.elevationProfile.map(p => (p.distanceMeters / 1000).toFixed(2));
+    //const data = this.elevationProfile.map(p => p.elevationMeters);
+
+    
+    const smoothedProfile = this.smoothElevations(this.elevationProfile, 5);
+    const labels = smoothedProfile.map(p => (p.distanceMeters / 1000).toFixed(2));
+    const data = smoothedProfile.map(p => p.elevationMeters);
+    
+
+    //const yBounds = this.computeNiceYBounds(data);
+    //const yStep = this.computeYTickStep(yBounds.min, yBounds.max);
+
+    const gracePct = 0.10; // prueba: 0.06, 0.10, 0.15, 0.20
+    const yBounds = this.computeNiceYBounds(data, gracePct);
+    const yStep = this.computeYTickStep(yBounds.min, yBounds.max);
 
     const verticalLinePlugin = {
       id: 'verticalLinePlugin',
       afterDraw: (chart: any) => {
-        const active = chart.tooltip?._active;
-        if (!active || !active.length) return;
-
         const ctx = chart.ctx;
-        const { top, bottom } = chart.chartArea;
+        const { top, bottom, left, right } = chart.chartArea;
 
-        const activePoint = active[0];
-        const x = activePoint.element.x;
-        const y = activePoint.element.y;
+        // ===============================
+        // HOVER (igual que lo tenías)
+        // ===============================
+        const active = chart.tooltip?._active;
+        if (active && active.length) {
+          const activePoint = active[0];
+          const x = activePoint.element.x;
+          const y = activePoint.element.y;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, top);
+          ctx.lineTo(x, bottom);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(180, 123, 245, 0.589)';
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 4.2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgb(156, 91, 231)';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // ===============================
+        // POIs pegados a la CURVA
+        // ===============================
+        if (!this.showPois || !this.poiOnProfile?.length) return;
+
+        const meta0 = chart.getDatasetMeta(0); // dataset de la línea
+        if (!meta0?.data?.length) return;
+
+        // orden para que quede consistente
+        const pois = [...this.poiOnProfile].sort((a, b) => a.index - b.index);
 
         ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(x, top);
-        ctx.lineTo(x, bottom);
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
-        ctx.stroke();
-        ctx.restore();
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgb(180, 123, 245, 0.589)';
-        ctx.fill();
-        ctx.restore();
+        // Para no “ensuciar” demasiado si hay muchos, puedes limitar
+        // const MAX_DRAW = 80;
+        // let drawn = 0;
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, 4.2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgb(156, 91, 231)';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
-        ctx.stroke();
+        for (const poi of pois) {
+
+          //console.log(poi.type)
+          
+          //if(poi.name === 'Información') return;
+
+          const el = meta0.data[poi.index];
+          if (!el) continue;
+
+          const x = el.x;
+          const y = el.y;
+
+          // si queda fuera del área útil, no lo pintes
+          if (x < left || x > right || y < top || y > bottom) continue;
+
+          // punto base (un puntito pequeño en la curva)
+          ctx.beginPath();
+          ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(180, 123, 245, 0.95)';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
+          ctx.stroke();
+
+          // chapita con emoji, cerca del punto (ligeramente arriba)
+          const offsetY = 14; // separación respecto a la curva
+          const badgeW = 18;
+          const badgeH = 18;
+          const r = 5;
+          const bx = x - badgeW / 2;
+          const by = (y - offsetY) - badgeH / 2;
+
+          // clamp vertical para que no se salga por arriba
+          const byClamped = Math.max(top + 6, by);
+
+          // dibujar badge redondeado
+          ctx.beginPath();
+          ctx.moveTo(bx + r, byClamped);
+          ctx.lineTo(bx + badgeW - r, byClamped);
+          ctx.quadraticCurveTo(bx + badgeW, byClamped, bx + badgeW, byClamped + r);
+          ctx.lineTo(bx + badgeW, byClamped + badgeH - r);
+          ctx.quadraticCurveTo(bx + badgeW, byClamped + badgeH, bx + badgeW - r, byClamped + badgeH);
+          ctx.lineTo(bx + r, byClamped + badgeH);
+          ctx.quadraticCurveTo(bx, byClamped + badgeH, bx, byClamped + badgeH - r);
+          ctx.lineTo(bx, byClamped + r);
+          ctx.quadraticCurveTo(bx, byClamped, bx + r, byClamped);
+          ctx.closePath();
+
+          ctx.fillStyle = 'rgba(5, 16, 13, 0.85)';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+          ctx.stroke();
+
+          // emoji dentro
+          ctx.fillStyle = 'rgba(255,255,255,0.92)';
+          ctx.fillText(this.getPoiEmoji(poi.type), x, byClamped + badgeH / 2);
+
+          // drawn++;
+          // if (drawn >= MAX_DRAW) break;
+        }
+
         ctx.restore();
       },
     };
@@ -465,6 +731,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
           borderColor: 'rgba(0, 230, 118, 1)',
           backgroundColor: 'rgba(0, 230, 118, 0.15)',
         },
+
+        
       ],
     };
 
@@ -528,6 +796,7 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
 
         this.applyHoverIndex(idx);
       },
+
       scales: {
         x: {
           title: { display: !this.isMobileView, text: 'Distancia (km)' },
@@ -542,9 +811,12 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         y: {
           position: 'left',
-          grace: '5%',
+          grace: '0%',
+          min: yBounds.min,
+          max: yBounds.max,
           title: { display: !this.isMobileView, text: 'Altitud (m)' },
           ticks: {
+            stepSize: yStep,
             display: true,
             callback: (value) => `${value} m`,
           },
@@ -577,6 +849,45 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       this.cumulativeDistancesMeters.push(acc);
     }
   }
+
+  private smoothElevations(profile: ElevationProfile[], window: number = 5): ElevationProfile[] {
+    if (!profile?.length) return [];
+    if (profile.length < 3) return profile;
+
+    // ventana impar para que el punto central sea el actual
+    let w = Math.max(3, Math.floor(window));
+    if (w % 2 === 0) w += 1;
+
+    const half = Math.floor(w / 2);
+
+    // copiamos elevaciones
+    const elevs = profile.map(p => Number(p.elevationMeters ?? 0));
+
+    // prefijos para medias rápidas
+    const prefix: number[] = new Array(elevs.length + 1).fill(0);
+    for (let i = 0; i < elevs.length; i++) {
+      prefix[i + 1] = prefix[i] + elevs[i];
+    }
+
+    const smoothedElevs: number[] = new Array(elevs.length);
+
+    for (let i = 0; i < elevs.length; i++) {
+      const start = Math.max(0, i - half);
+      const end = Math.min(elevs.length - 1, i + half);
+
+      const sum = prefix[end + 1] - prefix[start];
+      const count = (end - start + 1);
+
+      smoothedElevs[i] = sum / count;
+    }
+
+    // devolvemos nuevo perfil (misma distancia, elevación suavizada)
+    return profile.map((p, i) => ({
+      ...p,
+      elevationMeters: smoothedElevs[i],
+    }));
+  }
+
 
   private haversineMeters(a: google.maps.LatLngLiteral, b: google.maps.LatLngLiteral): number {
     const R = 6371000;
@@ -640,6 +951,8 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.recenterResetTimer) clearTimeout(this.recenterResetTimer);
       this.recenterResetTimer = setTimeout(() => this.resetMapToOriginalFitBounds(), 200);
     }
+
+    this.hoverPoi = null;
   }
 
   onProfileTouch(ev: TouchEvent): void {
@@ -709,6 +1022,9 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
       const nearestIdx = this.findNearestPolylineIndexByDistance(p.distanceMeters);
       this.hoverMapPoint = this.polylinePath[nearestIdx];
     }
+
+    this.hoverPoi = this.showPois ? this.findHoverPoiByIndex(idx) : null;
+
   }
 
   private getActiveTooltipWidth(): number {
@@ -731,6 +1047,18 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
     else if (rightEdge > wrapWidth - EDGE_MARGIN) x = wrapWidth - tooltipWidth / 2 - EDGE_MARGIN;
 
     return x;
+  }
+
+  togglePois(): void {
+    this.showPois = !this.showPois;
+
+    // Al ocultar POIs, limpia el hoverPoi para que no se quede “enganchado”
+    if (!this.showPois) this.hoverPoi = null;
+
+    // Fuerza el repaint del canvas (esto hará que el plugin se ejecute ya)
+    if (this.elevationChart) {
+      this.elevationChart.update('none'); // 'none' = sin animación, más fluido
+    }
   }
 
   private loadNearbyTracks(): void {
@@ -1093,4 +1421,70 @@ export class TrackDetailComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   trackByPoiId = (_: number, item: any) => item.id;
+
+  openDeleteTrackModal(): void {
+    if (!this.track) return;
+
+    this.typeModal = 'DELETE';
+    this.titleModal = 'Eliminar ruta';
+    this.textModal = '¿Seguro que quieres eliminar esta ruta? Esta acción no se puede deshacer.';
+    this.confirmDeleteOpen = true;
+  }
+
+  cancelDelete(): void {
+    if (this.deleteInProgress) return; // evita cerrar mientras borra
+    this.confirmDeleteOpen = false;
+    this.typeModal = 'DELETE';
+  }
+
+  confirmDelete(): void {
+    if (!this.track || this.deleteInProgress) return;
+
+    this.deleteInProgress = true;
+
+    this.trackService.deleteTrack(this.track.id).subscribe({
+      next: () => {
+        this.typeModal = 'SUCCESS';
+        this.titleModal = 'Ruta eliminada';
+        this.textModal = 'La ruta se ha eliminado correctamente.';
+        this.deleteInProgress = false;
+      },
+      error: (err) => {
+        console.error('Error al eliminar la ruta', err);
+        // Si quieres, puedes reutilizar SUCCESS para mensaje de error, o crear 'ERROR'.
+        this.typeModal = 'SUCCESS';
+        this.titleModal = 'No se pudo eliminar';
+        this.textModal = 'Ha ocurrido un error al eliminar la ruta. Inténtalo de nuevo.';
+        this.deleteInProgress = false;
+      }
+    });
+  }
+
+  successOk(): void {
+    this.confirmDeleteOpen = false;
+
+    // Tras aceptar, navega donde te interese (lista / home)
+    this.router.navigate(['/tracks']);
+  }
+
+  private findHoverPoiByIndex(idx: number): PoiOnProfile | null {
+    if (!this.poiOnProfile?.length) return null;
+
+    // buscamos el más cercano por índice
+    let best: PoiOnProfile | null = null;
+    let bestDelta = Number.POSITIVE_INFINITY;
+
+    for (const poi of this.poiOnProfile) {
+      const d = Math.abs(poi.index - idx);
+      if (d < bestDelta) {
+        bestDelta = d;
+        best = poi;
+      }
+    }
+
+    if (best && bestDelta <= this.POI_HOVER_THRESHOLD_INDEX) return best;
+    return null;
+  }
+
+
 }

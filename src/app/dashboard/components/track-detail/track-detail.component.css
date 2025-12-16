@@ -103,6 +103,7 @@
   margin: 0 0 0.8rem 0;
   font-size: 1.4rem;
   color: var(--text-muted-color);
+  padding-top: 0.5rem;
 }
 
 .track-panel__button {
@@ -280,15 +281,29 @@
 
 .title__perfil {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   height: 25px;
 }
+
+.track-panel__poi_pend {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.track-panel__pend {
+  font-size: 1.4rem;
+  width: 15rem; 
+  margin-bottom: 0;
+}
+
 
 .track-page__profile-chart {
   width: 100%;
   height: 260px;
   border-radius: 6px;
-  overflow: hidden;
+  /*overflow: hidden;*/
   background: radial-gradient(circle at top, #173328 0, #050f0c 60%, #050807 100%);
   padding: 0.4rem;
   display: flex;
@@ -334,8 +349,9 @@
   border: 1px solid rgba(255,255,255,0.10);
   backdrop-filter: blur(6px);
   box-shadow: 0 10px 25px rgba(0,0,0,0.45);
-
   min-width: 165px;
+  width: 220px;
+  /*min-width: 180px;*/
 }
 
 .elev-tooltip__row{
@@ -479,6 +495,7 @@
 }
 
 .btn-outline:hover {
+  cursor: pointer;
   background-color: var(--color-primary-hover);
   color: #050807;
 }
@@ -494,22 +511,39 @@
 }
 
 .btn-danger:hover {
+  cursor: pointer;
   background-color: rgba(183, 28, 28, 0.4);
   border-color: #ff5252;
-  color: #ffebee;
+
 }
 
 /* ==== RESPONSIVE ==== */
 
 @media (max-width: 960px) {
+
+  .track-page__back {
+    display: block;
+    width: 8rem;
+  }
+
   .track-page__header {
     grid-template-columns: minmax(0, 1fr);
     align-items: flex-start;
   }
 
   .track-page__chips {
-    justify-content: flex-start;
+    justify-content: center;
   }
+
+  .track-page__chip {
+    font-size: 1.1rem;
+  }
+
+  .track-detail__difficulty {
+    font-size: 1.1rem;
+
+  }
+
 
   .track-page__description-text {
     padding: 0;
@@ -518,6 +552,14 @@
   .track-panel__button {
     padding-right: 0;
   }
+
+  .track-panel__pend {
+    width: 8rem; 
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+
 
   .btn-link {
     padding-left: 0;
@@ -704,10 +746,9 @@
 .slope {
   display: inline-block;
   padding: 0.4rem 0.6rem 0.4rem;
-  width: 5rem;
+  width: 6rem;
   border-radius: 999px;
   font-weight: 800;
-  font-size: 1.2rem;
   letter-spacing: 0.04em;
   border: 1px solid;
   text-align: center;
@@ -859,10 +900,111 @@ body.no-scroll {
 }
 
 @media (max-width: 960px){
+
+  .slope {
+    padding: 0.4rem 0.6rem 0.4rem;
+    width: 4rem;
+  }
+
   .lightbox__panel{
     grid-template-columns: 44px 1fr 44px;
   }
   .lightbox__nav i{
     font-size: 1.6rem;
   }
+}
+
+
+/* ============ */
+/* MODAL ALERT  */
+/* ============ */
+
+.modal {
+  position: fixed;
+  width: 100%;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  background: rgba(0, 0, 0, 0.70);
+  backdrop-filter: blur(6px);
+}
+
+.modal__panel {
+  width: min(520px, 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(5, 16, 13, 0.88);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  padding: 1.1rem 1.2rem;
+}
+
+.modal__title {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.4rem;
+  color: var(--text-color);
+}
+
+.modal__text {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted-color);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.track-modal-btn {
+  border-radius: 4px;
+}
+
+
+.poi-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.4rem;
+  padding: 0.5rem 0.9rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: rgba(5,16,13,0.6);
+  color: var(--text-muted-color);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.poi-toggle i {
+  font-size: 1.4rem;
+}
+
+.poi-toggle:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(9,30,23,0.7);
+}
+
+.poi-toggle[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+
+@media (max-width: 960px){
+  .poi-toggle {
+
+    font-size: 1rem;
+
+  }
+
+  .poi-toggle i {
+    font-size: 1rem;
+  }
+
+
 }

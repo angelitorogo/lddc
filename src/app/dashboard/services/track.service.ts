@@ -187,5 +187,11 @@ export class TracksService {
   }
 
 
+  deleteTrack(trackId: string) {
+    return this.http.delete(`${this.baseUrl}/${trackId}`, {
+      withCredentials: true,
+    });
+  }
+
 
 }
