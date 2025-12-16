@@ -10,7 +10,7 @@
         <header class="track-card__header">
             <h2 class="track-card__title">{{ track.name }}</h2>
             <span class="track-card__difficulty track-card__difficulty--{{ track.difficulty | lowercase }}">
-                {{ track.difficulty }}
+                {{ trackDifficulty(track) }}
             </span>
         </header>
 

@@ -1,4 +1,6 @@
-/* ==== CONTENEDOR GENERAL ==== */
+/* =========================================================
+   CONTENEDOR GENERAL
+========================================================= */
 
 .track-page {
   max-width: 1200px;
@@ -9,7 +11,15 @@
   z-index: 1;
 }
 
-/* ==== HEADER ==== */
+@media (max-width: 600px) {
+  .track-page {
+    padding-top: 0.5rem;
+  }
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
 
 .track-page__header {
   display: grid;
@@ -70,7 +80,35 @@
   gap: 0.5rem;
 }
 
-/* Chips genéricos */
+@media (max-width: 960px) {
+  .track-page__back {
+    display: block;
+    width: 8rem;
+  }
+
+  .track-page__header {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .track-page__chips {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .track-page__title {
+    font-size: 1.7rem;
+  }
+
+  .track-page__subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* =========================================================
+   CHIPS GENÉRICOS
+========================================================= */
 
 .track-page__chip {
   font-size: 1.4rem;
@@ -89,7 +127,15 @@
   cursor: pointer;
 }
 
-/* ==== PANEL GENÉRICO ==== */
+@media (max-width: 960px) {
+  .track-page__chip {
+    font-size: 1.1rem;
+  }
+}
+
+/* =========================================================
+   PANEL GENÉRICO
+========================================================= */
 
 .track-panel {
   background-color: var(--color-surface);
@@ -113,7 +159,15 @@
   margin-top: 0.5rem;
 }
 
-/* ==== LAYOUT PRINCIPAL ==== */
+@media (max-width: 960px) {
+  .track-panel__button {
+    padding-right: 0;
+  }
+}
+
+/* =========================================================
+   LAYOUT PRINCIPAL
+========================================================= */
 
 .track-page__layout {
   display: grid;
@@ -159,7 +213,26 @@
   grid-area: description;
 }
 
-/* ==== PORTADA ==== */
+@media (max-width: 960px) {
+  .track-page__layout,
+  .track-page__layout--no-cover {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "cover"
+      "profile"
+      "side"
+      "description"
+      "nearby";
+  }
+
+  .track-page__side {
+    height: auto;
+  }
+}
+
+/* =========================================================
+   PORTADA
+========================================================= */
 
 .track-page__cover-figure {
   margin: 0;
@@ -186,7 +259,15 @@
   display: block;
 }
 
-/* ==== COLUMNA DERECHA ==== */
+@media (max-width: 960px) {
+  .track-page__cover-figure {
+    max-height: 280px;
+  }
+}
+
+/* =========================================================
+   COLUMNA DERECHA / GALERÍA (fila thumbs)
+========================================================= */
 
 .track-page__summary {
   flex: 1 1 55%;
@@ -200,7 +281,7 @@
   flex-direction: column;
 }
 
-.track-page__thumbs-row{
+.track-page__thumbs-row {
   display: flex;
   gap: 0.9rem;
   overflow-x: auto;
@@ -209,21 +290,30 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.track-page__thumbs-row::-webkit-scrollbar{
+.track-page__thumbs-row::-webkit-scrollbar {
   height: 6px;
 }
-.track-page__thumbs-row::-webkit-scrollbar-thumb{
+
+.track-page__thumbs-row::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,0.12);
   border-radius: 999px;
 }
 
-.track-page__thumbs-row .track-page__thumb-card{
+.track-page__thumbs-row .track-page__thumb-card {
   flex: 0 0 180px;
   scroll-snap-align: start;
   aspect-ratio: 4 / 3;
 }
 
-/* ==== STATS GRID ==== */
+@media (max-width: 960px) {
+  .track-page__thumbs-row .track-page__thumb-card {
+    flex-basis: 210px;
+  }
+}
+
+/* =========================================================
+   STATS GRID
+========================================================= */
 
 .track-page__stats-grid {
   display: grid;
@@ -247,7 +337,9 @@
   font-size: 1.4rem;
 }
 
-/* ==== DIFICULTAD ==== */
+/* =========================================================
+   DIFICULTAD
+========================================================= */
 
 .track-detail__difficulty {
   font-size: 1.4rem;
@@ -259,7 +351,7 @@
 }
 
 .track-detail__difficulty:hover {
-  cursor:pointer
+  cursor: pointer;
 }
 
 .track-detail__difficulty--easy {
@@ -277,7 +369,15 @@
   color: #ef9a9a;
 }
 
-/* ==== PERFIL DE ELEVACIÓN ==== */
+@media (max-width: 960px) {
+  .track-detail__difficulty {
+    font-size: 1.1rem;
+  }
+}
+
+/* =========================================================
+   PERFIL DE ELEVACIÓN
+========================================================= */
 
 .title__perfil {
   display: flex;
@@ -294,21 +394,20 @@
 
 .track-panel__pend {
   font-size: 1.4rem;
-  width: 15rem; 
+  width: 15rem;
   margin-bottom: 0;
 }
-
 
 .track-page__profile-chart {
   width: 100%;
   height: 260px;
   border-radius: 6px;
-  /*overflow: hidden;*/
   background: radial-gradient(circle at top, #173328 0, #050f0c 60%, #050807 100%);
   padding: 0.4rem;
   display: flex;
   align-items: stretch;
   margin-top: 1rem;
+  position: relative;
 }
 
 .track-page__profile-chart canvas {
@@ -317,13 +416,9 @@
   display: block;
 }
 
-.track-page__profile-chart{
-  position: relative;
-}
-
-.elev-tooltip-up{
+.elev-tooltip-up {
   position: absolute;
-  transform: translateX(-50%) translateY(-6px) ;
+  transform: translateX(-50%) translateY(-6px);
   pointer-events: none;
   z-index: 5;
 
@@ -337,9 +432,9 @@
   min-width: 165px;
 }
 
-.elev-tooltip-down{
+.elev-tooltip-down {
   position: absolute;
-  transform: translateX(-50%) translateY(225px) ;
+  transform: translateX(-50%) translateY(225px);
   pointer-events: none;
   z-index: 5;
 
@@ -349,12 +444,12 @@
   border: 1px solid rgba(255,255,255,0.10);
   backdrop-filter: blur(6px);
   box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+
   min-width: 165px;
   width: 220px;
-  /*min-width: 180px;*/
 }
 
-.elev-tooltip__row{
+.elev-tooltip__row {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
@@ -362,16 +457,49 @@
   line-height: 1.2;
 }
 
-.elev-tooltip__label{
+.elev-tooltip__label {
   color: var(--text-muted-color);
 }
 
-.elev-tooltip__value{
+.elev-tooltip__value {
   color: var(--color-primary);
   font-weight: 800;
 }
 
-/* ==== DESCRIPCIÓN ==== */
+@media (max-width: 960px) {
+  .track-panel__pend {
+    width: 8rem;
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+
+  .track-page__profile-chart {
+    height: 170px;
+    padding: 0.25rem;
+  }
+
+  .elev-tooltip-down {
+    transform: translateX(-50%) translateY(10px) !important;
+    bottom: 10px;
+    top: auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Nota: esto aplica a TODOS los canvas de la página */
+  canvas {
+    height: 135px !important;
+  }
+
+  .track-page__profile-chart {
+    height: 155px;
+    padding: 0.2rem;
+  }
+}
+
+/* =========================================================
+   DESCRIPCIÓN
+========================================================= */
 
 .track-page__description-wrapper {
   position: relative;
@@ -426,7 +554,19 @@
   color: var(--color-primary-hover);
 }
 
-/* ==== GALERÍA ==== */
+@media (max-width: 960px) {
+  .track-page__description-text {
+    padding: 0;
+  }
+
+  .btn-link {
+    padding-left: 0;
+  }
+}
+
+/* =========================================================
+   GALERÍA (grid thumbs)
+========================================================= */
 
 .track-page__thumbs-grid {
   display: grid;
@@ -457,7 +597,9 @@
   object-fit: cover;
 }
 
-/* ==== FOOTER ==== */
+/* =========================================================
+   FOOTER
+========================================================= */
 
 .track-page__footer {
   margin-top: 2rem;
@@ -479,6 +621,21 @@
 .track-page__footer-btn i {
   font-size: 1rem;
 }
+
+@media (max-width: 960px) {
+  .track-page__footer {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .track-page__footer-btn {
+    width: 19rem;
+  }
+}
+
+/* =========================================================
+   BOTONES (outline / danger)
+========================================================= */
 
 .btn-outline {
   border: 1px solid var(--color-primary);
@@ -514,161 +671,47 @@
   cursor: pointer;
   background-color: rgba(183, 28, 28, 0.4);
   border-color: #ff5252;
-
 }
 
-/* ==== RESPONSIVE ==== */
-
-@media (max-width: 960px) {
-
-  .track-page__back {
-    display: block;
-    width: 8rem;
-  }
-
-  .track-page__header {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: flex-start;
-  }
-
-  .track-page__chips {
-    justify-content: center;
-  }
-
-  .track-page__chip {
-    font-size: 1.1rem;
-  }
-
-  .track-detail__difficulty {
-    font-size: 1.1rem;
-
-  }
-
-
-  .track-page__description-text {
-    padding: 0;
-  }
-
-  .track-panel__button {
-    padding-right: 0;
-  }
-
-  .track-panel__pend {
-    width: 8rem; 
-    font-size: 1rem;
-    margin-bottom: 0;
-  }
-
-
-
-  .btn-link {
-    padding-left: 0;
-  }
-
-  .track-page__layout,
-  .track-page__layout--no-cover {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "cover"
-      "profile"
-      "side"
-      "description"
-      "nearby";
-  }
-
-  .track-page__side {
-    height: auto;
-  }
-
-  .track-page__profile-chart {
-    height: 170px;
-    padding: 0.25rem;
-  }
-
-  .track-page__thumbs-row .track-page__thumb-card{
-    flex-basis: 210px;
-  }
-
-  .track-page__cover-figure {
-    max-height: 280px;
-  }
-
-  .track-page__footer {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .elev-tooltip-down{
-    transform: translateX(-50%) translateY(10px) !important;
-    bottom: 10px;
-    top: auto !important;
-  }
-
-  .track-page__footer-btn {
-    width: 19rem;
-  }
-}
-
-@media (max-width: 600px) {
-  canvas {
-    height: 135px !important;
-  }
-
-  .track-page {
-    padding-top: 0.5rem;
-  }
-
-  .track-page__title {
-    font-size: 1.7rem;
-  }
-
-  .track-page__subtitle {
-    font-size: 1.1rem;
-  }
-
-  .track-page__profile-chart {
-    height: 155px;
-    padding: 0.2rem;
-  }
-}
-
-/* ==== RUTAS CERCANAS ==== */
+/* =========================================================
+   RUTAS CERCANAS
+========================================================= */
 
 .track-page__nearby {
   grid-area: nearby;
 }
 
-.track-page__nearby-header{
+.track-page__nearby-header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.track-page__nearby-muted{
+.track-page__nearby-muted {
   color: var(--text-muted-color);
   font-size: 0.95rem;
 }
 
-.nearby-row{
+.nearby-row {
   display: flex;
   gap: 0.9rem;
   overflow-x: auto;
-
   padding: 0.35rem 0;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
 }
 
-.nearby-row::-webkit-scrollbar{
+.nearby-row::-webkit-scrollbar {
   height: 6px;
 }
-.nearby-row::-webkit-scrollbar-thumb{
+
+.nearby-row::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,0.12);
   border-radius: 999px;
 }
 
-.nearby-card{
+.nearby-card {
   flex: 0 0 240px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -679,35 +722,35 @@
   transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
-.nearby-card:hover{
+.nearby-card:hover {
   transform: translateY(-1px);
   border-color: rgba(0, 230, 118, 0.55);
 }
 
-.nearby-card__img{
+.nearby-card__img {
   position: relative;
   height: 135px;
   background: #0b1411;
 }
 
-.nearby-card__img img{
+.nearby-card__img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.nearby-card__img-placeholder{
+.nearby-card__img-placeholder {
   width: 100%;
   height: 100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-muted-color);
   font-size: 0.95rem;
 }
 
-.nearby-card__badge{
+.nearby-card__badge {
   position: absolute;
   left: 10px;
   top: 10px;
@@ -719,11 +762,11 @@
   color: var(--color-primary);
 }
 
-.nearby-card__body{
+.nearby-card__body {
   padding: 0.7rem 0.75rem;
 }
 
-.nearby-card__title{
+.nearby-card__title {
   font-size: 1.4rem;
   font-weight: 800;
   color: var(--text-color);
@@ -732,7 +775,7 @@
   text-overflow: ellipsis;
 }
 
-.nearby-card__meta{
+.nearby-card__meta {
   margin-top: 0.35rem;
   display: flex;
   flex-wrap: wrap;
@@ -741,7 +784,9 @@
   font-size: 0.95rem;
 }
 
-/* ===== Pendiente ===== */
+/* =========================================================
+   PENDIENTE (badge)
+========================================================= */
 
 .slope {
   display: inline-block;
@@ -785,7 +830,16 @@
   background-color: transparent;
 }
 
-/* ===== Lightbox ===== */
+@media (max-width: 960px) {
+  .slope {
+    padding: 0.4rem 0.6rem 0.4rem;
+    width: 4rem;
+  }
+}
+
+/* =========================================================
+   LIGHTBOX
+========================================================= */
 
 html.no-scroll,
 body.no-scroll {
@@ -800,7 +854,7 @@ body.no-scroll {
   width: 100%;
 }
 
-.lightbox{
+.lightbox {
   position: fixed;
   inset: 0;
   z-index: 99999;
@@ -808,12 +862,11 @@ body.no-scroll {
   align-items: center;
   justify-content: center;
   padding: 1.2rem;
-
   background: rgba(0,0,0,0.70);
   backdrop-filter: blur(6px);
 }
 
-.lightbox__panel{
+.lightbox__panel {
   position: relative;
   width: min(1100px, 100%);
   height: min(720px, 80%);
@@ -827,7 +880,7 @@ body.no-scroll {
   grid-template-columns: 52px 1fr 52px;
 }
 
-.lightbox__stage{
+.lightbox__stage {
   position: relative;
   display: flex;
   align-items: center;
@@ -835,14 +888,14 @@ body.no-scroll {
   overflow: hidden;
 }
 
-.lightbox__img{
+.lightbox__img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
-.lightbox__close{
+.lightbox__close {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -857,12 +910,12 @@ body.no-scroll {
   cursor: pointer;
 }
 
-.lightbox__close:hover{
+.lightbox__close:hover {
   border-color: var(--color-primary);
   background: rgba(9,30,23,0.70);
 }
 
-.lightbox__nav{
+.lightbox__nav {
   height: 100%;
   border: none;
   background: transparent;
@@ -871,21 +924,21 @@ body.no-scroll {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.lightbox__nav:hover{
+.lightbox__nav:hover {
   background: rgba(255,255,255,0.04);
   color: var(--color-primary);
 }
 
-.lightbox__nav:disabled{
+.lightbox__nav:disabled {
   opacity: 0.25;
   cursor: default;
 }
 
-.lightbox__nav i{
+.lightbox__nav i {
   font-size: 1.8rem;
 }
 
-.lightbox__counter{
+.lightbox__counter {
   position: absolute;
   bottom: 12px;
   right: 12px;
@@ -899,25 +952,19 @@ body.no-scroll {
   color: var(--text-muted-color);
 }
 
-@media (max-width: 960px){
-
-  .slope {
-    padding: 0.4rem 0.6rem 0.4rem;
-    width: 4rem;
-  }
-
-  .lightbox__panel{
+@media (max-width: 960px) {
+  .lightbox__panel {
     grid-template-columns: 44px 1fr 44px;
   }
-  .lightbox__nav i{
+
+  .lightbox__nav i {
     font-size: 1.6rem;
   }
 }
 
-
-/* ============ */
-/* MODAL ALERT  */
-/* ============ */
+/* =========================================================
+   MODAL ALERT
+========================================================= */
 
 .modal {
   position: fixed;
@@ -964,6 +1011,9 @@ body.no-scroll {
   border-radius: 4px;
 }
 
+/* =========================================================
+   POI TOGGLE (botón/switch)
+========================================================= */
 
 .poi-toggle {
   display: inline-flex;
@@ -994,17 +1044,12 @@ body.no-scroll {
   color: var(--color-primary);
 }
 
-
-@media (max-width: 960px){
+@media (max-width: 960px) {
   .poi-toggle {
-
     font-size: 1rem;
-
   }
 
   .poi-toggle i {
     font-size: 1rem;
   }
-
-
 }

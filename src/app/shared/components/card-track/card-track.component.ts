@@ -37,6 +37,18 @@ export class CardTrackComponent {
     }
   }
 
+  trackDifficulty(track: Track): string {
+    switch (track.difficulty) {
+      case 'HARD':
+        return 'DIFICIL';
+      case 'MODERATE':
+        return 'MODERADA';  
+      case 'EASY':
+        return 'FACIL';
+
+    }
+  }
+
   trackDistanceKm(track: Track): string {
     return (track.totalDistanceMeters / 1000).toFixed(1);
   }
