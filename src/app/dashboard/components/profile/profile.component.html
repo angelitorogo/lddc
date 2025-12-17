@@ -1,0 +1,200 @@
+<section class="profile" *ngIf="authService.user as u">
+  <header class="profile__header">
+    <div>
+      <h1 class="profile__title">Tu perfil</h1>
+      <p class="profile__subtitle">Edita tus datos y tu contraseña.</p>
+    </div>
+  </header>
+
+  <div class="profile__layout">
+
+    <!-- CARD AVATAR -->
+    <section class="panel">
+  <h2 class="panel__title">Avatar</h2>
+
+  <div class="avatar">
+    <div class="avatar-container" #avatarContainer
+     (pointerdown)="onAvatarPointerDown($event)"
+     (pointermove)="onAvatarPointerMove($event)"
+     (pointerup)="onAvatarPointerUp()"
+     (pointercancel)="onAvatarPointerUp()"
+     (wheel)="onAvatarWheel($event)">
+
+  <!-- MODO EDICIÓN -->
+  <img
+    *ngIf="isEditingAvatar; else viewAvatar"
+    #avatarImg
+    class="avatar__img avatar__img--edit"
+    [src]="avatarPreviewUrl"
+    [style.transform]="avatarTransform"
+    (load)="onAvatarImgLoad()"
+    (error)="onAvatarError()"
+    alt="Avatar"
+  />
+
+  <!-- MODO VISTA (SIN transforms, SIN deformar) -->
+  <ng-template #viewAvatar>
+    <img
+      #avatarImg
+      class="avatar__img avatar__img--view"
+      [src]="avatarPreviewUrl"
+      (error)="onAvatarError()"
+      alt="Avatar"
+    />
+  </ng-template>
+
+</div>
+
+
+    <div class="avatar__actions">
+      <button type="button" class="btn btn--secondary" (click)="openFilePicker()">
+        <i class="bi bi-image"></i>
+        <span>Cambiar imagen</span>
+      </button>
+
+      <!-- slider de zoom SOLO cuando estamos editando -->
+      <div class="zoom" *ngIf="isEditingAvatar">
+        <label class="zoom__label">Zoom</label>
+        <input
+          class="zoom__range"
+          type="range"
+          [min]="minZoom"
+          [max]="maxZoom"
+          [step]="0.01"
+          [value]="zoom"
+          (input)="onZoomChange($any($event.target).valueAsNumber)"
+        />
+      </div>
+
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        (change)="onFileSelected($event)"
+        class="avatar__file"
+      />
+      <p class="avatar__hint">Arrastra para centrar. Rueda del ratón para zoom.</p>
+    </div>
+  </div>
+</section>
+
+
+    <!-- CARD DATOS -->
+    <section class="panel">
+      <h2 class="panel__title">Datos personales</h2>
+
+      <form [formGroup]="form" (ngSubmit)="saveProfile()" class="form">
+        <div class="form__row">
+          <label>Nombre completo</label>
+          <input type="text" formControlName="fullname" />
+        </div>
+
+        <div class="form__row">
+          <label>Email</label>
+          <input type="email" formControlName="email" />
+        </div>
+
+        <div class="form__row">
+          <label>Teléfono</label>
+          <input type="text" formControlName="telephone" />
+        </div>
+
+        <div class="form__actions">
+          <button class="btn btn--primary" type="submit" [disabled]="loadingSave">
+            {{ loadingSave ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- CARD PASSWORD -->
+    <section class="panel">
+      <h2 class="panel__title">Cambiar contraseña</h2>
+
+      <form [formGroup]="passForm" (ngSubmit)="changePassword()" class="form">
+        <div class="form__row">
+          <label>Nueva contraseña</label>
+          <input type="password" formControlName="password" />
+        </div>
+
+        <div class="form__row">
+          <label>Repetir contraseña</label>
+          <input type="password" formControlName="password2" />
+        </div>
+
+        <div class="form__actions">
+          <button class="btn btn--primary" type="submit" [disabled]="loadingPass">
+            {{ loadingPass ? 'Guardando...' : 'Actualizar contraseña' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- CARD INFO CUENTA -->
+<section class="panel">
+  <h2 class="panel__title">Información de la cuenta</h2>
+
+  <div class="account-info">
+
+    <div class="account-info__row">
+      <span class="account-info__label">Estado</span>
+      <span
+        class="account-info__value"
+        [class.account-info__value--ok]="u.active"
+        [class.account-info__value--err]="!u.active"
+      >
+        {{ u.active ? 'Activa' : 'Inactiva' }}
+      </span>
+    </div>
+
+    <div class="account-info__row">
+      <span class="account-info__label">Rol</span>
+      <span class="account-info__value">
+        {{ u.role | titlecase }}
+      </span>
+    </div>
+
+    <div class="account-info__row">
+      <span class="account-info__label">Fecha de alta</span>
+      <span class="account-info__value">
+        {{ u.created_at | date:'dd/MM/yyyy HH:mm' }}
+      </span>
+    </div>
+
+    <div class="account-info__row">
+      <span class="account-info__label">Última actualización</span>
+      <span class="account-info__value">
+        {{ u.updated_at | date:'dd/MM/yyyy HH:mm' }}
+      </span>
+    </div>
+
+  </div>
+</section>
+
+
+  </div>
+
+  <!-- Mensajes -->
+  <!--<div class="status status--ok" *ngIf="messageOk">{{ messageOk }}</div>
+  <div class="status status--err" *ngIf="messageErr">{{ messageErr }}</div>-->
+</section>
+
+<!-- MODAL DE ERROR -->
+<div class="modal-backdrop" *ngIf="messageOk || messageErr">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>{{messageOk ? 'Actualizacion correcta' : 'Error al actualizar'}}</h2>
+      <button type="button" class="close-btn" (click)="closeModal()">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>{{messageOk ? messageOk : messageErr}}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-modal" (click)="closeModal()">
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>

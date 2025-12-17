@@ -42,7 +42,8 @@ export class NavbarComponent implements OnInit{
 
     if (this.authService.user) {
 
-      console.log('Usuario logado:', this.authService.user);
+      //console.log('Usuario logado:', this.authService.user);
+      this.router.navigate(['/dashboard/profile']);
 
     } else {
       this.router.navigate(['/auth/login']);
@@ -57,6 +58,15 @@ export class NavbarComponent implements OnInit{
     this.authService.logout().subscribe({
       next: () => {
         this.authService.setUser(null);
+
+        //Aqui
+        const currentRoute = this.router.url;
+        //console.log('Ruta actual:', currentRoute);
+
+        if (currentRoute === '/dashboard/profile') {
+          this.router.navigate(['/dashboard/home']);
+        }
+
 
       },
       error: (error) => console.error('Error al cerrar sesión:', error)

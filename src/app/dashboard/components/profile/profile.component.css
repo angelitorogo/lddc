@@ -1,0 +1,283 @@
+.profile {
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--text-color);
+}
+
+.profile__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.profile__title {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.profile__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+}
+
+.profile__layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 960px) {
+  .profile__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  filter: drop-shadow(0 10px 25px rgba(0,0,0,0.45));
+}
+
+.panel__title {
+  margin: 0 0 2rem 0;
+  font-size: 1.4rem;
+  color: var(--text-muted-color);
+  padding-top: 0.5rem;
+}
+
+.avatar {
+    margin-left: 2rem;
+  display: flex;
+  gap: 4rem;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .avatar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* =========================
+   AVATAR (modo normal + edición)
+   ========================= */
+
+.avatar-container {
+  width: 160px;
+  height: 160px;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.25);
+}
+
+/* cuando estamos editando: permitir drag/zoom y evitar gestos por defecto */
+.avatar-container--editing {
+  cursor: grab;
+  touch-action: none;
+}
+
+.avatar-container--editing:active {
+  cursor: grabbing;
+}
+
+/* Imagen: por defecto la “preparamos” para el editor (centrada por 50/50) */
+.avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* cuando NO editamos, queremos el comportamiento normal (sin transform del editor) */
+.avatar-container:not(.avatar-container--editing) .avatar__img {
+  position: static;
+  width: 160px;
+  height: 160px;
+  transform: none;
+}
+
+.avatar__actions {
+  flex: 1 1 auto;
+}
+
+.avatar__file {
+  display: none;
+}
+
+.avatar__hint {
+  margin: 0.6rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 1.1rem;
+}
+
+/* Slider zoom (solo se muestra cuando isEditingAvatar = true) */
+.zoom {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 240px;
+}
+
+.zoom__label {
+  font-size: 1.1rem;
+  color: var(--text-muted-color);
+}
+
+.zoom__range {
+  width: 100%;
+}
+
+/* =========================
+   FORMULARIOS
+   ========================= */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.form__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form__row label {
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
+
+.form__row input {
+  background-color: #111a16;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  color: var(--text-color);
+  font-size: 1.2rem;
+  height: 2.5rem;
+}
+
+.form__row input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+/* =========================
+   BOTONES
+   ========================= */
+
+.btn {
+  border-radius: 4px;
+  border: 1px solid transparent;
+  padding: 0.5rem 0.9rem 0.2rem;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: #0f1a15;
+}
+
+.btn--secondary {
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* =========================
+   MENSAJES / ESTADOS
+   ========================= */
+
+.status {
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.status--ok {
+  color: var(--color-primary);
+  background: rgba(0, 230, 118, 0.08);
+}
+
+.status--err {
+  color: #ff8a80;
+  background: rgba(239, 83, 80, 0.08);
+}
+
+
+.account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.account-info__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.account-info__label {
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.account-info__value {
+  font-weight: 500;
+}
+
+.account-info__value--ok {
+  color: #3ddc97; /* verde */
+}
+
+.account-info__value--err {
+  color: #ff6b6b; /* rojo */
+}
+
+
+
+
+

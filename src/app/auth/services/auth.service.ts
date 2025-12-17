@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, map, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, of, tap, switchMap } from 'rxjs';
+import { UpdateUserPayload, UpdateUserResponse } from '../interfaces/update-user.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -116,9 +117,25 @@ export class AuthService {
   comprobarUser() {
     //console.log('Comprobando user en authService...');
     this.getUserInfo().subscribe({
-      next: (response) => this.setUser(response.user),
+      next: (response) => {
+        //console.log(response)
+        this.setUser(response.user)
+      },
       error: () => this.setUser(null),  // 👈 ahora deja loggedIn = false y emite null
     });
+  }
+
+  updateUser(payload: UpdateUserPayload): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/auth/update`,
+      payload,
+      { withCredentials: true }
+    ).pipe(
+      tap((resp) => {
+        // resp = { isLogged: true, user: {...} }
+        this.setUser(resp)
+      })
+    );
   }
 
 }

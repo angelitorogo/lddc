@@ -29,14 +29,14 @@
         >
           Mapa
         </a>
-        <a
+        <!--<a
           class="nav-links__item"
           routerLink="/dashboard/maps"
           routerLinkActive="nav-links__item--active"
           (click)="onNavigate()"
         >
           Favoritas
-        </a>
+        </a>-->
         <a
           class="nav-links__item"
           *ngIf="authService.user?.role === 'ADMIN'"
@@ -110,7 +110,7 @@
           <i class="bi bi-calendar-week"></i>
           <span>Mapa</span>
         </a>
-        <a
+        <!--<a
           class="nav-mobile__item"
           routerLink="/dashboard/maps"
           routerLinkActive="nav-mobile__item--active"
@@ -118,9 +118,10 @@
         >
           <i class="bi bi-map"></i>
           <span>Favoritas</span>
-        </a>
+        </a>-->
         <a
           class="nav-mobile__item"
+          *ngIf="authService.user?.role === 'ADMIN'"
           routerLink="/dashboard/create"
           routerLinkActive="nav-mobile__item--active"
           (click)="onNavigate()"
