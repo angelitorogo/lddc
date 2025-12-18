@@ -50,7 +50,7 @@
       <figure class="track-page__cover-figure track-page__cover-figure--map">
         <google-map
           #detailMap
-          [height]="isMobileView ? '277px' : '320px'"
+          [height]="isMobileView ? '277px' : '460px'"
           width="100%"
           [center]="mapCenter || { lat: 0, lng: 0 }"
           [zoom]="mapZoom"
@@ -78,6 +78,27 @@
 
     <!-- COLUMNA DERECHA (fila 1): resumen + galería -->
     <div class="track-page__side">
+
+      <section class="track-panel track-panel__user-avatar">
+        <div class="user-data">
+          <p class="user_data__text">Usuario: <span>{{user?.fullname}}</span></p>
+          <p class="user_data__text">Correo: <span>{{user?.email}}</span></p>
+        </div>
+        
+        <div class="avatar-container">
+          <img [src]="avatarPreviewUrl" alt="" class="avatar">
+        </div>
+
+        <div class="track-panel__actions">
+          <button class="btn-outline btn-profile" (click)="showProfile()">
+            Ver Perfil
+          </button>
+          <button class="btn-outline btn-profile">
+            Mas rutas
+          </button>
+        </div>
+      </section>
+
       <!-- RESUMEN / STATS -->
       <section class="track-panel track-page__summary">
         <h2 class="track-panel__title">Resumen de la ruta</h2>
@@ -123,6 +144,18 @@
             </span>
           </div>
         </div>
+
+        <!-- ATRIBUCIÓN OSM -->
+        <div class="track-page__attribution">
+          <i class="bi bi-info-circle"></i>
+          <span>
+            Datos de puntos de interés ©
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
+              OpenStreetMap contributors
+            </a>
+          </span>
+        </div>
+
       </section>
 
       <!-- GALERÍA SECUNDARIA -->
@@ -186,6 +219,7 @@
           </span>
           <button
             type="button"
+            *ngIf="track.pois.length > 0"
             class="poi-toggle"
             (click)="togglePois()"
             [attr.aria-pressed]="showPois"

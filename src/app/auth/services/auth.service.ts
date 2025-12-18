@@ -147,12 +147,20 @@ export class AuthService {
       { withCredentials: true }
     ).pipe(
       tap(() => {
+        
         // si el backend no hace logout, aquí al menos limpiamos estado local
+
+
         this.loggedIn = false;
         this.usuario = null;
         this._user$.next(null);
       })
     );
+  }
+
+
+  getUserById(userId?: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/auth/user/${userId}`);
   }
 
 }

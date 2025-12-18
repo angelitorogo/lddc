@@ -364,6 +364,11 @@
   background: transparent;
   border: 1px solid rgba(255, 107, 107, 0.55);
   color: rgba(255, 107, 107, 0.95);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn--danger:hover {
+  cursor: pointer;
 }
 
 .btn--danger:hover:not(:disabled) {
@@ -376,6 +381,10 @@
     width: 100%;
     justify-content: center;
   }
+  .track-modal-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 
@@ -383,47 +392,37 @@
    MODAL ALERT
 ========================================================= */
 
-.modal {
+.modal-backdrop {
   position: fixed;
-  width: 100%;
   inset: 0;
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.2rem;
-  background: rgba(0, 0, 0, 0.70);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
 }
 
-.modal__panel {
-  width: min(520px, 100%);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(5, 16, 13, 0.88);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
-  padding: 1.1rem 1.2rem;
-}
-
-.modal__title {
-  margin: 0 0 0.6rem 0;
-  font-size: 1.4rem;
-  color: var(--text-color);
-}
-
-.modal__text {
-  margin: 0 0 1rem 0;
-  color: var(--text-muted-color);
-  font-size: 1.1rem;
-  line-height: 1.5;
+.modal-footer {
+  display: flex;
+  gap: 2rem;
+  justify-content: flex-end;
 }
 
 .modal__actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
+  justify-content: center;
+  align-items: center;
 }
 
-.track-modal-btn {
-  border-radius: 4px;
+.track-modal-btn-success {
+  border: 1px solid var(--color-primary);
+    background-color: transparent;
+    color: var(--color-primary);
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.track-modal-btn-success:hover {
+  background-color: var(--color-primary);
+  color: #0f1a15;
 }

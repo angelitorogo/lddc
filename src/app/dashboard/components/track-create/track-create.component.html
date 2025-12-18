@@ -41,7 +41,7 @@
           class="file-input__hidden" />
 
         <!-- BOTÓN PERSONALIZADO -->
-        <button type="button" class="btn-upload" (click)="openFileDialog()">
+        <button type="button" class="btn-upload" (click)="openFileDialog()" [disabled]="creating">
           <i class="bi bi-upload"></i>
           <span>
             {{ selectedFile ? 'Cambiar archivo' : 'Seleccionar GPX' }}
@@ -54,7 +54,7 @@
         </span>
 
         <!-- BOTÓN QUITAR ARCHIVO -->
-        <button type="button" class="btn-secondary" (click)="onCancelFile()" [disabled]="!selectedFile">
+        <button type="button" class="btn-secondary" (click)="onCancelFile()" [disabled]="!selectedFile || creating">
           Quitar archivo
         </button>
 
@@ -99,7 +99,7 @@
           (change)="onImageSelected($event)" class="file-input__hidden" />
 
         <!-- BOTÓN PERSONALIZADO -->
-        <button type="button" class="btn-upload" (click)="openImageDialog()">
+        <button type="button" class="btn-upload" (click)="openImageDialog()" [disabled]="creating">
           <i class="bi bi-upload"></i>
           <span>
             {{ selectedImages.length ? 'Cambiar imágenes' : 'Seleccionar imágenes' }}
@@ -112,7 +112,7 @@
         </span>
 
         <!-- BOTÓN QUITAR IMÁGENES -->
-        <button type="button" class="btn-secondary" (click)="onCancelImages()" [disabled]="!selectedImages.length">
+        <button type="button" class="btn-secondary" (click)="onCancelImages()" [disabled]="!selectedImages.length || creating">
           Quitar imágenes
         </button>
       </div>
@@ -128,25 +128,37 @@
               {{ img.file.name }}
             </span>
             <button type="button" class="image-preview-remove" (click)="removeImage(i)">
-              <i class="bi bi-x"></i>
+              <i class="bi bi-trash"></i>
             </button>
           </div>
         </div>
       </div>
+
+
+
     </div>
 
 
     <!-- ACCIONES -->
     <div class="track-create__actions">
-      <button type="submit" class="btn-primary">
-        Crear track
-      </button>
-      
-      <button type="button" class="btn-secondary" (click)="onBack()">
-        Cancelar
+      <button
+        type="submit"
+        class="btn-primary btn-primary--action"
+        [disabled]="creating"
+      >
+        <span class="btn-spinner" *ngIf="creating" aria-hidden="true"></span>
+        {{ creating ? 'Creando...' : 'Crear track' }}
       </button>
 
-      
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="onBack()"
+        [disabled]="creating"
+      >
+        Cancelar
+      </button>
     </div>
+
   </form>
 </section>

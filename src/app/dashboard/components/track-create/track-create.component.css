@@ -274,11 +274,48 @@ textarea:focus {
 
 /* GRID PREVIEW IMÁGENES */
 
+/* GRID PREVIEW IMÁGENES -> fila horizontal con scroll (como track-edit) */
 .image-preview-grid {
   margin-top: 0.75rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+
+  display: flex;
   gap: 0.75rem;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 0.35rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll horizontal */
+.image-preview-grid::-webkit-scrollbar {
+  height: 6px;
+}
+.image-preview-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+/* Card con ancho fijo */
+.image-preview-card {
+  flex: 0 0 180px;
+  scroll-snap-align: start;
+
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: rgba(4, 12, 10, 0.9);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* En móvil, un poco más grandes */
+@media (max-width: 600px) {
+  .image-preview-card {
+    flex-basis: 210px;
+  }
 }
 
 .image-preview-card {
@@ -369,4 +406,37 @@ textarea:focus {
     flex-direction: column-reverse;
     align-items: stretch;
   }
+}
+
+
+/* Spinner pequeño dentro de botón (igual idea que en Profile) */
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: currentColor;
+  animation: spin 0.85s linear infinite;
+}
+
+/* Botón submit “acción” (opcional, para alinear y dar sensación de sistema) */
+.btn-primary--action {
+  display: inline-flex;
+  gap: 0.55rem;
+  justify-content: center;
+  min-width: 180px;
+}
+
+/* Disabled visual consistente */
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-upload:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+
+/* animación */
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

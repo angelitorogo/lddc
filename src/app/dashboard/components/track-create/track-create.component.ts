@@ -66,6 +66,8 @@ export class TrackCreateComponent {
     strokeWeight: 4,
   };
 
+  creating = false;
+
   private mapInstance?: google.maps.Map;
 
   constructor(private fb: FormBuilder, private router: Router, private trackService: TracksService) {
@@ -266,13 +268,11 @@ export class TrackCreateComponent {
       return;
     }
 
+    if (this.creating) return;
+
     const { name, description } = this.form.value;
 
-    // Aquí más adelante:
-    // const formData = new FormData();
-    // formData.append('gpx', this.selectedFile);
-    // this.selectedImages.forEach(img => formData.append('images', img));
-    // ...
+    this.creating = true;
 
     // Aquí prepararías el FormData o payload real
     console.log('Crear track con imágenes:', {
@@ -282,7 +282,6 @@ export class TrackCreateComponent {
       images: this.selectedImages.map(f => f.name),
     });
 
-    // TODO: llamada al servicio HTTP que suba el GPX + datos al backend.
     this.trackService
     .createFromGpx(
       name,
@@ -300,14 +299,18 @@ export class TrackCreateComponent {
 
         // navegar a home o a detail del track:
         //this.router.navigate(['/home']);
-        this.router.navigate(['/tracks', res.id]);
+        this.creating = false;
+        this.router.navigate(['/dashboard/track', res.id]);
       },
       error: (err) => {
         console.error('Error creando track', err);
         this.fileError = 'Ha ocurrido un error al crear el track.';
+        this.creating = false;
       },
     });
 
 
   }
+
+
 }

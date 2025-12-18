@@ -222,7 +222,7 @@
       <div class="danger-zone__actions">
         <button
           type="button"
-          class="btn btn--danger"
+          class="btn btn--danger track-modal-btn"
           (click)="openDeleteAccountModal()"
         >
           Eliminar cuenta
@@ -238,9 +238,6 @@
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>{{ messageOk ? 'Actualizacion correcta' : 'Error al actualizar' }}</h2>
-      <button type="button" class="close-btn" (click)="closeModal()">
-        &times;
-      </button>
     </div>
 
     <div class="modal-body">
@@ -256,25 +253,25 @@
 </div>
 
 <!-- MODAL (confirmar eliminar cuenta) -->
-<div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDeleteAccount()">
-  <div class="modal__panel" (click)="$event.stopPropagation()">
-    <h3 class="modal__title">{{ titleModal }}</h3>
+<div class="modal-backdrop" *ngIf="confirmDeleteOpen" (click)="cancelDeleteAccount()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3 class="modal-header">{{ titleModal }}</h3>
 
-    <p class="modal__text">
+    <p>
       {{ textModal }}
     </p>
 
-    <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
+    <div class="modal-footer" *ngIf="typeModal === 'DELETE'">
       <button class="btn-outline track-modal-btn" (click)="confirmDeleteAccount()">
         {{ deleteInProgress ? 'Eliminando...' : 'Eliminar' }}
       </button>
-      <button class="btn-danger track-modal-btn" (click)="cancelDeleteAccount()" >
+      <button class="btn btn--danger track-modal-btn" (click)="cancelDeleteAccount()" >
         Cancelar
       </button>
     </div>
 
     <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
-      <button class="btn-outline track-modal-btn" (click)="successOk()">
+      <button class="btn btn-outline track-modal-btn-success" (click)="successOk()">
         Aceptar
       </button>
     </div>

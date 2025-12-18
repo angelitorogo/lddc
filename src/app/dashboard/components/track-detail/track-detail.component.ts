@@ -25,6 +25,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../../auth/services/auth.service';
 
 import { Poi, PoiType } from '../../../shared/responses/detail.response';
+import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 
 type ModalType = 'DELETE' | 'SUCCESS';
 
@@ -163,6 +164,9 @@ export class TrackDetailComponent
 
   showPois = false;
 
+  user?: UpdateUserResponse;
+  avatarPreviewUrl = 'assets/images/poster-placeholder.png';
+
   @ViewChild('descTa', { static: false }) descTa?: ElementRef<HTMLTextAreaElement>;
 
   constructor(
@@ -187,6 +191,8 @@ export class TrackDetailComponent
       if (!id) return;
       this.loadDetailTrack(id);
     });
+
+    
   }
 
   /**
@@ -256,8 +262,9 @@ export class TrackDetailComponent
       this.track = resp;
 
       setTimeout(() => this.autoResizeDesc(), 0);
-      this.preparePoiMarkers();
 
+      this.userById(this.track);
+      this.preparePoiMarkers();
       this.preparePoiMarkers();
       this.loadNearbyTracks();
 
@@ -280,6 +287,17 @@ export class TrackDetailComponent
           this.fitMapToPolyline();
           if (this.hasElevationProfile()) this.buildElevationChart();
         }, 50);
+      }
+    });
+  }
+
+  private userById(track: DetailResponse) {
+    this.authService.getUserById(track.authorUserId).subscribe((user: UpdateUserResponse) => {
+      this.user = user;
+      if (user?.image) {
+        this.avatarPreviewUrl = `${environment.API_URL}/files/${user.image}?v=${user.updated_at ?? Date.now()}`;
+      } else {
+        this.avatarPreviewUrl = 'assets/images/poster-placeholder.png';
       }
     });
   }
@@ -997,7 +1015,7 @@ export class TrackDetailComponent
           ticks: {
             stepSize: yStep,
             display: true,
-            callback: (value) => `${value} m`,
+            callback: (value:any) => `${value.toFixed(0)} m`,
           },
           border: { display: !this.isMobileView },
           grid: {
@@ -1957,6 +1975,7 @@ export class TrackDetailComponent
   toggleDescription(): void {
     this.isDescriptionExpanded = !this.isDescriptionExpanded;
 
+
     // al cambiar, recalculamos altura
     setTimeout(() => this.autoResizeDesc(), 0);
   }
@@ -1980,6 +1999,18 @@ export class TrackDetailComponent
       // (auto + wrapper con max-height hace el recorte)
       ta.style.height = '';
     }
+  }
+
+
+  showProfile() {
+
+    if(this.track?.authorUserId === this.authService.user.id) {
+      this.router.navigateByUrl('/dashboard/profile');
+    } else {
+      //TODO: cuando creemos una pagina de perfil de usuario, navegaremos alli
+      console.log('Ver perfil del ceador del track')
+    }
+
   }
 
 }

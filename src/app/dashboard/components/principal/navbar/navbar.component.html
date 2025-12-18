@@ -37,9 +37,10 @@
         >
           Favoritas
         </a>-->
+        <!--*ngIf="authService.isLoggedIn() && authService.user?.role === 'ADMIN'"-->
         <a
           class="nav-links__item"
-          *ngIf="authService.user?.role === 'ADMIN'"
+          *ngIf="authService.isLoggedIn()"
           routerLink="/dashboard/create"
           routerLinkActive="nav-links__item--active"
           (click)="onNavigate()"

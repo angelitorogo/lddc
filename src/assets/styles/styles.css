@@ -14,7 +14,6 @@ img[src$="poster-placeholder.png"] {
 
 
 /* ===== MODAL DE ERROR ===== */
-
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -27,7 +26,7 @@ img[src$="poster-placeholder.png"] {
 }
 
 .modal {
-  width: min(92vw, 400px);
+  width: min(92vw, 420px);
   background: var(--auth-card-bg);
   border-radius: 14px;
   padding: 1.6rem 1.8rem 1.2rem;
