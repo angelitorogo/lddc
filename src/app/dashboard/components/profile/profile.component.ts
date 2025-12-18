@@ -1,9 +1,23 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { AuthService } from '../../../auth/services/auth.service';
 import { environment } from '../../../../environments/environment';
 import { UpdateUserPayload } from '../../../auth/interfaces/update-user.interface';
 import { Subscription } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
@@ -11,7 +25,6 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./profile.component.css'],
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-
   private userSub?: Subscription;
 
   @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
@@ -35,33 +48,49 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private lastClientX = 0;
   private lastClientY = 0;
 
+  // =========================
+  // Pinch to zoom (móvil)
+  // =========================
+  private activePointers = new Map<number, PointerEvent>();
+  private initialPinchDistance = 0;
+  private initialZoom = 1;
+
   // transform actual
-  zoom = 1;          // lo exponemos para slider
+  zoom = 1; // lo exponemos para slider
   public minZoom = 4;
   public maxZoom = 8;
 
   private offsetX = 0;
   private offsetY = 0;
 
-  // para aplicar en template
-  get avatarTransform(): string {
-    return `translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.zoom})`;
-  }
-
   messageOk: string | null = null;
   messageErr: string | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    public authService: AuthService
-  ) {}
+  // ✅ para hint desktop/móvil
+  isTouchLike = false;
+
+  // =========================================================
+  // ✅ MODAL BORRADO CUENTA (Zona peligrosa)
+  // =========================================================
+  confirmDeleteOpen = false;
+  deleteInProgress = false;
+  typeModal: 'DELETE' | 'SUCCESS' = 'DELETE';
+  titleModal = '';
+  textModal = '';
+
+  // si se ha eliminado correctamente, al aceptar redirigimos a home
+  private accountDeletedOk = false;
+
+
+  constructor(private fb: FormBuilder, public authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
-
-    // OJO: esto no hace nada si no te suscribes; lo dejo como lo tenías
     this.authService.getUserInfo();
 
-    //console.log(this.authService.user)
+    // Heurística simple: “móvil / táctil”
+    this.isTouchLike =
+      typeof window !== 'undefined' &&
+      (navigator.maxTouchPoints > 0 || window.matchMedia?.('(pointer: coarse)')?.matches);
 
     this.form = this.fb.group({
       fullname: ['', [Validators.required, Validators.minLength(2)]],
@@ -69,10 +98,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       telephone: [null],
     });
 
-    this.passForm = this.fb.group({
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      password2: ['', [Validators.required]],
-    });
+    // ✅ Validador de grupo para “passwords no coinciden”
+    this.passForm = this.fb.group(
+      {
+        password: ['', [Validators.required, Validators.minLength(8)]],
+        password2: ['', [Validators.required]],
+      },
+      { validators: this.passwordsMatchValidator }
+    );
 
     this.userSub = this.authService.user$.subscribe((u) => {
       if (!u) return;
@@ -93,6 +126,33 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.userSub?.unsubscribe();
     this.stopDragging();
+  }
+
+  // =========================
+  // Helpers validación template
+  // =========================
+  isInvalid(form: FormGroup, controlName: string, errorKey: string): boolean {
+    const c = form.get(controlName);
+    if (!c) return false;
+    return (c.touched || c.dirty) && !!c.errors?.[errorKey];
+  }
+
+  get passMismatch(): boolean {
+    return (this.passForm.touched || this.passForm.dirty) && !!this.passForm.errors?.['passwordMismatch'];
+  }
+
+  private passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
+    const p1 = group.get('password')?.value;
+    const p2 = group.get('password2')?.value;
+    if (!p1 || !p2) return null;
+    return p1 === p2 ? null : { passwordMismatch: true };
+  }
+
+  get avatarHint(): string {
+    // Solo aparece cuando isEditingAvatar (en HTML)
+    return this.isTouchLike
+      ? 'Arrastra para centrar. Pellizca para zoom.'
+      : 'Arrastra para centrar. Rueda del ratón para zoom.';
   }
 
   // =========================
@@ -141,7 +201,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     // resetea encuadre y deja que al cargar la img calcule minZoom/centro
     this.resetTransform();
-    // (cuando <img> haga load, ajustamos zoom mínimo para que cubra el círculo)
     setTimeout(() => this.fitImageToCircle(), 0);
   }
 
@@ -161,8 +220,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // =========================
   // Drag + Zoom (editor)
   // =========================
+  get avatarTransform(): string {
+    return `translate(${this.offsetX}px, ${this.offsetY}px) scale(${this.zoom})`;
+  }
 
-  // llamamos en (load) del <img> para ajustar zoom mínimo
   onAvatarImgLoad(): void {
     if (!this.isEditingAvatar) return;
     this.fitImageToCircle();
@@ -185,12 +246,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const cw = container.clientWidth;
     const ch = container.clientHeight;
 
-    // Queremos que la imagen cubra todo el círculo (como object-fit: cover)
     const coverScale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
 
     this.minZoom = coverScale;
 
-    const initialBoost = 12; // zoom inicial tras escoger imagen
+    const initialBoost = 12;
     this.zoom = Math.min(this.maxZoom, this.minZoom * initialBoost);
 
     this.offsetX = 0;
@@ -199,48 +259,90 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.clampOffsets();
   }
 
-  // iniciar drag
   onAvatarPointerDown(ev: PointerEvent): void {
-    if (!this.isEditingAvatar) return;
+  if (!this.isEditingAvatar) return;
 
-    this.isDragging = true;
-    this.lastClientX = ev.clientX;
-    this.lastClientY = ev.clientY;
+  this.activePointers.set(ev.pointerId, ev);
 
-    // capturar pointer para que siga aunque salgas del círculo
-    (ev.currentTarget as HTMLElement).setPointerCapture?.(ev.pointerId);
+  // 👉 si hay 2 dedos, iniciamos pinch
+  if (this.activePointers.size === 2) {
+    const [p1, p2] = Array.from(this.activePointers.values());
+    this.initialPinchDistance = this.getDistanceBetweenPointers(p1, p2);
+    this.initialZoom = this.zoom;
+    return; // ⚠️ no iniciamos drag
   }
+
+  // drag normal (1 dedo / ratón)
+  this.isDragging = true;
+  this.lastClientX = ev.clientX;
+  this.lastClientY = ev.clientY;
+
+  (ev.currentTarget as HTMLElement).setPointerCapture?.(ev.pointerId);
+}
+
 
   onAvatarPointerMove(ev: PointerEvent): void {
-    if (!this.isDragging) return;
+  if (!this.isEditingAvatar) return;
 
-    const dx = ev.clientX - this.lastClientX;
-    const dy = ev.clientY - this.lastClientY;
-    this.lastClientX = ev.clientX;
-    this.lastClientY = ev.clientY;
+  // actualizamos pointer
+  if (this.activePointers.has(ev.pointerId)) {
+    this.activePointers.set(ev.pointerId, ev);
+  }
 
-    this.offsetX += dx;
-    this.offsetY += dy;
+  // 👉 PINCH con dos dedos
+  if (this.activePointers.size === 2) {
+    const [p1, p2] = Array.from(this.activePointers.values());
+    const currentDistance = this.getDistanceBetweenPointers(p1, p2);
+
+    const scaleFactor = currentDistance / this.initialPinchDistance;
+    let nextZoom = this.initialZoom * scaleFactor;
+
+    nextZoom = Math.max(this.minZoom, Math.min(this.maxZoom, nextZoom));
+    this.zoom = nextZoom;
 
     this.clampOffsets();
+    return; // ⚠️ no drag
   }
 
-  onAvatarPointerUp(): void {
-    this.stopDragging();
+  // 👉 DRAG normal
+  if (!this.isDragging) return;
+
+  const dx = ev.clientX - this.lastClientX;
+  const dy = ev.clientY - this.lastClientY;
+  this.lastClientX = ev.clientX;
+  this.lastClientY = ev.clientY;
+
+  this.offsetX += dx;
+  this.offsetY += dy;
+
+  this.clampOffsets();
+}
+
+
+  onAvatarPointerUp(ev?: PointerEvent): void {
+  if (ev) {
+    this.activePointers.delete(ev.pointerId);
   }
+
+  // si ya no hay pinch, liberamos drag
+  if (this.activePointers.size < 2) {
+    this.initialPinchDistance = 0;
+  }
+
+  this.stopDragging();
+}
 
   private stopDragging(): void {
     this.isDragging = false;
   }
 
-  // zoom con rueda
   onAvatarWheel(ev: WheelEvent): void {
     if (!this.isEditingAvatar) return;
 
     ev.preventDefault();
 
     const delta = ev.deltaY;
-    const step = 0.08; // ✅ puedes tocar este valor para más/menos sensibilidad
+    const step = 0.08;
 
     let next = this.zoom + (delta > 0 ? -step : step);
     next = Math.max(this.minZoom, Math.min(this.maxZoom, next));
@@ -249,14 +351,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.clampOffsets();
   }
 
-  // slider de zoom (opcional)
   onZoomChange(value: number): void {
     if (!this.isEditingAvatar) return;
     this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, value));
     this.clampOffsets();
   }
 
-  // evita que al mover se vean “huecos” dentro del círculo
   private clampOffsets(): void {
     const container = this.avatarContainer?.nativeElement;
     const img = this.avatarImg?.nativeElement;
@@ -266,11 +366,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const cw = container.clientWidth;
     const ch = container.clientHeight;
 
-    // tamaño renderizado (natural * zoom)
     const iw = img.naturalWidth * this.zoom;
     const ih = img.naturalHeight * this.zoom;
 
-    // límites: no permitir que la imagen deje ver fondo en el contenedor
     const maxX = Math.max(0, (iw - cw) / 2);
     const maxY = Math.max(0, (ih - ch) / 2);
 
@@ -278,65 +376,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.offsetY = Math.max(-maxY, Math.min(maxY, this.offsetY));
   }
 
-  // medio funciona
-  /*
-  private async captureAvatarFromContainerBase64(outputSize = 512): Promise<string> {
-    const container = this.avatarContainer?.nativeElement;
-    const img = this.avatarImg?.nativeElement;
-
-    if (!container || !img) throw new Error('Avatar container/img no disponible');
-    if (!img.complete || !img.naturalWidth || !img.naturalHeight) {
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('No se pudo cargar la imagen del avatar'));
-      });
-    }
-
-    const containerRect = container.getBoundingClientRect();
-    const imgRect = img.getBoundingClientRect();
-
-    // Escala real renderizada (incluye tu zoom/transform)
-    const scaleX = imgRect.width / img.naturalWidth;
-    const scaleY = imgRect.height / img.naturalHeight;
-
-    // Coordenadas del área visible del contenedor dentro de la imagen (en píxeles naturales)
-    let sx = (containerRect.left - imgRect.left) / scaleX;
-    let sy = (containerRect.top - imgRect.top) / scaleY;
-    let sw = containerRect.width / scaleX;
-    let sh = containerRect.height / scaleY;
-
-    // Clamp para no salirnos de la imagen
-    if (sx < 0) { sw += sx; sx = 0; }
-    if (sy < 0) { sh += sy; sy = 0; }
-
-    if (sx + sw > img.naturalWidth) sw = img.naturalWidth - sx;
-    if (sy + sh > img.naturalHeight) sh = img.naturalHeight - sy;
-
-    // IMPORTANTE: evitar deformaciones => recortar un CUADRADO
-    const side = Math.min(sw, sh);
-    sx += (sw - side) / 2;
-    sy += (sh - side) / 2;
-    sw = side;
-    sh = side;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = outputSize;
-    canvas.height = outputSize;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('No se pudo crear contexto 2D');
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outputSize, outputSize);
-
-    const dataUrl = canvas.toDataURL('image/png', 0.92);
-    const comma = dataUrl.indexOf(',');
-    return comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
-  }
-  */
-
   private async captureAvatarFromContainerBase64(outputSize = 512): Promise<string> {
     const container = this.avatarContainer?.nativeElement;
     const img = this.avatarImg?.nativeElement;
@@ -350,23 +389,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Rect del contenedor (exterior)
     const containerRect = container.getBoundingClientRect();
     const imgRect = img.getBoundingClientRect();
 
-    // =========================
-    // 🎛️ AJUSTES FINOS (TOCAR AQUÍ)
-    // =========================
-    const NUDGE_X = 0;         // (lo dejas aquí por si luego lo retomas)
-    const NUDGE_Y = 0;         // (lo dejas aquí por si luego lo retomas)
-    const INNER_PAD = 0;       // (lo dejas aquí por si luego lo retomas)
-    const USE_ROUNDING = true; // (lo dejas aquí por si luego lo retomas)
+    const NUDGE_X = 0;
+    const NUDGE_Y = 0;
+    const INNER_PAD = 0;
+    const USE_ROUNDING = true;
 
-    // ✅ MEDIDAS VISUALES (lo que tú ves en pantalla)
     const rectW = containerRect.width;
     const rectH = containerRect.height;
 
-    // ✅ client (a veces 158) vs rect (a veces 160) => diff típico 2px
     const clientW = container.clientWidth;
     const clientH = container.clientHeight;
 
@@ -380,30 +413,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const ch = rectH - diffH;
 
     const innerLeft = containerRect.left + autoNudgeX + NUDGE_X;
-    const innerTop  = containerRect.top  + autoNudgeY + NUDGE_Y;
+    const innerTop = containerRect.top + autoNudgeY + NUDGE_Y;
 
-    // Escala renderizada (incluye tu zoom/transform)
     const scaleX = imgRect.width / img.naturalWidth;
     const scaleY = imgRect.height / img.naturalHeight;
 
-    // Coordenadas del área visible del contenedor dentro de la imagen (en píxeles naturales)
     let sx = (innerLeft - imgRect.left) / scaleX;
     let sy = (innerTop - imgRect.top) / scaleY;
     let sw = (cw - INNER_PAD * 2) / scaleX;
     let sh = (ch - INNER_PAD * 2) / scaleY;
 
-    // Clamp para no salirnos de la imagen
-    if (sx < 0) { sw += sx; sx = 0; }
-    if (sy < 0) { sh += sy; sy = 0; }
+    if (sx < 0) {
+      sw += sx;
+      sx = 0;
+    }
+    if (sy < 0) {
+      sh += sy;
+      sy = 0;
+    }
 
     if (sx + sw > img.naturalWidth) sw = img.naturalWidth - sx;
     if (sy + sh > img.naturalHeight) sh = img.naturalHeight - sy;
 
-    // Evitar valores inválidos (esto previene “imagen negra”)
     sw = Math.max(1, sw);
     sh = Math.max(1, sh);
 
-    // ✅ Asegurar cuadrado perfecto
     const side = Math.min(sw, sh);
     sx += (sw - side) / 2;
     sy += (sh - side) / 2;
@@ -417,7 +451,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
       sh = Math.round(sh);
     }
 
-    // ✅ Redondeo final para matar subpíxeles
     sx = Math.round(sx);
     sy = Math.round(sy);
     sw = Math.round(sw);
@@ -441,7 +474,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // Guardar perfil (sin cambios funcionales)
+  // Guardar perfil
   // =========================
   async saveProfile(): Promise<void> {
     this.messageOk = null;
@@ -501,7 +534,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   // =========================
-  // Password (igual)
+  // Password
   // =========================
   changePassword(): void {
     this.messageOk = null;
@@ -519,16 +552,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const p1 = this.passForm.value.password;
-    const p2 = this.passForm.value.password2;
-    if (p1 !== p2) {
+    // si mismatch (validador de grupo)
+    if (this.passForm.errors?.['passwordMismatch']) {
+      this.passForm.markAllAsTouched();
       this.messageErr = 'Las contraseñas no coinciden.';
       return;
     }
 
     const payload: UpdateUserPayload = {
       id: u.id,
-      password: p1,
+      password: this.passForm.value.password,
     };
 
     this.loadingPass = true;
@@ -548,9 +581,90 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  // 🔹 Cerrar el modal
-  closeModal() {
+  // =========================
+  // Modal UX: ESC + click fuera
+  // =========================
+
+  onBackdropClick(_: MouseEvent): void {
+    this.closeModal();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void {
+    if (this.messageOk || this.messageErr) this.closeModal();
+  }
+
+  closeModal(): void {
     this.messageErr = null;
     this.messageOk = null;
   }
+
+  private getDistanceBetweenPointers(p1: PointerEvent, p2: PointerEvent): number {
+    const dx = p2.clientX - p1.clientX;
+    const dy = p2.clientY - p1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  // =========================================================
+  // ✅ Zona peligrosa: eliminar cuenta
+  // =========================================================
+
+  openDeleteAccountModal(): void {
+    this.typeModal = 'DELETE';
+    this.titleModal = 'Eliminar cuenta';
+    this.textModal =
+      '¿Seguro que quieres eliminar tu cuenta? Esta acción desactivará tu perfil y cerrará tu sesión. No se puede deshacer.';
+    this.confirmDeleteOpen = true;
+    this.deleteInProgress = false;
+    this.accountDeletedOk = false;
+  }
+
+  cancelDeleteAccount(): void {
+    if (this.deleteInProgress) return;
+    this.confirmDeleteOpen = false;
+    this.typeModal = 'DELETE';
+    this.accountDeletedOk = false;
+  }
+
+  confirmDeleteAccount(): void {
+    if (this.deleteInProgress) return;
+
+    this.deleteInProgress = true;
+
+    this.authService.deleteAccount().subscribe({
+      next: () => {
+        // dejamos la app limpia (sin usuario) inmediatamente
+        this.authService.setUser(null);
+
+        this.typeModal = 'SUCCESS';
+        this.titleModal = 'Cuenta eliminada';
+        this.textModal = 'Tu cuenta se ha desactivado correctamente.';
+        this.deleteInProgress = false;
+        this.accountDeletedOk = true;
+      },
+      error: (err) => {
+        console.error('Error al eliminar la cuenta', err);
+        this.typeModal = 'SUCCESS';
+        this.titleModal = 'No se pudo eliminar';
+        this.textModal = 'Ha ocurrido un error al eliminar la cuenta. Inténtalo de nuevo.';
+        this.deleteInProgress = false;
+        this.accountDeletedOk = false;
+      },
+    });
+  }
+
+  successOk(): void {
+    this.confirmDeleteOpen = false;
+
+    // ✅ aquí está la clave: al aceptar, nos vamos a Home
+    if (this.accountDeletedOk) {
+      this.router.navigateByUrl('/home'); // o '/' si tu home es la raíz
+    }
+  }
+
+  // =========================
+  // Modal UX: ESC + click fuera (modal ok/err normal)
+  // =========================
+
+
 }

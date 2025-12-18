@@ -10,74 +10,78 @@
 
     <!-- CARD AVATAR -->
     <section class="panel">
-  <h2 class="panel__title">Avatar</h2>
+      <h2 class="panel__title">Avatar</h2>
 
-  <div class="avatar">
-    <div class="avatar-container" #avatarContainer
-     (pointerdown)="onAvatarPointerDown($event)"
-     (pointermove)="onAvatarPointerMove($event)"
-     (pointerup)="onAvatarPointerUp()"
-     (pointercancel)="onAvatarPointerUp()"
-     (wheel)="onAvatarWheel($event)">
+      <div class="avatar">
+        <div
+          class="avatar-container"
+          [class.avatar-container--editing]="isEditingAvatar"
+          #avatarContainer
+          (pointerdown)="onAvatarPointerDown($event)"
+          (pointermove)="onAvatarPointerMove($event)"
+          (pointerup)="onAvatarPointerUp()"
+          (pointercancel)="onAvatarPointerUp()"
+          (wheel)="onAvatarWheel($event)"
+        >
+          <!-- MODO EDICIÓN -->
+          <img
+            *ngIf="isEditingAvatar; else viewAvatar"
+            #avatarImg
+            class="avatar__img avatar__img--edit"
+            [src]="avatarPreviewUrl"
+            [style.transform]="avatarTransform"
+            (load)="onAvatarImgLoad()"
+            (error)="onAvatarError()"
+            alt="Avatar"
+          />
 
-  <!-- MODO EDICIÓN -->
-  <img
-    *ngIf="isEditingAvatar; else viewAvatar"
-    #avatarImg
-    class="avatar__img avatar__img--edit"
-    [src]="avatarPreviewUrl"
-    [style.transform]="avatarTransform"
-    (load)="onAvatarImgLoad()"
-    (error)="onAvatarError()"
-    alt="Avatar"
-  />
+          <!-- MODO VISTA (SIN transforms, SIN deformar) -->
+          <ng-template #viewAvatar>
+            <img
+              #avatarImg
+              class="avatar__img avatar__img--view"
+              [src]="avatarPreviewUrl"
+              (error)="onAvatarError()"
+              alt="Avatar"
+            />
+          </ng-template>
+        </div>
 
-  <!-- MODO VISTA (SIN transforms, SIN deformar) -->
-  <ng-template #viewAvatar>
-    <img
-      #avatarImg
-      class="avatar__img avatar__img--view"
-      [src]="avatarPreviewUrl"
-      (error)="onAvatarError()"
-      alt="Avatar"
-    />
-  </ng-template>
+        <div class="avatar__actions">
+          <button type="button" class="btn btn--secondary" (click)="openFilePicker()">
+            <i class="bi bi-image"></i>
+            <span>Cambiar imagen</span>
+          </button>
 
-</div>
+          <!-- slider de zoom SOLO cuando estamos editando -->
+          <div class="zoom" *ngIf="isEditingAvatar">
+            <label class="zoom__label">Zoom</label>
+            <input
+              class="zoom__range"
+              type="range"
+              [min]="minZoom"
+              [max]="maxZoom"
+              [step]="0.01"
+              [value]="zoom"
+              (input)="onZoomChange($any($event.target).valueAsNumber)"
+            />
+          </div>
 
+          <input
+            #fileInput
+            type="file"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+            class="avatar__file"
+          />
 
-    <div class="avatar__actions">
-      <button type="button" class="btn btn--secondary" (click)="openFilePicker()">
-        <i class="bi bi-image"></i>
-        <span>Cambiar imagen</span>
-      </button>
-
-      <!-- slider de zoom SOLO cuando estamos editando -->
-      <div class="zoom" *ngIf="isEditingAvatar">
-        <label class="zoom__label">Zoom</label>
-        <input
-          class="zoom__range"
-          type="range"
-          [min]="minZoom"
-          [max]="maxZoom"
-          [step]="0.01"
-          [value]="zoom"
-          (input)="onZoomChange($any($event.target).valueAsNumber)"
-        />
+          <!-- Hint dinámico desktop/móvil -->
+          <p class="avatar__hint" *ngIf="isEditingAvatar">
+            {{ avatarHint }}
+          </p>
+        </div>
       </div>
-
-      <input
-        #fileInput
-        type="file"
-        accept="image/*"
-        (change)="onFileSelected($event)"
-        class="avatar__file"
-      />
-      <p class="avatar__hint">Arrastra para centrar. Rueda del ratón para zoom.</p>
-    </div>
-  </div>
-</section>
-
+    </section>
 
     <!-- CARD DATOS -->
     <section class="panel">
@@ -87,11 +91,25 @@
         <div class="form__row">
           <label>Nombre completo</label>
           <input type="text" formControlName="fullname" />
+
+          <p class="field-error" *ngIf="isInvalid(form, 'fullname', 'required')">
+            El nombre es obligatorio.
+          </p>
+          <p class="field-error" *ngIf="isInvalid(form, 'fullname', 'minlength')">
+            Mínimo 2 caracteres.
+          </p>
         </div>
 
         <div class="form__row">
           <label>Email</label>
           <input type="email" formControlName="email" />
+
+          <p class="field-error" *ngIf="isInvalid(form, 'email', 'required')">
+            El email es obligatorio.
+          </p>
+          <p class="field-error" *ngIf="isInvalid(form, 'email', 'email')">
+            Email no válido.
+          </p>
         </div>
 
         <div class="form__row">
@@ -100,7 +118,12 @@
         </div>
 
         <div class="form__actions">
-          <button class="btn btn--primary" type="submit" [disabled]="loadingSave">
+          <button
+            class="btn btn--primary btn--action"
+            type="submit"
+            [disabled]="loadingSave || form.invalid"
+          >
+            <span class="btn__spinner" *ngIf="loadingSave" aria-hidden="true"></span>
             {{ loadingSave ? 'Guardando...' : 'Guardar cambios' }}
           </button>
         </div>
@@ -115,15 +138,34 @@
         <div class="form__row">
           <label>Nueva contraseña</label>
           <input type="password" formControlName="password" />
+
+          <p class="field-error" *ngIf="isInvalid(passForm, 'password', 'required')">
+            La contraseña es obligatoria.
+          </p>
+          <p class="field-error" *ngIf="isInvalid(passForm, 'password', 'minlength')">
+            Mínimo 8 caracteres.
+          </p>
         </div>
 
         <div class="form__row">
           <label>Repetir contraseña</label>
           <input type="password" formControlName="password2" />
+
+          <p class="field-error" *ngIf="isInvalid(passForm, 'password2', 'required')">
+            Repite la contraseña.
+          </p>
+          <p class="field-error" *ngIf="passMismatch">
+            Las contraseñas no coinciden.
+          </p>
         </div>
 
         <div class="form__actions">
-          <button class="btn btn--primary" type="submit" [disabled]="loadingPass">
+          <button
+            class="btn btn--primary btn--action"
+            type="submit"
+            [disabled]="loadingPass || passForm.invalid"
+          >
+            <span class="btn__spinner" *ngIf="loadingPass" aria-hidden="true"></span>
             {{ loadingPass ? 'Guardando...' : 'Actualizar contraseña' }}
           </button>
         </div>
@@ -131,66 +173,80 @@
     </section>
 
     <!-- CARD INFO CUENTA -->
-<section class="panel">
-  <h2 class="panel__title">Información de la cuenta</h2>
+    <section class="panel">
+      <h2 class="panel__title">Información de la cuenta</h2>
 
-  <div class="account-info">
+      <div class="account-info">
+        <div class="account-info__row">
+          <span class="account-info__label">Estado</span>
+          <span
+            class="account-info__value"
+            [class.account-info__value--ok]="u.active"
+            [class.account-info__value--err]="!u.active"
+          >
+            {{ u.active ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
 
-    <div class="account-info__row">
-      <span class="account-info__label">Estado</span>
-      <span
-        class="account-info__value"
-        [class.account-info__value--ok]="u.active"
-        [class.account-info__value--err]="!u.active"
-      >
-        {{ u.active ? 'Activa' : 'Inactiva' }}
-      </span>
-    </div>
+        <div class="account-info__row">
+          <span class="account-info__label">Rol</span>
+          <span class="account-info__value">
+            {{ u.role | titlecase }}
+          </span>
+        </div>
 
-    <div class="account-info__row">
-      <span class="account-info__label">Rol</span>
-      <span class="account-info__value">
-        {{ u.role | titlecase }}
-      </span>
-    </div>
+        <div class="account-info__row">
+          <span class="account-info__label">Fecha de alta</span>
+          <span class="account-info__value">
+            {{ u.created_at | date:'dd/MM/yyyy HH:mm' }}
+          </span>
+        </div>
 
-    <div class="account-info__row">
-      <span class="account-info__label">Fecha de alta</span>
-      <span class="account-info__value">
-        {{ u.created_at | date:'dd/MM/yyyy HH:mm' }}
-      </span>
-    </div>
+        <div class="account-info__row">
+          <span class="account-info__label">Última actualización</span>
+          <span class="account-info__value">
+            {{ u.updated_at | date:'dd/MM/yyyy HH:mm' }}
+          </span>
+        </div>
+      </div>
+    </section>
 
-    <div class="account-info__row">
-      <span class="account-info__label">Última actualización</span>
-      <span class="account-info__value">
-        {{ u.updated_at | date:'dd/MM/yyyy HH:mm' }}
-      </span>
-    </div>
+    <!-- ✅ NUEVO: ZONA PELIGROSA -->
+    <section class="panel danger-zone">
+      <h2 class="panel__title danger-zone__title">Zona peligrosa</h2>
+
+      <p class="danger-zone__text">
+        Eliminar tu cuenta desactivará tu usuario y cerrará tu sesión. Esta acción no se puede deshacer.
+      </p>
+
+      <div class="danger-zone__actions">
+        <button
+          type="button"
+          class="btn btn--danger"
+          (click)="openDeleteAccountModal()"
+        >
+          Eliminar cuenta
+        </button>
+      </div>
+    </section>
 
   </div>
 </section>
 
-
-  </div>
-
-  <!-- Mensajes -->
-  <!--<div class="status status--ok" *ngIf="messageOk">{{ messageOk }}</div>
-  <div class="status status--err" *ngIf="messageErr">{{ messageErr }}</div>-->
-</section>
-
-<!-- MODAL DE ERROR -->
-<div class="modal-backdrop" *ngIf="messageOk || messageErr">
-  <div class="modal">
+<!-- MODAL (TU MODAL ACTUAL) -->
+<div class="modal-backdrop" *ngIf="messageOk || messageErr" (click)="onBackdropClick($event)">
+  <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2>{{messageOk ? 'Actualizacion correcta' : 'Error al actualizar'}}</h2>
+      <h2>{{ messageOk ? 'Actualizacion correcta' : 'Error al actualizar' }}</h2>
       <button type="button" class="close-btn" (click)="closeModal()">
         &times;
       </button>
     </div>
+
     <div class="modal-body">
-      <p>{{messageOk ? messageOk : messageErr}}</p>
+      <p>{{ messageOk ? messageOk : messageErr }}</p>
     </div>
+
     <div class="modal-footer">
       <button type="button" class="btn-modal" (click)="closeModal()">
         Aceptar
@@ -198,3 +254,30 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL (confirmar eliminar cuenta) -->
+<div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDeleteAccount()">
+  <div class="modal__panel" (click)="$event.stopPropagation()">
+    <h3 class="modal__title">{{ titleModal }}</h3>
+
+    <p class="modal__text">
+      {{ textModal }}
+    </p>
+
+    <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
+      <button class="btn-outline track-modal-btn" (click)="confirmDeleteAccount()">
+        {{ deleteInProgress ? 'Eliminando...' : 'Eliminar' }}
+      </button>
+      <button class="btn-danger track-modal-btn" (click)="cancelDeleteAccount()" >
+        Cancelar
+      </button>
+    </div>
+
+    <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
+      <button class="btn-outline track-modal-btn" (click)="successOk()">
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>
+

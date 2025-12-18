@@ -687,45 +687,7 @@ textarea:focus {
   }
 }
 
-/* =========================================================
-   BOTONES (outline / danger)
-========================================================= */
 
-.btn-outline {
-  border: 1px solid var(--color-primary);
-  background-color: transparent;
-  color: var(--color-primary);
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.btn-outline i {
-  font-size: 1.4rem;
-}
-
-.btn-outline:hover {
-  cursor: pointer;
-  background-color: var(--color-primary-hover);
-  color: #050807;
-}
-
-.btn-danger {
-  border: 1px solid #ef5350;
-  background-color: rgba(127, 25, 25, 0.15);
-  color: #ff8a80;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.btn-danger:hover {
-  cursor: pointer;
-  background-color: rgba(183, 28, 28, 0.4);
-  border-color: #ff5252;
-}
 
 /* =========================================================
    RUTAS CERCANAS

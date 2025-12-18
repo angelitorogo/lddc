@@ -138,4 +138,21 @@ export class AuthService {
     );
   }
 
+  // =========================================================
+  // ✅ NUEVO: Eliminar cuenta (desactivar)
+  // =========================================================
+  deleteAccount(): Observable<any> {
+    return this.http.delete<any>(
+      `${this.apiUrl}/auth/me`,
+      { withCredentials: true }
+    ).pipe(
+      tap(() => {
+        // si el backend no hace logout, aquí al menos limpiamos estado local
+        this.loggedIn = false;
+        this.usuario = null;
+        this._user$.next(null);
+      })
+    );
+  }
+
 }
