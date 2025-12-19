@@ -1,20 +1,23 @@
 // src/app/dashboard/pages/home/home.component.ts
 
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
 import { TrackListParams, TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
 import { TracksService } from '../../services/track.service';
 import { TrackListResponse } from '../../../shared/responses/list.response';
+import { Subscription } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../../auth/services/auth.service';
 
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css'],
+  selector: 'app-tracks-user',
+  templateUrl: './tracks-user.component.html',
+  styleUrls: ['./tracks-user.component.css'],
 })
-export class HomeComponent implements OnInit {
+export class TracksUserComponent implements OnInit, OnDestroy {
 
-  
+  private routeSub?: Subscription;
 
   tracks: Track[] = [];
   loading = false;
@@ -24,6 +27,9 @@ export class HomeComponent implements OnInit {
   page = 1;
   limit = 12;
   total = 0;
+
+  //autor-track
+  userId: string = '';
 
   // filtros (UI)
   filterRouteType: RouteType | '' = '';
@@ -54,16 +60,33 @@ export class HomeComponent implements OnInit {
     { value: 'OUT_AND_BACK', label: 'Ida y vuelta' },
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
+  
 
-  constructor(private tracksService: TracksService) {}
+  constructor(private tracksService: TracksService, public authService:AuthService, private router: Router,
+      private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.loadTracks(true);
+
+    this.routeSub = this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (!id) return;
+
+      
+
+      this.userId = id;
+
+
+      this.loadTracks(this.userId, true);
+
+    });
+
   }
 
-  loadTracks(reset: boolean = false): void {
+  ngOnDestroy(): void {
+      this.routeSub?.unsubscribe();
+  }
 
-    console.log('recargando...')
+  loadTracks( userId: string, reset: boolean = false): void {
     // En reset: volver al estado inicial
     if (reset) {
       this.page = 1;
@@ -86,6 +109,7 @@ export class HomeComponent implements OnInit {
     this.error = null;
 
     const params: TrackListParams = {
+      userId: userId,
       page: this.page,
       limit: this.limit,
       sortBy: this.sortBy,
@@ -102,9 +126,12 @@ export class HomeComponent implements OnInit {
       params.maxDistance = Math.round(this.filterMaxDistanceKm * 1000);
     }
 
+    console.log(params)
+
     this.tracksService.getTracks(params).subscribe({
       next: (res: TrackListResponse) => {
         // concat en móvil si no es reset y page>1
+        
         if (this.isMobile && !reset && this.page > 1) {
           const existingIds = new Set(this.tracks.map(t => t.id));
           const newOnes = res.items.filter(t => !existingIds.has(t.id));
@@ -112,6 +139,8 @@ export class HomeComponent implements OnInit {
         } else {
           this.tracks = res.items;
         }
+
+        console.log(this.tracks)
 
         this.total = res.total;
         this.page = res.page;
@@ -159,12 +188,12 @@ export class HomeComponent implements OnInit {
   loadMore(): void {
     if (!this.canLoadMore) return;
     this.page++;
-    this.loadTracks(false);
+    this.loadTracks(this.userId, false);
   }
     
 
   onApplyFilters(): void {
-    this.loadTracks(true);
+    this.loadTracks(this.userId, true);
   }
 
   onResetFilters(): void {
@@ -175,7 +204,7 @@ export class HomeComponent implements OnInit {
     this.sortBy = 'date';
     this.sortOrder = 'desc';
     this.page = 1;
-    this.loadTracks(true);
+    this.loadTracks(this.userId, true);
   }
 
   get totalPages(): number {
@@ -193,13 +222,13 @@ export class HomeComponent implements OnInit {
   goPrev(): void {
     if (!this.canGoPrev()) return;
     this.page--;
-    this.loadTracks();
+    this.loadTracks(this.userId);
   }
 
   goNext(): void {
     if (!this.canGoNext()) return;
     this.page++;
-    this.loadTracks();
+    this.loadTracks(this.userId);
   }
 
   
@@ -285,7 +314,7 @@ export class HomeComponent implements OnInit {
       this.page = 1;
       this.canLoadMore = true;
       this.tracks = [];
-      this.loadTracks(true);
+      this.loadTracks(this.userId, true);
     }
   }
 

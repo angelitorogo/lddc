@@ -1,8 +1,8 @@
 <section class="profile" *ngIf="authService.user as u">
   <header class="profile__header">
     <div>
-      <h1 class="profile__title">Tu perfil</h1>
-      <p class="profile__subtitle">Edita tus datos y tu contraseña.</p>
+      <h1 class="profile__title">{{isOwnProfile ? 'Tu perfil' : 'Perfil de ' + userFullname }} </h1>
+      <p class="profile__subtitle" *ngIf="isOwnProfile">Edita tus datos y tu contraseña.</p>
     </div>
   </header>
 
@@ -40,6 +40,7 @@
             <img
               #avatarImg
               class="avatar__img avatar__img--view"
+              [class.no-static]="!isOwnProfile"
               [src]="avatarPreviewUrl"
               (error)="onAvatarError()"
               alt="Avatar"
@@ -47,10 +48,10 @@
           </ng-template>
         </div>
 
-        <div class="avatar__actions">
+        <div class="avatar__actions" *ngIf="isOwnProfile">
           <button type="button" class="btn btn--secondary" (click)="openFilePicker()">
             <i class="bi bi-image"></i>
-            <span>Cambiar imagen</span>
+            <span>Cambiar imagen de usuario</span>
           </button>
 
           <!-- slider de zoom SOLO cuando estamos editando -->
@@ -87,10 +88,10 @@
     <section class="panel">
       <h2 class="panel__title">Datos personales</h2>
 
-      <form [formGroup]="form" (ngSubmit)="saveProfile()" class="form">
+      <form [formGroup]="form" (ngSubmit)="saveProfile()" class="form" >
         <div class="form__row">
           <label>Nombre completo</label>
-          <input type="text" formControlName="fullname" />
+          <input type="text" formControlName="fullname"/>
 
           <p class="field-error" *ngIf="isInvalid(form, 'fullname', 'required')">
             El nombre es obligatorio.
@@ -119,6 +120,7 @@
 
         <div class="form__actions">
           <button
+            *ngIf="isOwnProfile"
             class="btn btn--primary btn--action"
             type="submit"
             [disabled]="loadingSave || form.invalid"
@@ -131,7 +133,7 @@
     </section>
 
     <!-- CARD PASSWORD -->
-    <section class="panel">
+    <section class="panel" *ngIf="isOwnProfile">
       <h2 class="panel__title">Cambiar contraseña</h2>
 
       <form [formGroup]="passForm" (ngSubmit)="changePassword()" class="form">
@@ -184,35 +186,75 @@
             [class.account-info__value--ok]="u.active"
             [class.account-info__value--err]="!u.active"
           >
-            {{ u.active ? 'Activa' : 'Inactiva' }}
+            <span *ngIf="isOwnProfile">{{ u.active ? 'Activa' : 'Inactiva' }}</span>
+            <span *ngIf="!isOwnProfile">{{ userActive ? 'Activa' : 'Inactiva' }}</span>
           </span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Rol</span>
-          <span class="account-info__value">
-            {{ u.role | titlecase }}
-          </span>
+          <span class="account-info__value" *ngIf="isOwnProfile">{{ u.role | titlecase }}</span>
+          <span class="account-info__value" *ngIf="!isOwnProfile">{{ userRole | titlecase }}</span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Fecha de alta</span>
-          <span class="account-info__value">
-            {{ u.created_at | date:'dd/MM/yyyy HH:mm' }}
-          </span>
+          <span class="account-info__value" *ngIf="isOwnProfile">{{ u.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="account-info__value" *ngIf="!isOwnProfile">{{ userNewDate | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Última actualización</span>
-          <span class="account-info__value">
-            {{ u.updated_at | date:'dd/MM/yyyy HH:mm' }}
-          </span>
+          <span class="account-info__value" *ngIf="isOwnProfile">{{ u.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="account-info__value" *ngIf="!isOwnProfile">{{ userUpdateDate | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
       </div>
     </section>
 
+
+    <!-- ✅ NUEVO: RESUMEN DE RUTAS -->
+    <section class="panel panel__resume-tracks">
+      <h2 class="panel__title">Rutas creadas</h2>
+
+      <div class="account-info">
+        <div class="account-info__row">
+          <span class="account-info__label">Total de rutas</span>
+          <span class="account-info__value">
+            {{ loadingTracksSummary ? 'Cargando...' : (tracksCount | number:'1.0-0') }}
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Última ruta</span>
+          <span class="account-info__value">
+            <ng-container *ngIf="!loadingTracksSummary; else loadingLast">
+              <ng-container *ngIf="lastTrackDate; else noTracks">
+                {{ lastTrackDate | date:'dd/MM/yyyy' }}
+              </ng-container>
+              <ng-template #noTracks>—</ng-template>
+            </ng-container>
+            <ng-template #loadingLast>Cargando...</ng-template>
+          </span>
+        </div>
+      </div>
+
+      <div class="form__actions" style="margin-top: 1rem;">
+        <button
+          type="button"
+          class="btn btn--primary btn--action"
+          [disabled]="loadingTracksSummary || !summaryUserId"
+          (click)="goToUserTracks()"
+        >
+          Ver rutas del usuario
+        </button>
+      </div>
+    </section>
+
+
+
+
     <!-- ✅ NUEVO: ZONA PELIGROSA -->
-    <section class="panel danger-zone">
+    <section class="panel danger-zone" *ngIf="isOwnProfile">
       <h2 class="panel__title danger-zone__title">Zona peligrosa</h2>
 
       <p class="danger-zone__text">

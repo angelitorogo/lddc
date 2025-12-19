@@ -27,6 +27,11 @@ export class TracksService {
   getTracks(params: TrackListParams = {}): Observable<TrackListResponse> {
     let httpParams = new HttpParams();
 
+    //usuario
+    if (params.userId !== undefined) {
+      httpParams = httpParams.set('userId', params.userId.toString());
+    }
+
     // paginación
     if (params.page !== undefined) {
       httpParams = httpParams.set('page', params.page.toString());

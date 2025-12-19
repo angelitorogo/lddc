@@ -2007,10 +2007,14 @@ export class TrackDetailComponent
     if(this.track?.authorUserId === this.authService.user.id) {
       this.router.navigateByUrl('/dashboard/profile');
     } else {
-      //TODO: cuando creemos una pagina de perfil de usuario, navegaremos alli
-      console.log('Ver perfil del ceador del track')
+      this.router.navigateByUrl(`/dashboard/profile/${this.track?.authorUserId}`);
     }
 
+  }
+
+  tracksUser(id?: string) {
+    if (!id) return;
+    this.router.navigate(['/dashboard/tracks-user', id]);
   }
 
 }

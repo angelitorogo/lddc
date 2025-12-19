@@ -17,7 +17,8 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { environment } from '../../../../environments/environment';
 import { UpdateUserPayload } from '../../../auth/interfaces/update-user.interface';
 import { Subscription } from 'rxjs';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TracksService } from '../../services/track.service';
 
 @Component({
   selector: 'app-profile',
@@ -69,6 +70,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // ✅ para hint desktop/móvil
   isTouchLike = false;
 
+
+  private routeSub?: Subscription;
+  isOwnProfile = false; 
+  userId?: string; 
+  userFullname?: string;
+  userActive?: boolean;
+  userRole?: string;
+  userNewDate?: Date;
+  userUpdateDate?: Date;
+
+
+  // =========================================================
+  // ✅ RESUMEN RUTAS USUARIO
+  // =========================================================
+  summaryUserId: string | null = null;
+  tracksCount = 0;
+  lastTrackDate: string | null = null;
+  loadingTracksSummary = false;
+
   // =========================================================
   // ✅ MODAL BORRADO CUENTA (Zona peligrosa)
   // =========================================================
@@ -78,14 +98,37 @@ export class ProfileComponent implements OnInit, OnDestroy {
   titleModal = '';
   textModal = '';
 
+  
+
   // si se ha eliminado correctamente, al aceptar redirigimos a home
   private accountDeletedOk = false;
 
+  
 
-  constructor(private fb: FormBuilder, public authService: AuthService, private router: Router) {}
+
+  constructor(private fb: FormBuilder, 
+              public authService: AuthService, 
+              private router: Router, 
+              private route: ActivatedRoute,
+              private tracksService: TracksService,
+  ) {}
 
   ngOnInit(): void {
-    this.authService.getUserInfo();
+
+    this.routeSub = this.route.paramMap.subscribe((p) => {
+      const id = p.get('id');
+
+      if (!id) {
+        // /profile => mi perfil
+        this.isOwnProfile = true;
+        return;
+      }
+
+      this.isOwnProfile = false;
+      this.userId = id;
+
+
+    });
 
     // Heurística simple: “móvil / táctil”
     this.isTouchLike =
@@ -93,7 +136,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       (navigator.maxTouchPoints > 0 || window.matchMedia?.('(pointer: coarse)')?.matches);
 
     this.form = this.fb.group({
-      fullname: ['', [Validators.required, Validators.minLength(2)]],
+      fullname: ['',[Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       telephone: [null],
     });
@@ -107,26 +150,78 @@ export class ProfileComponent implements OnInit, OnDestroy {
       { validators: this.passwordsMatchValidator }
     );
 
-    this.userSub = this.authService.user$.subscribe((u) => {
-      if (!u) return;
+    if(this.isOwnProfile) {
 
-      this.form.patchValue(
-        {
-          fullname: u.fullname ?? '',
-          email: u.email ?? '',
-          telephone: u.telephone ?? null,
-        },
-        { emitEvent: false }
-      );
+      this.userSub = this.authService.user$.subscribe((u) => {
+        if (!u) return;
 
-      this.setAvatarFromUser(u);
-    });
+        this.form.patchValue(
+          {
+            fullname: u.fullname ?? '',
+            email: u.email ?? '',
+            telephone: u.telephone ?? null,
+          },
+          { emitEvent: false }
+        );
+
+        this.setAvatarFromUser(u);
+        this.loadTracksSummary(u.id);
+      });
+
+    } else {
+      this.authService.getUserInfo(this.userId).subscribe( (res:any) => {
+
+        this.userFullname = res.fullname;
+        this.userActive = res.active;
+        this.userRole = res.role;
+        this.userNewDate = res.created_at;
+        this.userUpdateDate = res.updated_at;
+
+        this.form.patchValue(
+          {
+            fullname: res.fullname ?? '',
+            email: res.email ?? '',
+            telephone: res.telephone ?? null,
+          },
+          { emitEvent: false }
+        );
+
+        this.setAvatarFromUser(res);
+        this.loadTracksSummary(this.userId!);
+
+        this.setReadOnlyMode(true);
+        
+
+      });
+
+
+
+    }
+
+    
+
+    
   }
 
   ngOnDestroy(): void {
     this.userSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
     this.stopDragging();
   }
+
+  setReadOnlyMode(readOnly: boolean) {
+    const fullName = this.form.get('fullname');
+    if (!fullName) return;
+    const email = this.form.get('email');
+    if (!email) return;
+    const telephone = this.form.get('telephone');
+    if (!telephone) return;
+
+    readOnly ? fullName.disable() : fullName.enable();
+    readOnly ? email.disable() : email.enable();
+    readOnly ? telephone.disable() : telephone.enable();
+  }
+
 
   // =========================
   // Helpers validación template
@@ -162,7 +257,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.isEditingAvatar = false;
     this.resetTransform();
 
-    if (user?.image) {
+    if (user.image) {
       this.avatarPreviewUrl = `${environment.API_URL}/files/${user.image}?v=${user.updated_at ?? Date.now()}`;
     } else {
       this.avatarPreviewUrl = 'assets/images/poster-placeholder.png';
@@ -662,9 +757,42 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================
-  // Modal UX: ESC + click fuera (modal ok/err normal)
-  // =========================
+  private loadTracksSummary(userId: string): void {
+    this.summaryUserId = userId;
+    this.loadingTracksSummary = true;
+    this.tracksCount = 0;
+    this.lastTrackDate = null;
+
+    // Pedimos 1 elemento ordenado por fecha desc -> nos da "última ruta"
+    // y el "total" nos sirve como contador global.
+    this.tracksService.getTracks({
+      userId,
+      page: 1,
+      limit: 1,
+      sortBy: 'date',
+      sortOrder: 'desc',
+    }).subscribe({
+      next: (res: any) => {
+        this.tracksCount = Number(res?.total ?? 0);
+
+        const last = res?.items?.[0];
+        // Ajusta el campo si tu Track usa otro nombre (dateTrack / createdAt / etc.)
+        this.lastTrackDate = last?.dateTrack ?? last?.createdAt ?? null;
+
+        this.loadingTracksSummary = false;
+      },
+      error: (err: any) => {
+        console.error('Error cargando resumen de rutas', err);
+        this.loadingTracksSummary = false;
+      },
+    });
+  }
+
+  goToUserTracks(): void {
+    if (!this.summaryUserId) return;
+    // ruta: { path: 'tracks-user/:id', component: TracksUserComponent }
+    this.router.navigate(['/dashboard/tracks-user', this.summaryUserId]);
+  }
 
 
 }

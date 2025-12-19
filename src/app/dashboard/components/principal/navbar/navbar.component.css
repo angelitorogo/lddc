@@ -318,6 +318,9 @@
 
 /* RESPONSIVE */
 @media (max-width: 1127px) {
+
+  
+
   .nav-links {
     display: none;
   }
@@ -348,12 +351,22 @@
 }
 
 @media (max-width: 600px) {
+
+  .brand {
+    gap: 1rem;
+  }
+
+  .header-actions {
+    gap: 0.2rem;
+  }
+
   .dashboard-header__inner {
     gap: 1.2rem;
   }
 
   .brand__title {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
+    padding-top: 0.3rem;
   }
 
   .brand__subtitle {

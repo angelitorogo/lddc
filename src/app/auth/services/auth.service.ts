@@ -92,8 +92,11 @@ export class AuthService {
   }
 
   // Método para verificar y obtener la información del usuario
-  getUserInfo(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/auth/verify`, {
+  getUserInfo(userId?: string): Observable<any> {
+
+    const url = userId ? `${this.apiUrl}/auth/user/${userId}` : `${this.apiUrl}/auth/verify`
+
+    return this.http.get<any>(url, {
       withCredentials: true, // Necesario para enviar cookies
     });
   }

@@ -1,7 +1,7 @@
 :root {
   /* Paleta base (ya la teníamos) */
   --color-background: #0f1f1a;        /* fondo general oscuro bosque */
-  --color-surface: #1b2e27;           /* panels / cards / header */
+  --color-surface: #0b16118a;           /* panels / cards / header */
   
   --color-primary: #4caf50;           /* verde sendero */
   --color-primary-hover: #66bb6a;

@@ -20,6 +20,7 @@ import { TrackCreateComponent } from './components/track-create/track-create.com
 import { GoogleMapsModule } from '@angular/google-maps';
 import { TrackEditComponent } from './components/track-edit/track-edit.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { TracksUserComponent } from './components/tracks-user/tracks-user.component';
 
 
 
@@ -37,6 +38,7 @@ import { ProfileComponent } from './components/profile/profile.component';
     TrackCreateComponent,
     TrackEditComponent,
     ProfileComponent,
+    TracksUserComponent,
   ],
   imports: [
     CommonModule,

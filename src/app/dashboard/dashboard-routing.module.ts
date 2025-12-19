@@ -6,6 +6,7 @@ import { TrackDetailComponent } from './components/track-detail/track-detail.com
 import { TrackCreateComponent } from './components/track-create/track-create.component';
 import { TrackEditComponent } from './components/track-edit/track-edit.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { TracksUserComponent } from './components/tracks-user/tracks-user.component';
 
 
 
@@ -34,6 +35,14 @@ const routes: Routes = [
       {
         path: 'profile',
         component: ProfileComponent,
+      },
+      {
+        path: 'profile/:id',
+        component: ProfileComponent,
+      },
+      { 
+        path: 'tracks-user/:id', 
+        component: TracksUserComponent 
       },
       /*
       {

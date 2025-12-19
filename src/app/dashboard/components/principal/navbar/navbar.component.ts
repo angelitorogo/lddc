@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
@@ -12,6 +12,7 @@ import { AuthService } from '../../../../auth/services/auth.service';
 export class NavbarComponent implements OnInit{
 
   appName = environment.APP_NAME;
+  @ViewChild('btnAccount') btnAccount?: ElementRef<HTMLInputElement>;
 
   constructor(private router: Router, public authService: AuthService) {}
 
@@ -38,7 +39,6 @@ export class NavbarComponent implements OnInit{
 
   onAccountClick(): void {
     this.closeMenu();
-
 
     if (this.authService.user) {
 

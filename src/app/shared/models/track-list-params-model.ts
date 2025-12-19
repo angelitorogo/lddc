@@ -6,6 +6,7 @@ export type TrackSortBy = 'date' | 'distance' | 'ascent' | 'time';
 export type TrackSortOrder = 'asc' | 'desc';
 
 export interface TrackListParams {
+  userId?: string;
   page?: number;
   limit?: number;
   routeType?: RouteType;
