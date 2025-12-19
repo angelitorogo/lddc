@@ -23,20 +23,13 @@
         </a>
         <a
           class="nav-links__item"
-          routerLink="/dashboard/weekly"
+          routerLink="/dashboard/map"
           routerLinkActive="nav-links__item--active"
           (click)="onNavigate()"
         >
           Mapa
         </a>
-        <!--<a
-          class="nav-links__item"
-          routerLink="/dashboard/maps"
-          routerLinkActive="nav-links__item--active"
-          (click)="onNavigate()"
-        >
-          Favoritas
-        </a>-->
+
         <!--*ngIf="authService.isLoggedIn() && authService.user?.role === 'ADMIN'"-->
         <a
           class="nav-links__item"
@@ -104,22 +97,13 @@
         </a>
         <a
           class="nav-mobile__item"
-          routerLink="/dashboard/weekly"
+          routerLink="/dashboard/map"
           routerLinkActive="nav-mobile__item--active"
           (click)="onNavigate()"
         >
           <i class="bi bi-calendar-week"></i>
           <span>Mapa</span>
         </a>
-        <!--<a
-          class="nav-mobile__item"
-          routerLink="/dashboard/maps"
-          routerLinkActive="nav-mobile__item--active"
-          (click)="onNavigate()"
-        >
-          <i class="bi bi-map"></i>
-          <span>Favoritas</span>
-        </a>-->
         <a
           class="nav-mobile__item"
           *ngIf="authService.user?.role === 'ADMIN'"

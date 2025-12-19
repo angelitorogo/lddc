@@ -7,6 +7,7 @@ import { TrackCreateComponent } from './components/track-create/track-create.com
 import { TrackEditComponent } from './components/track-edit/track-edit.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { TracksUserComponent } from './components/tracks-user/tracks-user.component';
+import { MapComponent } from './components/map/map.component';
 
 
 
@@ -43,6 +44,10 @@ const routes: Routes = [
       { 
         path: 'tracks-user/:id', 
         component: TracksUserComponent 
+      },
+      { 
+        path: 'map', 
+        component: MapComponent 
       },
       /*
       {

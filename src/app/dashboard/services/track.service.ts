@@ -10,6 +10,7 @@ import { CreateTrackResponse } from '../../shared/responses/create-track.respons
 import { TrackListResponse } from '../../shared/responses/list.response';
 import { NearbyTrackItem } from '../../shared/models/track.model';
 import { compressImages } from '../../shared/helpers/compressor.helper';
+import { ViewportTracksQuery, ViewportTracksResponse } from '../../shared/interfaces/viewport.interfaces';
 
 
 @Injectable({
@@ -191,12 +192,32 @@ export class TracksService {
     return `${this.baseUrl}/images/${image.id}`;
   }
 
-
   deleteTrack(trackId: string) {
     return this.http.delete(`${this.baseUrl}/${trackId}`, {
       withCredentials: true,
     });
   }
 
+  /**
+   * Obtiene tracks cuyo punto de inicio (startLat/startLon) cae dentro del viewport.
+   * Importante: withCredentials por si estás usando cookies de sesión.
+   */
+  getTracksInViewport(query: ViewportTracksQuery): Observable<ViewportTracksResponse> {
+    let params = new HttpParams()
+      .set('minLat', String(query.minLat))
+      .set('maxLat', String(query.maxLat))
+      .set('minLng', String(query.minLng))
+      .set('maxLng', String(query.maxLng));
+
+    if (query.zoomLevel !== undefined && query.zoomLevel !== null) {
+      params = params.set('zoomLevel', String(query.zoomLevel));
+    }
+
+    // Ajusta el path si tu controller usa otro prefijo
+    return this.http.get<ViewportTracksResponse>(`${this.baseUrl}/viewport`, {
+      params,
+      withCredentials: true,
+    });
+  }
 
 }

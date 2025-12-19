@@ -1,0 +1,309 @@
+.map-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--text-color);
+  position: relative;
+}
+
+.map-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.map-page__title {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.map-page__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+}
+
+.map-page__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* =========================
+   ✅ NUEVO: Layout 2 columnas
+   ========================= */
+.split {
+  display: grid;
+  grid-template-columns: 5fr 3fr;
+  gap: 1rem;
+
+  /* Altura del área: adapta si tu header/nav ocupan más */
+  height: calc(100vh - 220px);
+  min-height: 520px;
+}
+
+.split__left,
+.split__right {
+  min-height: 0; /* importante para que el overflow funcione en grid */
+}
+
+/* En móvil, apilamos */
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+/* =========================
+   Panel mapa (igual que antes)
+   ========================= */
+.map-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.map-panel__topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.12);
+  flex-wrap: wrap;
+}
+
+google-map {
+  flex: 1;
+  min-height: 0;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-border);
+  background-color: #111a16;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
+
+.pill__label {
+  opacity: 0.85;
+}
+
+.pill__value {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.status {
+  margin-left: auto;
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
+
+.status--error {
+  color: var(--color-error);
+}
+
+.map-panel__hint {
+  padding: 0.75rem 0.9rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--text-muted-color);
+  font-size: 1.2rem;
+}
+
+/* Aviso densidad */
+.warning {
+  margin-left: auto;
+  border: 1px solid var(--color-border);
+  background-color: #111a16;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.warning__count {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* =========================
+   ✅ NUEVO: Panel derecho con scroll
+   ========================= */
+.right-panel {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.right-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.right-panel__title {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.right-panel__badge {
+  border: 1px solid var(--color-border);
+  background-color: #111a16;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 1.2rem;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.right-panel__content {
+  padding: 0.9rem;
+  overflow-y: auto; /* ✅ scroll vertical */
+  min-height: 0;
+  flex: 1;
+}
+
+.right-panel__empty,
+.right-panel__loading,
+.right-panel__error {
+  color: var(--text-muted-color);
+  font-size: 1.2rem;
+}
+
+.right-panel__error {
+  color: var(--color-error);
+}
+
+/* Listado vertical de cards */
+.tracks-list--vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* Botones (igual que antes) */
+.btn {
+  border-radius: 4px;
+  border: 1px solid transparent;
+  padding: 0.4rem 0.9rem 0.2rem;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.btn--primary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+}
+
+.btn--primary:hover {
+  background-color: var(--color-primary);
+  color: #0f1a15;
+}
+
+.btn--secondary {
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: #0f1a15;
+}
+
+@media (max-width: 580px) {
+  .map-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .warning {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+
+/* =========================================================
+   Scroll vertical estilo "thumbs-row" (panel derecho)
+========================================================= */
+
+/* Firefox */
+.right-panel__content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) rgba(4, 12, 10, 0.35);
+}
+
+/* Chrome / Edge / Safari */
+.right-panel__content::-webkit-scrollbar {
+  width: 8px; /* equivalente visual al height: 6px horizontal */
+}
+
+.right-panel__content::-webkit-scrollbar-track {
+  background: rgba(4, 12, 10, 0.35);
+  border-radius: 999px;
+}
+
+.right-panel__content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12); /* MISMO color exacto */
+  border-radius: 999px;
+  border: 2px solid rgba(4, 12, 10, 0.35);
+}
+
+.right-panel__content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+
+/* El mapa ocupa el resto del panel en desktop */
+.map-panel__map {
+  height: 100%;
+}
+
+:host ::ng-deep google-map.map-panel__map .map-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* En móvil el layout pasa a auto, así que damos una altura real al mapa */
+@media (max-width: 900px) {
+  .map-panel__map {
+    height: 40vh;      /* ajusta si quieres: 50–65vh */
+    min-height: 260px; /* para evitar colapsos */
+    flex: none;
+  }
+}
+
+.track-card--hover {
+  outline: 1px solid var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.4),
+              0 0 12px rgba(245,196,0,0.25);
+  background-color: rgba(255,255,255,0.02);
+}
+

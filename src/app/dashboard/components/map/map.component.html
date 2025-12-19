@@ -1,0 +1,128 @@
+<section class="map-page">
+  <header class="map-page__header">
+    <div>
+      <h1 class="map-page__title">Mapa de rutas</h1>
+      <p class="map-page__subtitle">
+        Mueve el mapa o haz zoom para cargar rutas dentro del viewport.
+      </p>
+    </div>
+
+    <div class="map-page__actions">
+      <button class="btn btn--secondary" (click)="recenterMadrid()">Centrar</button>
+      <button class="btn btn--primary" (click)="refresh()">Actualizar</button>
+    </div>
+  </header>
+
+  <section class="split">
+    <!-- IZQUIERDA: MAPA -->
+    <section class="split__left map-panel">
+      <div class="map-panel__topbar">
+        <div class="pill">
+          <span class="pill__label">Rutas</span>
+          <span class="pill__value">{{ total }}</span>
+        </div>
+
+        <div class="pill">
+          <span class="pill__label">Densidad</span>
+          <span class="pill__value">{{ densityLabel }}</span>
+        </div>
+
+        <div class="warning" *ngIf="showHighDensityWarning && !loading && !error">
+          Demasiadas rutas, haz zoom para ver más.
+          <span class="warning__count">
+            Mostrando {{ showingCount }} de {{ total }}
+          </span>
+        </div>
+
+        <div class="status" *ngIf="loading">Cargando…</div>
+        <div class="status status--error" *ngIf="!loading && error">{{ error }}</div>
+      </div>
+
+      <google-map
+        #mapContainer
+        class="map-panel__map"
+        width="100%"
+        [center]="center"
+        [zoom]="zoom"
+        [options]="options"
+        (wheel)="onMouseWheel($event)"
+        (mapIdle)="onIdle()"
+        (mapDragend)="onDragEnd()"
+      >
+        <!-- Base markers: si NO es hover, marker normal (sin icon input) -->
+        <ng-container *ngFor="let m of markers; trackBy: trackByMarkerId">
+
+          <!-- Normal -->
+          <map-marker
+            *ngIf="hoveredTrackId !== m.trackId"
+            [position]="m.position"
+            [title]="m.title"
+            [icon]="pinNormalUrl"
+            (mapClick)="onMarkerClick(m)"
+            (mapMouseover)="onMarkerMouseOver(m.trackId)"
+            (mapMouseout)="onMarkerMouseOut(m.trackId)"
+          ></map-marker>
+
+          <map-marker
+            *ngIf="hoveredTrackId === m.trackId"
+            [position]="m.position"
+            [title]="m.title"
+            [icon]="pinHoverUrl"
+            (mapClick)="onMarkerClick(m)"
+            (mapMouseover)="onMarkerMouseOver(m.trackId)"
+            (mapMouseout)="onMarkerMouseOut(m.trackId)"
+          ></map-marker>
+
+
+        </ng-container>
+
+
+
+
+
+      </google-map>
+
+
+      <div class="map-panel__hint">
+        Se muestran marcadores por el punto de inicio (startLat/startLon). Click en un marcador abre el detalle.
+      </div>
+    </section>
+
+    <!-- DERECHA: LISTADO -->
+    <aside class="split__right">
+      <div class="right-panel">
+        <header class="right-panel__header">
+          <h2 class="right-panel__title">Rutas en pantalla</h2>
+          <span class="right-panel__badge">
+            {{ viewportTracks.length }} en viewport
+          </span>
+        </header>
+
+        <div class="right-panel__content">
+          <div *ngIf="!loading && !error && viewportTracks.length === 0" class="right-panel__empty">
+            No hay rutas en esta zona. Mueve el mapa o haz zoom.
+          </div>
+
+          <div *ngIf="!loading && !error" class="tracks-list--vertical">
+            <app-card-track
+              *ngFor="let track of viewportTracks; trackBy: trackById"
+              [track]="track"
+              [class.track-card--hover]="hoveredTrackId === track.id"
+              [attr.id]="'track-card-' + track.id"
+              (mouseenter)="hoveredTrackId = track.id"
+              (mouseleave)="hoveredTrackId = null"
+            ></app-card-track>
+          </div>
+
+          <div *ngIf="loading" class="right-panel__loading">
+            Cargando rutas…
+          </div>
+
+          <div *ngIf="!loading && error" class="right-panel__error">
+            {{ error }}
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+</section>
