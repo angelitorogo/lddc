@@ -174,8 +174,7 @@
       >
         <h2 class="track-panel__title">Imágenes de la ruta</h2>
         <p class="track-page__description-text track-page__description-text--muted">
-          Esta ruta todavía no tiene fotos asociadas. Anímate a subir alguna
-          cuando compartas tu track.
+          Esta ruta todavía no tiene fotos asociadas.
         </p>
         <div class="track-panel__button" *ngIf="authService.user?.id === track.authorUserId">
           <button
@@ -319,8 +318,7 @@
 
       <ng-template #noDescription>
         <p class="track-page__description-text track-page__description-text--muted">
-          Esta ruta aún no tiene una descripción detallada. Próximamente añadiremos
-          una crónica completa del recorrido.
+          Esta ruta aún no tiene una descripción detallada.
         </p>
         <div class="track-panel__button" *ngIf="authService.user?.id === track.authorUserId">
           <button

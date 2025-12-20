@@ -63,7 +63,7 @@ export class HomeComponent implements OnInit {
 
   loadTracks(reset: boolean = false): void {
 
-    console.log('recargando...')
+    //console.log('recargando...')
     // En reset: volver al estado inicial
     if (reset) {
       this.page = 1;

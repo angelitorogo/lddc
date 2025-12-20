@@ -96,6 +96,8 @@ export class AuthService {
 
     const url = userId ? `${this.apiUrl}/auth/user/${userId}` : `${this.apiUrl}/auth/verify`
 
+    //console.log(url)
+
     return this.http.get<any>(url, {
       withCredentials: true, // Necesario para enviar cookies
     });

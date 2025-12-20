@@ -169,7 +169,6 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center;
   gap: 2rem;
 }
 
@@ -296,6 +295,9 @@
 
 .track-page__description {
   grid-area: description;
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
 }
 
 @media (max-width: 960px) {
@@ -363,6 +365,7 @@
   flex: 1 1 45%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .track-page__thumbs-row {
@@ -390,6 +393,10 @@
 }
 
 @media (max-width: 960px) {
+  .track-page__gallery {
+    gap: 1rem;
+  }
+
   .track-page__thumbs-row .track-page__thumb-card {
     flex-basis: 210px;
   }
@@ -799,13 +806,15 @@ textarea:focus {
   margin-top: 2rem;
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .track-page__footer-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
+  margin-bottom: 0.5rem;
   padding: 0.5rem 0.9rem 0.2rem;
   border-radius: 4px;
   font-size: 1.4rem;
@@ -823,7 +832,7 @@ textarea:focus {
   }
 
   .track-page__footer-btn {
-    width: 19rem;
+    width: 100%;
   }
 }
 

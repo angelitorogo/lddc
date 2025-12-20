@@ -16,7 +16,7 @@
   <form class="track-create__form" [formGroup]="form" (ngSubmit)="onSubmit()">
     <!-- NOMBRE -->
     <div class="form-field">
-      <label for="name">Nombre de la ruta *</label>
+      <label for="name">Nombre *</label>
       <input id="name" type="text" formControlName="name" placeholder="P. ej. Circular a la Peña X..." />
       <div class="form-field__error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
         El nombre es obligatorio.
@@ -26,7 +26,7 @@
     <!-- DESCRIPCIÓN -->
     <div class="form-field">
       <label for="description">Descripción (opcional)</label>
-      <textarea id="description" rows="4" formControlName="description"
+      <textarea id="description" rows="8" formControlName="description"
         placeholder="Aquí puedes escribir una descripción narrativa de la ruta..."></textarea>
     </div>
 

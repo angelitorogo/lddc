@@ -164,7 +164,7 @@ export class TrackDetailComponent
 
   showPois = false;
 
-  user?: UpdateUserResponse;
+  user: UpdateUserResponse | null = null;
   avatarPreviewUrl = 'assets/images/poster-placeholder.png';
 
   @ViewChild('descTa', { static: false }) descTa?: ElementRef<HTMLTextAreaElement>;
@@ -294,7 +294,7 @@ export class TrackDetailComponent
   private userById(track: DetailResponse) {
     this.authService.getUserById(track.authorUserId).subscribe((user: UpdateUserResponse) => {
       this.user = user;
-      if (user?.image) {
+      if (this.user.image) {
         this.avatarPreviewUrl = `${environment.API_URL}/files/${user.image}?v=${user.updated_at ?? Date.now()}`;
       } else {
         this.avatarPreviewUrl = 'assets/images/poster-placeholder.png';
@@ -2004,17 +2004,25 @@ export class TrackDetailComponent
 
   showProfile() {
 
-    if(this.track?.authorUserId === this.authService.user.id) {
-      this.router.navigateByUrl('/dashboard/profile');
-    } else {
+    if(!this.authService.user) {
       this.router.navigateByUrl(`/dashboard/profile/${this.track?.authorUserId}`);
+    } else {
+
+      
+
+      if(this.track?.authorUserId === this.authService.user?.id) {
+        this.router.navigateByUrl('/dashboard/profile');
+      } else {
+        this.router.navigateByUrl(`/dashboard/profile/${this.track?.authorUserId}`);
+      }
+      
+
     }
 
+    
+
   }
 
-  tracksUser(id?: string) {
-    if (!id) return;
-    this.router.navigate(['/dashboard/tracks-user', id]);
-  }
+
 
 }

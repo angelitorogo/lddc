@@ -1,4 +1,4 @@
-<section class="profile" *ngIf="authService.user as u">
+<section class="profile">
   <header class="profile__header">
     <div>
       <h1 class="profile__title">{{isOwnProfile ? 'Tu perfil' : 'Perfil de ' + userFullname }} </h1>
@@ -38,9 +38,19 @@
           <!-- MODO VISTA (SIN transforms, SIN deformar) -->
           <ng-template #viewAvatar>
             <img
+              *ngIf="isOwnProfile"
               #avatarImg
               class="avatar__img avatar__img--view"
-              [class.no-static]="!isOwnProfile"
+              [class.no-static]="!this.profileUser?.image"
+              [src]="avatarPreviewUrl"
+              (error)="onAvatarError()"
+              alt="Avatar"
+            />
+            <img
+              *ngIf="!isOwnProfile"
+              #avatarImg
+              class="avatar__img avatar__img--view"
+              [class.no-static]="!userImage"
               [src]="avatarPreviewUrl"
               (error)="onAvatarError()"
               alt="Avatar"
@@ -183,29 +193,29 @@
           <span class="account-info__label">Estado</span>
           <span
             class="account-info__value"
-            [class.account-info__value--ok]="u.active"
-            [class.account-info__value--err]="!u.active"
+            [class.account-info__value--ok]="this.profileUser?.active"
+            [class.account-info__value--err]="this.profileUser?.active"
           >
-            <span *ngIf="isOwnProfile">{{ u.active ? 'Activa' : 'Inactiva' }}</span>
+            <span *ngIf="isOwnProfile">{{ this.profileUser?.active ? 'Activa' : 'Inactiva' }}</span>
             <span *ngIf="!isOwnProfile">{{ userActive ? 'Activa' : 'Inactiva' }}</span>
           </span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Rol</span>
-          <span class="account-info__value" *ngIf="isOwnProfile">{{ u.role | titlecase }}</span>
+          <span class="account-info__value" *ngIf="isOwnProfile">{{ this.profileUser?.role | titlecase }}</span>
           <span class="account-info__value" *ngIf="!isOwnProfile">{{ userRole | titlecase }}</span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Fecha de alta</span>
-          <span class="account-info__value" *ngIf="isOwnProfile">{{ u.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="account-info__value" *ngIf="isOwnProfile">{{ this.profileUser?.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
           <span class="account-info__value" *ngIf="!isOwnProfile">{{ userNewDate | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Última actualización</span>
-          <span class="account-info__value" *ngIf="isOwnProfile">{{ u.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="account-info__value" *ngIf="isOwnProfile">{{ this.profileUser?.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
           <span class="account-info__value" *ngIf="!isOwnProfile">{{ userUpdateDate | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
       </div>
@@ -245,7 +255,8 @@
           [disabled]="loadingTracksSummary || !summaryUserId"
           (click)="goToUserTracks()"
         >
-          Ver rutas del usuario
+          <span *ngIf="isOwnProfile">Ver mis rutas</span>
+          <span *ngIf="!isOwnProfile">Ver rutas del usuario</span>
         </button>
       </div>
     </section>

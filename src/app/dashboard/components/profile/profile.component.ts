@@ -15,7 +15,7 @@ import {
 } from '@angular/forms';
 import { AuthService } from '../../../auth/services/auth.service';
 import { environment } from '../../../../environments/environment';
-import { UpdateUserPayload } from '../../../auth/interfaces/update-user.interface';
+import { UpdateUserPayload, UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TracksService } from '../../services/track.service';
@@ -79,6 +79,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   userRole?: string;
   userNewDate?: Date;
   userUpdateDate?: Date;
+  userImage?: string;
+
+  profileUser: UpdateUserResponse | null = null;
 
 
   // =========================================================
@@ -118,6 +121,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.routeSub = this.route.paramMap.subscribe((p) => {
       const id = p.get('id');
 
+
+
       if (!id) {
         // /profile => mi perfil
         this.isOwnProfile = true;
@@ -126,7 +131,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
       this.isOwnProfile = false;
       this.userId = id;
-
 
     });
 
@@ -150,10 +154,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       { validators: this.passwordsMatchValidator }
     );
 
+
+
     if(this.isOwnProfile) {
 
       this.userSub = this.authService.user$.subscribe((u) => {
         if (!u) return;
+
+        this.profileUser = u;
 
         this.form.patchValue(
           {
@@ -168,6 +176,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.loadTracksSummary(u.id);
       });
 
+      
+
     } else {
       this.authService.getUserInfo(this.userId).subscribe( (res:any) => {
 
@@ -176,6 +186,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.userRole = res.role;
         this.userNewDate = res.created_at;
         this.userUpdateDate = res.updated_at;
+        this.userImage = res.image;
 
         this.form.patchValue(
           {
