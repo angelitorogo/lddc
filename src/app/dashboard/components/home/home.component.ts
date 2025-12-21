@@ -58,7 +58,11 @@ export class HomeComponent implements OnInit {
   constructor(private tracksService: TracksService) {}
 
   ngOnInit(): void {
-    this.loadTracks(true);
+
+    setTimeout(() => {
+      this.loadTracks(true);
+    }, 100);
+
   }
 
   loadTracks(reset: boolean = false): void {

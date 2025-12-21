@@ -4,10 +4,10 @@
   <div class="container-cookies">
     <!-- Cabecera de marca -->
     <div class="brand">
-      <img src="assets/icons/favicon.png" alt="SALA 2" class="brand-icon" />
+      <img src="assets/icons/favicon.ico" [alt]="appName" class="brand-icon" />
       <div class="brand-text">
-        <span class="brand-name">SALA 2</span>
-        <span class="brand-tag">Películas y series</span>
+        <span class="brand-name">{{appName}}</span>
+        <span class="brand-tag">Rutas de senderismo</span>
       </div>
     </div>
 
@@ -23,7 +23,7 @@
 
     <!-- Intro -->
     <p class="intro">
-      En <strong>SALA 2</strong> utilizamos cookies y tecnologías similares para poder
+      En <strong>{{appName}}</strong> utilizamos cookies y tecnologías similares para poder
       mantener tu sesión, proteger los formularios (reCAPTCHA) y mejorar la experiencia
       con métricas y publicidad.
     </p>
@@ -47,7 +47,7 @@
             <span class="pill pill-required">Siempre activas</span>
           </div>
           <p>
-            Son necesarias para que SALA 2 funcione de forma segura:
+            Son necesarias para que {{appName}} funcione de forma segura:
           </p>
           <ul>
             <li>Mantener tu sesión iniciada de forma segura (cookies de autenticación).</li>
@@ -121,7 +121,7 @@
 
           <p>
             Estas cookies se utilizan para recopilar información (generalmente agregada) sobre el uso de
-            <strong>SALA 2</strong> (páginas más vistas, errores frecuentes, etc.) y así mejorar el rendimiento y la
+            <strong>S{{appName}}</strong> (páginas más vistas, errores frecuentes, etc.) y así mejorar el rendimiento y la
             experiencia.
           </p>
           <p class="note">
@@ -142,7 +142,7 @@
           </div>
 
           <p>
-            Estas cookies permiten que la publicidad que ves en <strong>SALA 2</strong> y en otros sitios
+            Estas cookies permiten que la publicidad que ves en <strong>{{appName}}</strong> y en otros sitios
             de la red de Google se adapte mejor a tus intereses (por ejemplo, evitar mostrarte siempre
             los mismos anuncios).
           </p>
@@ -172,7 +172,7 @@
 
     <!-- Pie pequeño dentro de la tarjeta -->
     <div class="cookies-footer">
-      &copy; {{ currentYear }} SALA 2 · Gestión de cookies
+      &copy; {{ currentYear }} {{appName}} · Gestión de cookies
     </div>
 
   </div>

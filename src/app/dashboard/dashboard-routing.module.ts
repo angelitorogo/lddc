@@ -8,6 +8,9 @@ import { TrackEditComponent } from './components/track-edit/track-edit.component
 import { ProfileComponent } from './components/profile/profile.component';
 import { TracksUserComponent } from './components/tracks-user/tracks-user.component';
 import { MapComponent } from './components/map/map.component';
+import { ContactComponent } from './components/contact/contact.component';
+import { TermsPrivacyComponent } from './components/otros/terms-privacy/terms-privacy.component';
+import { CookiesSettingsComponent } from './components/otros/cookies-settings/cookies-settings.component';
 
 
 
@@ -48,6 +51,18 @@ const routes: Routes = [
       { 
         path: 'map', 
         component: MapComponent 
+      },
+      {
+        path: 'contact',
+        component: ContactComponent
+      },
+      {
+        path: 'terms-privacy',
+        component: TermsPrivacyComponent
+      },
+      {
+        path: 'info-cookies',
+        component: CookiesSettingsComponent
       },
       /*
       {

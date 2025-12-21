@@ -1,27 +1,13 @@
-/* ===== CONTENEDOR GENERAL ===== */
-.container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
 
-  background: linear-gradient(to bottom, #000000cc, #00000000 30%),
-              url("/assets/images/2.png");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center 30%;
-  height: 70%;
-}
 
 /* Tarjeta de contacto (mismo estilo que login/register) */
 .container-contact {
   box-sizing: border-box;
-  width: min(92vw, 420px);
-  max-width: 420px;
+  width: min(92vw, 570px);
+  max-width: 570px;
   margin: 1rem auto;
-  padding: 2.5rem;
-  background: rgba(0, 0, 0, 0.8);
+  padding: 0 4.5rem 2.5rem 4.5rem;
+  background: var(--color-surface);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
   backdrop-filter: blur(8px);
@@ -41,7 +27,6 @@
 .brand-icon {
   width:36px;height:36px;
   border-radius:8px;
-  box-shadow:0 4px 18px rgba(255,194,75,.25);
 }
 .brand-text {
   display:flex;
@@ -148,7 +133,6 @@ button {
   border-radius: 8px;
   cursor: pointer;
   transition: all .15s ease;
-  text-shadow: 1px 1px 2px #000;
 }
 
 button:hover:not(:disabled) {
@@ -196,14 +180,24 @@ button:disabled {
 }
 
 
-/* ===== CAPTCHA ===== */
-.captcha-group .captcha-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+
 
 /* Opcional: que el recaptcha no se pegue tanto a lo de arriba */
 .captcha-group {
   margin-top: 0.5rem;
 }
+
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+
+  .container-contact {
+    padding: 2rem;
+  }
+
+  /* ===== CAPTCHA ===== */
+  .captcha-group .captcha-row {
+    margin: 0 auto;
+  }
+}
+

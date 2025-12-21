@@ -4,7 +4,7 @@
   max-width: 1200px;
   margin: 0 auto;
   color: var(--text-color);
-  position: relative;
+  /*position: relative;*/
 
 }
 
@@ -59,7 +59,7 @@
   background-color: #111a16;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  padding: 0.35rem 0.5rem;
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
   color: var(--text-muted-color);
   font-size: 1.2rem;
   height: 2.5rem;
@@ -106,7 +106,7 @@
   background-color: #111a16;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  padding: 0.35rem 0.5rem;
+  padding: 0.8rem 0.5rem 0.5rem 0.5rem;
   color: var(--text-muted-color);
   height: 2.5rem;
 

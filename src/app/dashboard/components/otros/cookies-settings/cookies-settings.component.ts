@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { CookiePreferencesService, CookiePrefs } from '../../../services/otros/cookie-preferences.service';
+import { environment } from '../../../../../environments/environment';
 
 
 @Component({
@@ -21,6 +22,8 @@ export class CookiesSettingsComponent implements OnInit {
   lastUpdate = '24 de noviembre de 2025';
 
   saveMessage: string | null = null;
+
+  appName: string = environment.APP_NAME;
 
   constructor(
     private fb: FormBuilder,

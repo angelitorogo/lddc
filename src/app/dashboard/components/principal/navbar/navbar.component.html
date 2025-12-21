@@ -40,6 +40,14 @@
         >
           Subir track
         </a>
+        <a
+          class="nav-links__item"
+          routerLink="/dashboard/contact"
+          routerLinkActive="nav-links__item--active"
+          (click)="onNavigate()"
+        >
+          Contacto
+        </a>
       </nav>
 
       <!-- Zona derecha: ciudad actual / usuario / etc -->
@@ -106,13 +114,22 @@
         </a>
         <a
           class="nav-mobile__item"
-          *ngIf="authService.user?.role === 'ADMIN'"
+          *ngIf="authService.isLoggedIn()"
           routerLink="/dashboard/create"
           routerLinkActive="nav-mobile__item--active"
           (click)="onNavigate()"
         >
-          <i class="bi bi-heart"></i>
+          <i class="bi bi-upload"></i>
           <span>Subir Track</span>
+        </a>
+        <a
+          class="nav-mobile__item"
+          routerLink="/dashboard/contact"
+          routerLinkActive="nav-mobile__item--active"
+          (click)="onNavigate()"
+        >
+          <i class="bi bi-envelope"></i>
+          <span>Contacto</span>
         </a>
       </div>
     </div>

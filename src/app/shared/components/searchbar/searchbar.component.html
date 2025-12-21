@@ -1,0 +1,64 @@
+<section class="searchbar">
+  <form class="contenedor searchbar__form" (ngSubmit)="onSubmit()">
+    <div class="searchbar__input-wrap">
+      <span class="searchbar__icon">🔎</span>
+
+      <input
+        #inputEl
+        class="searchbar__input"
+        type="text"
+        [formControl]="control"
+        placeholder="Buscar rutas por nombre…"
+        (focus)="onFocus()"
+        autocomplete="off"
+      />
+
+      <button
+        *ngIf="control.value"
+        type="button"
+        class="searchbar__clear"
+        (click)="clear()"
+        aria-label="Limpiar búsqueda"
+      >
+        ✕
+      </button>
+
+      <button type="submit" class="searchbar__btn">
+        Buscar
+      </button>
+    </div>
+  </form>
+
+  <!-- Dropdown -->
+  <div class="searchbar__dropdown" *ngIf="open">
+    <div class="searchbar__status" *ngIf="loading">
+      Buscando…
+    </div>
+
+    <div class="searchbar__status searchbar__status--error" *ngIf="!loading && error">
+      {{ error }}
+    </div>
+
+    <div class="searchbar__status" *ngIf="!loading && !error && results.length === 0">
+      Sin resultados.
+    </div>
+
+    <div class="searchbar__list" *ngIf="!loading && !error && results.length > 0">
+      <button
+        type="button"
+        class="searchbar__item"
+        *ngFor="let t of results"
+        (click)="onPickTrack(t)"
+      >
+        <div class="searchbar__item-title">{{ trackTitle(t) }}</div>
+        <div class="searchbar__item-meta">{{ trackMeta(t) }}</div>
+      </button>
+
+      <!--<div class="searchbar__footer">
+        <span class="searchbar__count">
+          Mostrando {{ results.length }} de {{ total }}
+        </span>
+      </div>-->
+    </div>
+  </div>
+</section>

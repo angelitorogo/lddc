@@ -4,10 +4,10 @@
   <div class="container-legal">
     <!-- Cabecera de marca -->
     <div class="brand">
-      <img src="assets/icons/favicon.png" alt="SALA 2" class="brand-icon" />
+      <img src="assets/icons/favicon.ico" [alt]="appName" class="brand-icon" />
       <div class="brand-text">
-        <span class="brand-name">SALA 2</span>
-        <span class="brand-tag">Películas y series</span>
+        <span class="brand-name">{{appName}}</span>
+        <span class="brand-tag">Rutas de senderismo</span>
       </div>
     </div>
 
@@ -23,11 +23,11 @@
       <section id="intro" class="section">
         <h2>1. Introducción</h2>
         <p>
-          Bienvenido a <strong>SALA 2</strong>. Este sitio web y aplicación tienen como objetivo
+          Bienvenido a <strong>{{appName}}</strong>. Este sitio web y aplicación tienen como objetivo
           ayudarte a descubrir y organizar información sobre películas y series.
         </p>
         <p>
-          Al utilizar SALA 2 aceptas estos términos de uso y la política de privacidad que se
+          Al utilizar {{appName}} aceptas estos términos de uso y la política de privacidad que se
           detalla a continuación. Si no estás de acuerdo con alguna de las condiciones, te
           recomendamos que no utilices la plataforma.
         </p>
@@ -37,12 +37,12 @@
       <section id="uso" class="section">
         <h2>2. Uso de la plataforma</h2>
         <p>
-          El acceso a SALA 2 es de carácter personal y no transferible. Te comprometes a hacer
+          El acceso a {{appName}} es de carácter personal y no transferible. Te comprometes a hacer
           un uso responsable de la aplicación, especialmente en lo relativo a:
         </p>
         <ul>
           <li>No intentar acceder a áreas o funcionalidades restringidas de forma no autorizada.</li>
-          <li>No utilizar SALA 2 para actividades ilícitas o que puedan dañar la imagen del servicio.</li>
+          <li>No utilizar {{appName}} para actividades ilícitas o que puedan dañar la imagen del servicio.</li>
           <li>No manipular ni modificar el funcionamiento de la aplicación o sus contenidos.</li>
         </ul>
         <p>
@@ -55,8 +55,7 @@
       <section id="cuenta" class="section">
         <h2>3. Cuenta de usuario</h2>
         <p>
-          Para utilizar determinadas funcionalidades (como gestionar favoritos, listas o
-          colecciones) es necesario crear una cuenta de usuario.
+          Para utilizar determinadas funcionalidades (como crear tracks nuevos, descarga de archivos, etc...) es necesario crear una cuenta de usuario.
         </p>
         <ul>
           <li>
@@ -75,51 +74,81 @@
       </section>
 
       <!-- 4. Origen de los datos (TMDB / terceros) -->
-      <section id="tmdb" class="section">
+      <section id="data-sources" class="section">
         <h2>4. Contenidos y fuentes de datos</h2>
+
         <p>
-          SALA 2 utiliza información procedente de servicios externos de bases de datos de cine y TV
-          (por ejemplo, <strong>The Movie Database (TMDB)</strong>). Estos proveedores son los
-          responsables del contenido de las fichas (títulos, sinopsis, pósters, etc.).
+          {{appName}} utiliza principalmente información generada y gestionada en su propia base de datos,
+          incluyendo rutas, tracks, puntos geográficos y contenidos asociados creados o compartidos por
+          los usuarios de la aplicación.
         </p>
+
         <p>
-          SALA 2 no aloja vídeos ni reproduce contenido protegido por derechos de autor; solo
-          muestra información y, en su caso, enlaces o identificadores hacia plataformas de
-          <em>streaming</em> u otros servicios.
+          Para la representación de puntos de interés (POIs) y referencias geográficas, {{appName}} hace
+          uso de datos procedentes de <strong>OpenStreetMap</strong> y de sus colaboradores, conforme a los
+          términos de su licencia correspondiente.
+        </p>
+
+        <p>
+          La visualización de mapas, recorridos y elementos geográficos se realiza mediante los servicios
+          de <strong>Google Maps</strong>, utilizados exclusivamente como herramienta de representación
+          cartográfica.
+        </p>
+
+        <p>
+          {{appName}} no aloja ni distribuye contenidos sujetos a derechos de autor ajenos, más allá de los
+          datos cartográficos y geográficos necesarios para la correcta visualización de las rutas. Las
+          atribuciones legales correspondientes a las fuentes de datos y servicios utilizados se muestran
+          de forma visible dentro de la aplicación.
         </p>
       </section>
+
 
       <!-- 5. Datos personales que tratamos -->
       <section id="datos" class="section">
         <h2>5. Datos personales que tratamos</h2>
+
         <p>
-          Para el funcionamiento básico de SALA 2 podemos tratar los siguientes tipos de datos:
+          Para el funcionamiento básico de {{appName}} podemos tratar los siguientes tipos de datos:
         </p>
+
         <ul>
           <li>
             <strong>Datos de registro:</strong> nombre, correo electrónico y contraseña
             (almacenada de forma cifrada).
           </li>
+
           <li>
-            <strong>Datos de uso:</strong> listas de favoritos, series seguidas, valoraciones
-            u otros datos de interacción con el contenido.
+            <strong>Datos de uso y actividad:</strong> rutas y tracks creados o importados,
+            puntos geográficos asociados, estadísticas de las rutas (distancia, desnivel,
+            duración) y otra información generada durante el uso normal de la aplicación.
           </li>
+
+          <li>
+            <strong>Datos de localización:</strong> información de ubicación asociada a los
+            tracks y rutas registrados por el usuario, utilizada exclusivamente para la
+            representación y análisis de los recorridos.
+          </li>
+
           <li>
             <strong>Datos de contacto:</strong> mensajes enviados a través del formulario de
-            contacto, incluyendo nombre, email y contenido del mensaje.
+            contacto, incluyendo nombre, correo electrónico y el contenido del mensaje.
           </li>
         </ul>
+
         <p>
-          Estos datos se utilizan únicamente para prestar el servicio, mejorar la experiencia
-          de usuario y atender tus consultas o solicitudes.
+          Estos datos se utilizan únicamente para prestar el servicio, gestionar las rutas y
+          tracks del usuario, mejorar la experiencia de uso de la aplicación y atender
+          consultas o solicitudes enviadas a través de los canales de contacto.
         </p>
       </section>
+
 
       <!-- 6. Cookies -->
       <section id="cookies" class="section">
         <h2>6. Cookies y tecnologías similares</h2>
         <p>
-          SALA 2 puede utilizar cookies técnicas y, en su caso, otras tecnologías de seguimiento
+          S{{appName}} puede utilizar cookies técnicas y, en su caso, otras tecnologías de seguimiento
           para:
         </p>
         <ul>
@@ -155,7 +184,7 @@
         </ul>
         <p>
           Para ejercer estos derechos puedes ponerte en contacto con nosotros a través del propio
-          formulario de contacto de SALA 2, indicando claramente tu solicitud.
+          formulario de contacto de {{appName}}, indicando claramente tu solicitud.
         </p>
       </section>
 
@@ -202,7 +231,7 @@
 
     <!-- Pie pequeño dentro de la tarjeta -->
     <div class="legal-footer">
-      &copy; {{ currentYear }} SALA 2 · Términos de uso y privacidad
+      &copy; {{ currentYear }} {{appName}} · Términos de uso y privacidad
     </div>
   </div>
 

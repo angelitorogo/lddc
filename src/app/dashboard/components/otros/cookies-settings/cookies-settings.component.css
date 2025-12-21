@@ -6,10 +6,6 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 1rem;
-
-  background: linear-gradient(to bottom, #000000cc, #00000000 30%),
-              url("/assets/images/2.png");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center 30%;
@@ -20,9 +16,9 @@
   box-sizing: border-box;
   width: min(96vw, 900px);
   max-width: 900px;
-  margin: 5rem auto 4rem auto;
+  margin: 0auto 4rem auto;
   padding: 2.5rem;
-  background: rgba(0, 0, 0, 0.86);
+  background: var(--color-surface);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 14px;
   backdrop-filter: blur(10px);
@@ -40,9 +36,8 @@
   margin-bottom:1.2rem;
 }
 .brand-icon {
-  width:36px;height:36px;
+  height:36px;
   border-radius:8px;
-  box-shadow:0 4px 18px rgba(255,194,75,.25);
 }
 .brand-text {
   display:flex;
@@ -113,8 +108,7 @@
   width: 100%;
   margin: 0 auto;
   border: 1px solid rgba(255,255,255,0.08);
-  background: radial-gradient(circle at top left, rgba(212,175,55,0.08), transparent 55%),
-              rgba(15,15,15,0.95);
+  background: transparent;
   box-shadow: 0 8px 24px rgba(0,0,0,0.55);
 }
 

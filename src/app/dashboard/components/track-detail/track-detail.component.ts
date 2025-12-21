@@ -1354,7 +1354,7 @@ export class TrackDetailComponent
       .getNearbyTracks({
         lat: first.lat,
         lon: first.lon,
-        radiusMeters: 50000,
+        radiusMeters: 500000,
         limit: 20,
         trackExcluded: this.track.id,
       })

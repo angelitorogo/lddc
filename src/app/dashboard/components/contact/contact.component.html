@@ -1,25 +1,19 @@
 <!-- src/app/features/contact/contact.component.html -->
-<div class="container">
+<section class="container">
 
   <div class="container-contact">
     <!-- Cabecera de marca -->
-    <div class="brand">
-      <img src="assets/icons/favicon.png" alt="SALA 2" class="brand-icon" />
-      <div class="brand-text">
-        <span class="brand-name">SALA 2</span>
-        <span class="brand-tag">Películas y series</span>
-      </div>
-    </div>
+
 
     <h1 class="title">Contacto</h1>
 
     <!-- Mensajes de estado -->
-    <div class="alert alert-success" *ngIf="submitSuccess">
+    <!--<div class="alert alert-success" *ngIf="submitSuccess">
       {{ submitSuccess }}
     </div>
     <div class="alert alert-error" *ngIf="submitError">
       {{ submitError }}
-    </div>
+    </div>-->
 
     <form [formGroup]="formContact" (ngSubmit)="submit()" autocomplete="off">
 
@@ -155,4 +149,23 @@
     </form>
   </div>
 
+</section>
+
+<div class="modal-backdrop" *ngIf="showModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>{{titleModal}}</h2>
+      <button type="button" class="close-btn" (click)="closeModal()">
+        &times;
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>{{ submitSuccess ? submitSuccess : submitError }}</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-modal" (click)="closeModal()">
+        Entendido
+      </button>
+    </div>
+  </div>
 </div>

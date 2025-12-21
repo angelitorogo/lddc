@@ -5,6 +5,7 @@ import {
   CookiePreferencesService,
   CookiePrefs
 } from '../../../services/otros/cookie-preferences.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-cookie-banner',
@@ -14,6 +15,7 @@ import {
 export class CookieBannerComponent implements OnInit {
 
   visible = false;
+  appName: string = environment.APP_NAME;
 
   constructor(
     private cookiePrefs: CookiePreferencesService,
@@ -54,7 +56,7 @@ export class CookieBannerComponent implements OnInit {
     // Aseguramos funcional como imprescindible
     this.cookiePrefs.updatePrefs({ functional: true });
     this.visible = false;
-    this.router.navigate(['/dashboard/cookies']);
+    this.router.navigate(['/dashboard/info-cookies']);
   }
 
 }

@@ -8,6 +8,7 @@ import { TrackListResponse } from '../../../shared/responses/list.response';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 
 
 @Component({
@@ -61,6 +62,7 @@ export class TracksUserComponent implements OnInit, OnDestroy {
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
   
+  user: UpdateUserResponse | null = null;
 
   constructor(private tracksService: TracksService, public authService:AuthService, private router: Router,
       private route: ActivatedRoute) {}
@@ -71,12 +73,15 @@ export class TracksUserComponent implements OnInit, OnDestroy {
       const id = params.get('id');
       if (!id) return;
 
-      
-
+    
       this.userId = id;
 
+      setTimeout(() => {
+        this.loadUser(this.userId);
+        this.loadTracks(this.userId, true);
+      }, 100);
 
-      this.loadTracks(this.userId, true);
+      
 
     });
 
@@ -84,6 +89,14 @@ export class TracksUserComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
       this.routeSub?.unsubscribe();
+  }
+
+  loadUser(userId: string) {
+
+    this.authService.getUserById(userId).subscribe( (res: UpdateUserResponse) => {
+      this.user = res;
+    })
+
   }
 
   loadTracks( userId: string, reset: boolean = false): void {
@@ -126,7 +139,7 @@ export class TracksUserComponent implements OnInit, OnDestroy {
       params.maxDistance = Math.round(this.filterMaxDistanceKm * 1000);
     }
 
-    console.log(params)
+    //console.log(params)
 
     this.tracksService.getTracks(params).subscribe({
       next: (res: TrackListResponse) => {
@@ -140,7 +153,7 @@ export class TracksUserComponent implements OnInit, OnDestroy {
           this.tracks = res.items;
         }
 
-        console.log(this.tracks)
+        //console.log(this.tracks)
 
         this.total = res.total;
         this.page = res.page;

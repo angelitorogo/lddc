@@ -6,6 +6,7 @@
 
 .dashboard-footer__inner {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
@@ -37,4 +38,11 @@
 
 .footer__link:hover {
   color: var(--color-primary-hover);
+}
+
+
+@media (max-width: 740px) {
+  .dashboard-footer__inner {
+    flex-direction: column;
+  }
 }

@@ -7,7 +7,6 @@
   margin: 0 auto 2rem;
   padding-top: 1rem;
   color: var(--text-color);
-  position: relative;
   z-index: 1;
 }
 
@@ -142,7 +141,7 @@
   border-radius: 8px;
   border: 1px solid var(--color-border);
   padding: 1rem 1.1rem;
-  filter: drop-shadow(0 10px 25px rgba(0,0,0,0.45));
+  /*filter: drop-shadow(0 10px 25px rgba(0,0,0,0.45));*/
 }
 
 .track-panel__title {

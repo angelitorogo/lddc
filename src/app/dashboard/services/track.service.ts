@@ -220,4 +220,24 @@ export class TracksService {
     });
   }
 
+
+  /**
+   * Busca tracks por texto (GET /tracks/search)
+   */
+  searchTracks(params: {
+    q: string;
+    page?: number;
+    limit?: number;
+  }): Observable<any> {
+    let httpParams = new HttpParams().set('q', params.q);
+
+    httpParams = httpParams.set('page', String(params.page ?? 1));
+    httpParams = httpParams.set('limit', String(params.limit ?? 10));
+
+    return this.http.get<any>(`${this.baseUrl}/search`, {
+      params: httpParams,
+      withCredentials: true,
+    });
+  }
+
 }

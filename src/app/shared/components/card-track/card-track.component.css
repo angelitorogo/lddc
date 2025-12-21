@@ -6,7 +6,7 @@
   border-radius: 8px;
   border: 1px solid var(--color-border);
   overflow: hidden;
-  filter: drop-shadow(0 10px 25px rgba(0,0,0,0.45));
+  /*filter: drop-shadow(0 10px 25px rgba(0,0,0,0.45));*/
   height: 100%;
 }
 

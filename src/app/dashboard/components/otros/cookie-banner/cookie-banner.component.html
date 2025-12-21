@@ -2,7 +2,7 @@
 <div class="cookie-banner" *ngIf="visible">
   <div class="cookie-banner__content">
     <div class="cookie-banner__text">
-      <h3>Tu privacidad en SALA 2</h3>
+      <h3>Tu privacidad en {{appName}}</h3>
       <p>
         Usamos cookies propias para que la web funcione correctamente (no se pueden desactivar)
         y, si nos das tu consentimiento, también cookies de analítica y de publicidad para
@@ -13,7 +13,7 @@
         pero serán <strong>no personalizados</strong> y no usaremos tu historial de navegación
         para perfilado.
       </p>
-      <a routerLink="/dashboard/cookies" class="cookie-banner__link">
+      <a routerLink="/dashboard/info-cookies" class="cookie-banner__link">
         Ver detalles de cookies
       </a>
     </div>
@@ -23,7 +23,7 @@
         Aceptar todas
       </button>
 
-      <button class="btn btn--ghost" type="button" (click)="acceptEssential()">
+      <button class="btn btn--link" type="button" (click)="acceptEssential()">
         Solo esenciales
       </button>
 

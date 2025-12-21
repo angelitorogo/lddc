@@ -1,5 +1,6 @@
 // src/app/features/legal/terms-privacy/terms-privacy.component.ts
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-terms-privacy',
@@ -9,7 +10,8 @@ import { Component, OnInit } from '@angular/core';
 export class TermsPrivacyComponent implements OnInit {
 
   currentYear = new Date().getFullYear();
-  lastUpdate = '24 de noviembre de 2025'; // cámbialo cuando quieras
+  lastUpdate = '21 de diciembre de 2025'; // cámbialo cuando quieras
+  appName = environment.APP_NAME;
 
   constructor() {}
 

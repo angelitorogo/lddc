@@ -19,6 +19,8 @@ export class ContactComponent implements OnInit, OnDestroy {
   isSubmitting = false;
   submitSuccess: string | null = null;
   submitError: string | null = null;
+  titleModal: string | null = null;
+  showModal: boolean = false;
 
   siteKey = environment.KEY_RCAPTCHA;
   appName = environment.APP_NAME;
@@ -132,6 +134,10 @@ export class ContactComponent implements OnInit, OnDestroy {
     this.mailService.createMail({ nombre, apellido, email, asunto, text, nameApp: this.appName }).subscribe({
       next: () => {
         this.isSubmitting = false;
+
+        this.showModal = true;
+        
+        this.titleModal = 'Mensaje envíado';
         this.submitSuccess = 'Tu mensaje se ha enviado correctamente. ¡Gracias por contactar!';
 
         this.formContact.reset();
@@ -140,6 +146,8 @@ export class ContactComponent implements OnInit, OnDestroy {
       error: (err: any) => {
         console.error('[Contact] Error al enviar mail', err);
         this.isSubmitting = false;
+        this.showModal = true;
+        this.titleModal = 'Error en el envío';
         this.submitError =
           'Ha ocurrido un error al enviar el mensaje. Inténtalo de nuevo en unos minutos.';
       }
@@ -153,6 +161,11 @@ export class ContactComponent implements OnInit, OnDestroy {
 
   openCookieSettings() {
     this.router.navigate(['/dashboard/cookies']);
+  }
+
+  // 🔹 Cerrar el modal
+  closeModal() {
+    this.showModal = false;
   }
 
 }
