@@ -2,6 +2,7 @@
 <div class="container">
 
   <div class="container-legal">
+
     <!-- Cabecera de marca -->
     <div class="brand">
       <img src="assets/icons/favicon.ico" [alt]="appName" class="brand-icon" />
@@ -23,13 +24,14 @@
       <section id="intro" class="section">
         <h2>1. Introducción</h2>
         <p>
-          Bienvenido a <strong>{{appName}}</strong>. Este sitio web y aplicación tienen como objetivo
-          ayudarte a descubrir y organizar información sobre películas y series.
+          Bienvenido a <strong>{{appName}}</strong>. Esta aplicación web tiene como objetivo
+          permitir a los usuarios registrar, visualizar y gestionar rutas y tracks de
+          senderismo y actividades similares.
         </p>
         <p>
-          Al utilizar {{appName}} aceptas estos términos de uso y la política de privacidad que se
-          detalla a continuación. Si no estás de acuerdo con alguna de las condiciones, te
-          recomendamos que no utilices la plataforma.
+          Al utilizar {{appName}} aceptas estos términos de uso y la política de privacidad
+          que se detalla a continuación. Si no estás de acuerdo con alguna de las condiciones,
+          te recomendamos que no utilices la plataforma.
         </p>
       </section>
 
@@ -37,13 +39,13 @@
       <section id="uso" class="section">
         <h2>2. Uso de la plataforma</h2>
         <p>
-          El acceso a {{appName}} es de carácter personal y no transferible. Te comprometes a hacer
-          un uso responsable de la aplicación, especialmente en lo relativo a:
+          El acceso a {{appName}} es de carácter personal y no transferible. Te comprometes a
+          hacer un uso responsable de la aplicación, especialmente en lo relativo a:
         </p>
         <ul>
           <li>No intentar acceder a áreas o funcionalidades restringidas de forma no autorizada.</li>
-          <li>No utilizar {{appName}} para actividades ilícitas o que puedan dañar la imagen del servicio.</li>
-          <li>No manipular ni modificar el funcionamiento de la aplicación o sus contenidos.</li>
+          <li>No utilizar {{appName}} para actividades ilícitas o que puedan dañar el servicio.</li>
+          <li>No manipular ni interferir en el funcionamiento normal de la aplicación.</li>
         </ul>
         <p>
           Nos reservamos el derecho a limitar, suspender o cancelar el acceso de usuarios que
@@ -55,61 +57,62 @@
       <section id="cuenta" class="section">
         <h2>3. Cuenta de usuario</h2>
         <p>
-          Para utilizar determinadas funcionalidades (como crear tracks nuevos, descarga de archivos, etc...) es necesario crear una cuenta de usuario.
+          Para utilizar determinadas funcionalidades (como crear rutas, registrar tracks o
+          descargar archivos) es necesario crear una cuenta de usuario.
         </p>
         <ul>
           <li>
             Eres responsable de la confidencialidad de tus credenciales de acceso
-            (correo y contraseña).
+            (correo electrónico y contraseña).
           </li>
           <li>
             Si detectas un acceso no autorizado o sospechas que alguien conoce tu contraseña,
             te recomendamos cambiarla y contactar con nosotros.
           </li>
           <li>
-            Puedes solicitar la eliminación de tu cuenta y datos asociados en cualquier momento,
-            siguiendo el procedimiento disponible en la propia aplicación.
+            Puedes solicitar la eliminación de tu cuenta y de los datos asociados en cualquier
+            momento, mediante las opciones disponibles en la aplicación.
           </li>
         </ul>
       </section>
 
-      <!-- 4. Origen de los datos (TMDB / terceros) -->
+      <!-- 4. Contenidos y fuentes de datos -->
       <section id="data-sources" class="section">
         <h2>4. Contenidos y fuentes de datos</h2>
 
         <p>
-          {{appName}} utiliza principalmente información generada y gestionada en su propia base de datos,
-          incluyendo rutas, tracks, puntos geográficos y contenidos asociados creados o compartidos por
-          los usuarios de la aplicación.
+          {{appName}} utiliza principalmente información generada y gestionada en su propia
+          base de datos, incluyendo rutas, tracks, puntos geográficos y contenidos asociados
+          creados o compartidos por los usuarios.
         </p>
 
         <p>
-          Para la representación de puntos de interés (POIs) y referencias geográficas, {{appName}} hace
-          uso de datos procedentes de <strong>OpenStreetMap</strong> y de sus colaboradores, conforme a los
-          términos de su licencia correspondiente.
+          Para la representación de puntos de interés (POIs) y referencias geográficas,
+          {{appName}} utiliza datos procedentes de <strong>OpenStreetMap</strong> y de sus
+          colaboradores, conforme a los términos de su licencia.
         </p>
 
         <p>
-          La visualización de mapas, recorridos y elementos geográficos se realiza mediante los servicios
-          de <strong>Google Maps</strong>, utilizados exclusivamente como herramienta de representación
-          cartográfica.
+          La visualización de mapas y recorridos se realiza mediante los servicios de
+          <strong>Google Maps</strong>, utilizados exclusivamente como herramienta de
+          representación cartográfica.
         </p>
 
         <p>
-          {{appName}} no aloja ni distribuye contenidos sujetos a derechos de autor ajenos, más allá de los
-          datos cartográficos y geográficos necesarios para la correcta visualización de las rutas. Las
-          atribuciones legales correspondientes a las fuentes de datos y servicios utilizados se muestran
+          {{appName}} no aloja ni distribuye contenidos protegidos por derechos de autor
+          ajenos, más allá de los datos cartográficos necesarios para la correcta
+          visualización de las rutas. Las atribuciones legales correspondientes se muestran
           de forma visible dentro de la aplicación.
         </p>
       </section>
 
-
-      <!-- 5. Datos personales que tratamos -->
+      <!-- 5. Datos personales -->
       <section id="datos" class="section">
         <h2>5. Datos personales que tratamos</h2>
 
         <p>
-          Para el funcionamiento básico de {{appName}} podemos tratar los siguientes tipos de datos:
+          Para el funcionamiento básico de {{appName}} podemos tratar los siguientes tipos
+          de datos:
         </p>
 
         <ul>
@@ -120,71 +123,80 @@
 
           <li>
             <strong>Datos de uso y actividad:</strong> rutas y tracks creados o importados,
-            puntos geográficos asociados, estadísticas de las rutas (distancia, desnivel,
-            duración) y otra información generada durante el uso normal de la aplicación.
+            puntos geográficos asociados y estadísticas de las rutas (distancia, desnivel,
+            duración).
           </li>
 
           <li>
             <strong>Datos de localización:</strong> información de ubicación asociada a los
-            tracks y rutas registrados por el usuario, utilizada exclusivamente para la
-            representación y análisis de los recorridos.
+            tracks registrados por el usuario o, de forma aproximada, para mejorar la
+            experiencia de uso de la aplicación.
           </li>
 
           <li>
-            <strong>Datos de contacto:</strong> mensajes enviados a través del formulario de
-            contacto, incluyendo nombre, correo electrónico y el contenido del mensaje.
+            <strong>Datos de contacto:</strong> mensajes enviados a través del formulario
+            de contacto, incluyendo nombre, correo electrónico y el contenido del mensaje.
           </li>
         </ul>
 
         <p>
-          Estos datos se utilizan únicamente para prestar el servicio, gestionar las rutas y
-          tracks del usuario, mejorar la experiencia de uso de la aplicación y atender
-          consultas o solicitudes enviadas a través de los canales de contacto.
+          Estos datos se utilizan exclusivamente para prestar el servicio, gestionar las
+          rutas del usuario, mejorar la experiencia de uso y atender consultas o solicitudes.
         </p>
       </section>
 
-
-      <!-- 6. Cookies -->
+      <!-- 6. Cookies y tecnologías similares -->
       <section id="cookies" class="section">
         <h2>6. Cookies y tecnologías similares</h2>
+
         <p>
-          S{{appName}} puede utilizar cookies técnicas y, en su caso, otras tecnologías de seguimiento
-          para:
+          {{appName}} puede utilizar cookies técnicas y, en su caso, tecnologías similares
+          con las siguientes finalidades:
         </p>
+
         <ul>
-          <li>Mantener tu sesión iniciada de forma segura.</li>
-          <li>Recordar ciertas preferencias de visualización.</li>
+          <li>Mantener la sesión del usuario iniciada de forma segura.</li>
+          <li>Recordar preferencias de visualización.</li>
           <li>Medir de forma anónima el uso de la aplicación para mejorarla.</li>
         </ul>
+
+        <p>
+          Asimismo, {{appName}} puede utilizar servicios externos de geolocalización
+          aproximada basados en la dirección IP (como <strong>ipapi.co</strong>) con el
+          único fin de mejorar la experiencia de uso, por ejemplo, centrando el mapa en
+          la zona aproximada del usuario. Estos datos no se utilizan con fines publicitarios
+          ni de identificación personal.
+        </p>
+
         <p>
           Podrás configurar el uso de cookies opcionales a través del banner o panel de
-          configuración de cookies que se muestra al acceder a la página.
+          configuración de cookies que se muestra al acceder a la aplicación.
         </p>
       </section>
 
-      <!-- 7. Envío de correos (formulario contacto) -->
+      <!-- 7. Formulario de contacto -->
       <section id="contacto" class="section">
         <h2>7. Formulario de contacto</h2>
         <p>
-          Cuando usas el formulario de contacto, los datos que introduces se utilizan únicamente
-          para responder a tu consulta.
+          Cuando utilizas el formulario de contacto, los datos introducidos se utilizan
+          únicamente para responder a tu consulta o solicitud.
         </p>
       </section>
 
-      <!-- 8. Tus derechos -->
+      <!-- 8. Derechos -->
       <section id="derechos" class="section">
         <h2>8. Tus derechos sobre los datos</h2>
         <p>
-          Como usuario puedes ejercer, entre otros, los siguientes derechos sobre tus datos
-          personales, en los términos previstos por la normativa aplicable:
+          Como usuario puedes ejercer, entre otros, los siguientes derechos:
         </p>
         <ul>
-          <li>Rectificar datos inexactos o incompletos.</li>
-          <li>Solicitar la eliminación de tu cuenta y de tus datos asociados.</li>
+          <li>Acceder a tus datos personales.</li>
+          <li>Rectificar datos inexactos.</li>
+          <li>Solicitar la eliminación de tu cuenta y datos asociados.</li>
         </ul>
         <p>
-          Para ejercer estos derechos puedes ponerte en contacto con nosotros a través del propio
-          formulario de contacto de {{appName}}, indicando claramente tu solicitud.
+          Para ejercer estos derechos puedes contactar con nosotros a través del
+          formulario de contacto disponible en {{appName}}.
         </p>
       </section>
 
@@ -192,28 +204,22 @@
       <section id="seguridad" class="section">
         <h2>9. Seguridad</h2>
         <p>
-          Adoptamos medidas técnicas y organizativas razonables para proteger tus datos, como el
-          uso de conexiones cifradas (HTTPS), almacenamiento seguro de contraseñas y restricciones
-          de acceso a la base de datos.
+          Adoptamos medidas técnicas y organizativas razonables para proteger tus datos,
+          incluyendo conexiones cifradas (HTTPS), almacenamiento seguro de contraseñas
+          y control de accesos.
         </p>
         <p>
-          No obstante, ningún sistema es completamente infalible. En caso de detectar una posible
-          brecha de seguridad que afecte a tus datos, nos comprometemos a analizarla y actuar con
-          la mayor diligencia posible.
+          No obstante, ningún sistema es completamente infalible. En caso de detectar
+          una posible brecha de seguridad, actuaremos con la mayor diligencia posible.
         </p>
       </section>
 
-      <!-- 10. Cambios en la política -->
+      <!-- 10. Cambios -->
       <section id="cambios" class="section">
         <h2>10. Cambios en estos términos</h2>
         <p>
-          Podemos actualizar estos términos y la política de privacidad para adaptarlos a cambios
-          legales o funcionales de la plataforma. Cuando esto ocurra, se actualizará la fecha de
-          “Última actualización” al inicio de esta página.
-        </p>
-        <p>
-          Te recomendamos revisar periódicamente este apartado para estar al tanto de las posibles
-          modificaciones.
+          Podemos actualizar estos términos para adaptarlos a cambios legales o
+          funcionales. La fecha de “Última actualización” se modificará en consecuencia.
         </p>
       </section>
 
@@ -221,18 +227,18 @@
       <section id="contacto-final" class="section">
         <h2>11. Contacto</h2>
         <p>
-          Si tienes dudas sobre estos términos o sobre cómo tratamos tus datos personales,
-          puedes escribirnos a través del <strong>formulario de contacto</strong> disponible
+          Si tienes dudas sobre estos términos o sobre el tratamiento de tus datos,
+          puedes contactar con nosotros mediante el formulario de contacto disponible
           en la aplicación.
         </p>
       </section>
 
     </div>
 
-    <!-- Pie pequeño dentro de la tarjeta -->
     <div class="legal-footer">
       &copy; {{ currentYear }} {{appName}} · Términos de uso y privacidad
     </div>
+
   </div>
 
 </div>

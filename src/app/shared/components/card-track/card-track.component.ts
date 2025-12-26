@@ -11,6 +11,7 @@ import { environment } from '../../../../environments/environment';
 export class CardTrackComponent {
 
   @Input() track: any; // 👈 aquí recibes el track
+  @Input() distanceToStart: number | null = null;
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
   constructor(private router: Router){}

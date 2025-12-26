@@ -28,7 +28,9 @@
 
         <footer class="track-card__footer">
             <span class="track-card__date">
-                Fecha: {{ trackDate(track) }}
+                <span *ngIf="distanceToStart != null">Distancia: {{distanceToStart}} km</span>
+                <span></span>
+                <span>Fecha: {{ trackDate(track) }}</span>
             </span>
         </footer>
     </div>

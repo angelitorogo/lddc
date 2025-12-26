@@ -8,8 +8,11 @@
     </div>
 
     <div class="map-page__actions">
-      <button class="btn btn--secondary" (click)="recenterMadrid()">Centrar</button>
-      <button class="btn btn--primary" (click)="refresh()">Actualizar</button>
+      <button class="btn btn--secondary" title="Localizar" (click)="toggleMyLocation()">
+        <i class="bi" [ngClass]="isMyLocationEnabled ? 'bi-geo-alt-fill' : 'bi-geo-alt'"></i>
+      </button>
+      <button class="btn btn--secondary" title="Centrar" (click)="recenter()"><i class="bi bi-bullseye"></i></button>
+      <button class="btn btn--primary" title="Actualizar" (click)="refresh()">Actualizar</button>
     </div>
   </header>
 
@@ -49,6 +52,30 @@
         (mapIdle)="onIdle()"
         (mapDragend)="onDragEnd()"
       >
+
+        <!-- ✅ Halo de precisión (tipo Google) -->
+        <map-circle
+          *ngIf="myLocation && myAccuracy"
+          [center]="myLocation"
+          [radius]="myAccuracy"
+          [options]="myAccuracyCircleOptions"
+        ></map-circle>
+
+        <map-marker
+          *ngIf="myLocation"
+          [position]="myLocation"
+          [icon]="myBlueDotIcon"
+          title="Tu ubicación"
+        ></map-marker>
+
+        <ng-container *ngIf="showViewportPolylines">
+          <map-polyline
+            *ngFor="let pl of viewportPolylines; trackBy: trackByPolylineId"
+            [path]="pl.path"
+            [options]="viewportPolylineOptions"
+          ></map-polyline>
+        </ng-container>
+
         <!-- Base markers: si NO es hover, marker normal (sin icon input) -->
         <ng-container *ngFor="let m of markers; trackBy: trackByMarkerId">
 
@@ -73,6 +100,13 @@
             (mapMouseout)="onMarkerMouseOut(m.trackId)"
           ></map-marker>
 
+          <!-- Polilínea SOLO en hover -->
+          <map-polyline
+            *ngIf="hoverPolylinePath.length > 1"
+            [path]="hoverPolylinePath"
+            [options]="hoverPolylineOptions"
+          ></map-polyline>
+
 
         </ng-container>
 
@@ -93,6 +127,23 @@
       <div class="right-panel">
         <header class="right-panel__header">
           <h2 class="right-panel__title">Rutas en pantalla</h2>
+          <label class="switch" title="Mostrar polilíneas de todas las rutas del viewport">
+            <input
+            [disabled]="viewportTracks.length === 0"
+              type="checkbox"
+              [checked]="showViewportPolylines"
+              (change)="toggleViewportPolylines($event)"
+            />
+            <span class="switch__track"></span>
+            <span class="switch__text">
+              <i
+                class="bi"
+                [ngClass]="showViewportPolylines ? 'bi-eye' : 'bi-eye-slash'"
+                aria-hidden="true"
+              ></i>
+            </span>
+          </label>
+
           <span class="right-panel__badge">
             {{ viewportTracks.length }} en viewport
           </span>
@@ -107,10 +158,11 @@
             <app-card-track
               *ngFor="let track of viewportTracks; trackBy: trackById"
               [track]="track"
+              [distanceToStart]="formatDistance(getDistanceToTrackStartMeters(track))"
               [class.track-card--hover]="hoveredTrackId === track.id"
               [attr.id]="'track-card-' + track.id"
-              (mouseenter)="hoveredTrackId = track.id"
-              (mouseleave)="hoveredTrackId = null"
+              (mouseenter)="onCardEnter(track.id)"
+              (mouseleave)="onCardLeave(track.id)"
             ></app-card-track>
           </div>
 

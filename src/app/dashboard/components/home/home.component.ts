@@ -5,6 +5,7 @@ import { Difficulty, RouteType, Track } from '../../../shared/models/track.model
 import { TrackListParams, TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
 import { TracksService } from '../../services/track.service';
 import { TrackListResponse } from '../../../shared/responses/list.response';
+import { Subscription } from 'rxjs';
 
 
 @Component({
@@ -55,15 +56,22 @@ export class HomeComponent implements OnInit {
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
 
-  constructor(private tracksService: TracksService) {}
+  private subs = new Subscription();
+
+   city: string | null = null;
+
+  constructor(private tracksService: TracksService ) {}
 
   ngOnInit(): void {
+
+    
 
     setTimeout(() => {
       this.loadTracks(true);
     }, 100);
 
   }
+
 
   loadTracks(reset: boolean = false): void {
 
