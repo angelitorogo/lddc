@@ -358,6 +358,7 @@
   flex: 1 1 55%;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .track-page__gallery {
@@ -374,6 +375,11 @@
   padding: 0.35rem 0;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+}
+
+.actions_panel {
+  display: flex;
+  justify-content: end;
 }
 
 .track-page__thumbs-row::-webkit-scrollbar {
@@ -1252,4 +1258,16 @@ body.no-scroll {
   outline: none;
   border: none;
 }
+
+.btn-follow {
+  width: 15rem;
+}
+
+@media (max-width: 960px) {
+  .btn-follow {
+    margin-top: 1rem;
+    width: 100%;
+  }
+}
+
 

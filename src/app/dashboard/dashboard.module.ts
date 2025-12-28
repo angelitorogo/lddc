@@ -22,6 +22,8 @@ import { TrackEditComponent } from './components/track-edit/track-edit.component
 import { ProfileComponent } from './components/profile/profile.component';
 import { TracksUserComponent } from './components/tracks-user/tracks-user.component';
 import { MapComponent } from './components/map/map.component';
+import { TrackFollowComponent } from './components/track-follow/track-follow.component';
+import { TrackRecorderComponent } from './components/track-recorder/track-recorder.component';
 
 
 
@@ -41,6 +43,8 @@ import { MapComponent } from './components/map/map.component';
     ProfileComponent,
     TracksUserComponent,
     MapComponent,
+    TrackFollowComponent,
+    TrackRecorderComponent,
   ],
   imports: [
     CommonModule,

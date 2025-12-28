@@ -1,4 +1,5 @@
 
+
 <section class="home">
   <header class="home__header">
     <div>
@@ -8,6 +9,21 @@
       </p>
     </div>
   </header>
+
+  
+  <!--<div *ngIf="userLocation" class="debug-location">
+    📍 Ubicación detectada<br />
+    <strong>Lat:</strong> {{ userLocation.lat }}<br />
+    <strong>Lng:</strong> {{ userLocation.lng }}<br />
+    <strong>Fuente:</strong> {{ userLocation.source }}<br />
+    <span *ngIf="userLocation.accuracy">
+      <strong>Precisión:</strong> ±{{ userLocation.accuracy | number:'1.0-0' }} m
+    </span>
+  </div>
+
+  <div *ngIf="!userLocation && locationError" class="debug-location error">
+    ⚠️ {{ locationError }}
+  </div>-->
 
   <!-- Filtros -->
   <section class="filters">

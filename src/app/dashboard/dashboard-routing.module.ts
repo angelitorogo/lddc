@@ -11,6 +11,8 @@ import { MapComponent } from './components/map/map.component';
 import { ContactComponent } from './components/contact/contact.component';
 import { TermsPrivacyComponent } from './components/otros/terms-privacy/terms-privacy.component';
 import { CookiesSettingsComponent } from './components/otros/cookies-settings/cookies-settings.component';
+import { TrackFollowComponent } from './components/track-follow/track-follow.component';
+import { TrackRecorderComponent } from './components/track-recorder/track-recorder.component';
 
 
 
@@ -63,6 +65,14 @@ const routes: Routes = [
       {
         path: 'info-cookies',
         component: CookiesSettingsComponent
+      },
+      {
+        path: 'tracks/:id/follow',
+        component: TrackFollowComponent,
+      },
+      {
+        path: 'tracks/record',
+        component: TrackRecorderComponent,
       },
       /*
       {

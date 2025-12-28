@@ -1,22 +1,27 @@
 // src/app/dashboard/pages/home/home.component.ts
 
-import { Component, HostListener, OnInit } from '@angular/core';
-import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
-import { TrackListParams, TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
-import { TracksService } from '../../services/track.service';
-import { TrackListResponse } from '../../../shared/responses/list.response';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 
+import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
+import {
+  TrackListParams,
+  TrackSortBy,
+  TrackSortOrder,
+} from '../../../shared/models/track-list-params-model';
+import { TracksService } from '../../services/track.service';
+import { TrackListResponse } from '../../../shared/responses/list.response';
+import { GeolocationService, GeoPoint } from '../../services/otros/location.service';
+
+// ⚠️ Ajusta la ruta de import según dónde tengas tu servicio.
+// Si no existe esa ruta, pon la ruta real (por ejemplo: '../../services/geolocation.service')
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
-export class HomeComponent implements OnInit {
-
-  
-
+export class HomeComponent implements OnInit, OnDestroy {
   tracks: Track[] = [];
   loading = false;
   error: string | null = null;
@@ -45,8 +50,8 @@ export class HomeComponent implements OnInit {
 
   isMobile = window.matchMedia('(max-width: 580px)').matches;
 
-  loadingMore = false;     // para infinite scroll
-  canLoadMore = true;      // si ya no hay más páginas, lo paramos
+  loadingMore = false; // para infinite scroll
+  canLoadMore = true; // si ya no hay más páginas, lo paramos
   private lastRequestedPage = 0; // evita dobles cargas
 
   // para mostrar en el template
@@ -56,26 +61,32 @@ export class HomeComponent implements OnInit {
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
 
-  private subs = new Subscription();
 
-   city: string | null = null;
 
-  constructor(private tracksService: TracksService ) {}
+  constructor(
+    private tracksService: TracksService,
+    private geo: GeolocationService
+  ) {}
 
   ngOnInit(): void {
 
-    
 
+    // 2) Cargamos tracks (como lo tenías)
     setTimeout(() => {
       this.loadTracks(true);
     }, 100);
 
+
   }
 
+  ngOnDestroy(): void {
+
+
+    // Si activas watch, paramos al salir de Home
+    this.geo.stopWatch();
+  }
 
   loadTracks(reset: boolean = false): void {
-
-    //console.log('recargando...')
     // En reset: volver al estado inicial
     if (reset) {
       this.page = 1;
@@ -118,8 +129,8 @@ export class HomeComponent implements OnInit {
       next: (res: TrackListResponse) => {
         // concat en móvil si no es reset y page>1
         if (this.isMobile && !reset && this.page > 1) {
-          const existingIds = new Set(this.tracks.map(t => t.id));
-          const newOnes = res.items.filter(t => !existingIds.has(t.id));
+          const existingIds = new Set(this.tracks.map((t) => t.id));
+          const newOnes = res.items.filter((t) => !existingIds.has(t.id));
           this.tracks = [...this.tracks, ...newOnes];
         } else {
           this.tracks = res.items;
@@ -173,7 +184,6 @@ export class HomeComponent implements OnInit {
     this.page++;
     this.loadTracks(false);
   }
-    
 
   onApplyFilters(): void {
     this.loadTracks(true);
@@ -214,7 +224,6 @@ export class HomeComponent implements OnInit {
     this.loadTracks();
   }
 
-  
   // 🔹 Cerrar el modal
   closeErrorModal() {
     this.showErrorModal = false;
@@ -227,7 +236,6 @@ export class HomeComponent implements OnInit {
     this.isSortByOpen = false;
     this.isSortOrderOpen = false;
   }
-
 
   // 🔹 Toggler de cada select (cierra los demás antes de abrir)
   toggleRouteType() {
@@ -278,7 +286,7 @@ export class HomeComponent implements OnInit {
     if (this.loading || this.loadingMore || !this.canLoadMore) return;
 
     // umbral: cuando quede poco para el final
-    const threshold = 250; 
+    const threshold = 250;
     const pos = window.innerHeight + window.scrollY;
     const max = document.documentElement.scrollHeight;
 
@@ -302,6 +310,4 @@ export class HomeComponent implements OnInit {
   }
 
   trackById = (_: number, t: Track) => t.id;
-
-
 }

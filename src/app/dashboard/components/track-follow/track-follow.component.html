@@ -1,0 +1,93 @@
+<section class="follow">
+  <header class="follow__header">
+    <div>
+      <h1 class="follow__title">Seguir ruta</h1>
+      <p class="follow__subtitle">{{ trackName }}</p>
+    </div>
+
+    <div class="follow__actions">
+      <button class="btn btn--secondary" (click)="centerOnMe()" [disabled]="!myLocation" title="Centrar en mi posición">
+        <i class="bi bi-bullseye"></i>
+        Centrar
+      </button>
+
+      <button class="btn btn--secondary" (click)="toggleFollowMe()" title="Seguirme automáticamente">
+        <i class="bi" [ngClass]="followMe ? 'bi-compass-fill' : 'bi-compass'"></i>
+        {{ followMe ? 'Seguirme ON' : 'Seguirme OFF' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="follow__grid">
+    <section class="panel panel--map">
+      <google-map class="map" width="100%" [center]="center" [zoom]="zoom" [options]="options">
+        <!-- Track objetivo -->
+        <map-polyline
+          *ngIf="targetPath.length > 1"
+          [path]="targetPath"
+          [options]="targetPolylineOptions"
+        ></map-polyline>
+
+        <!-- Halo de precisión (si hay GPS real) -->
+        <map-circle
+          *ngIf="myLocation && myAccuracy"
+          [center]="myLocation"
+          [radius]="myAccuracy"
+          [options]="myAccuracyCircleOptions"
+        ></map-circle>
+
+        <!-- Flecha azul -->
+        <map-marker
+          *ngIf="myLocation"
+          [position]="myLocation"
+          [icon]="myArrowSymbol"
+          title="Tu posición"
+        ></map-marker>
+      </google-map>
+
+      <div class="panel__hint" *ngIf="!loading && !error">
+        Verde: ruta · Azul: tu flecha
+      </div>
+
+      <div class="panel__status panel__status--error" *ngIf="error">{{ error }}</div>
+      <div class="panel__status" *ngIf="loading">Cargando…</div>
+    </section>
+
+    <aside class="panel panel--info">
+      <header class="info__header">
+        <h2 class="info__title">Estado</h2>
+
+        <span
+          class="badge"
+          [class.badge--ok]="!offTrack && !wrongDirection"
+          [class.badge--warn]="offTrack || wrongDirection"
+        >
+          {{ statusLabel() }}
+        </span>
+      </header>
+
+      <div class="info__content">
+        <div class="row" *ngIf="offTrack">
+          <span class="label">Desvío aprox.</span>
+          <span class="value">{{ offTrackMeters }} m</span>
+        </div>
+
+        <div class="row" *ngIf="wrongDirection">
+          <span class="label">Aviso</span>
+          <span class="value">Vas en sentido contrario</span>
+        </div>
+
+        <div class="row" *ngIf="!offTrack && !wrongDirection">
+          <span class="label">OK</span>
+          <span class="value">Sigues la ruta</span>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="note">
+          El aviso “fuera de ruta” usa histéresis para evitar falsos positivos por ruido GPS.
+        </div>
+      </div>
+    </aside>
+  </section>
+</section>

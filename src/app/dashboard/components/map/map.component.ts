@@ -230,7 +230,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     const map = this.googleMap?.googleMap;
     if (map) {
       map.panTo(target);
-      map.setZoom(targetZoom);
+      //map.setZoom(targetZoom);  //con zoom o sin zoom el centrado
     }
 
     // 3) Refresca viewport (tu lógica)

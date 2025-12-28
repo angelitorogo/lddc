@@ -1,0 +1,114 @@
+<section class="rec">
+  <header class="rec__header">
+    <div>
+      <h1 class="rec__title">Grabar track</h1>
+      <p class="rec__subtitle">Grabación en tiempo real · GPX + waypoints</p>
+    </div>
+
+    <div class="rec__actions">
+      <button class="btn btn--secondary" (click)="centerOnMe()" [disabled]="!myLocation" title="Centrar en mi posición">
+        <i class="bi bi-bullseye"></i>
+        Centrar
+      </button>
+
+      <button class="btn btn--primary" (click)="toggleRecording()">
+        <i class="bi" [ngClass]="isRecording ? 'bi-stop-fill' : 'bi-record-fill'"></i>
+        {{ isRecording ? 'Detener' : 'Grabar' }}
+      </button>
+
+      <button class="btn btn--secondary" (click)="addWaypoint()" [disabled]="!myLocation" title="Añadir waypoint">
+        <i class="bi bi-flag-fill"></i>
+        WP
+      </button>
+
+      <button class="btn btn--secondary" (click)="exportGpx()" [disabled]="rec.snapshot.path.length === 0" title="Exportar GPX">
+        <i class="bi bi-download"></i>
+        GPX
+      </button>
+
+      <button class="btn btn--secondary" (click)="reset()" title="Reiniciar sesión">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reset
+      </button>
+    </div>
+  </header>
+
+  <section class="rec__grid">
+    <section class="panel panel--map">
+      <google-map class="map" width="100%" [center]="center" [zoom]="zoom" [options]="options">
+
+        <!-- Halo precisión -->
+        <map-circle
+          *ngIf="myLocation && myAccuracy"
+          [center]="myLocation"
+          [radius]="myAccuracy"
+          [options]="myAccuracyCircleOptions"
+        ></map-circle>
+
+        <!-- Tu punto -->
+        <map-marker
+          *ngIf="myLocation"
+          [position]="myLocation"
+          [icon]="myBlueDotIcon"
+          title="Tu ubicación"
+        ></map-marker>
+
+        <!-- Track grabado -->
+        <map-polyline
+          *ngIf="path.length > 1"
+          [path]="path"
+          [options]="recordedPolylineOptions"
+        ></map-polyline>
+
+        <!-- Waypoints -->
+        <map-marker
+          *ngFor="let wp of waypointMarkers"
+          [position]="wp.position"
+          [title]="wp.title"
+        ></map-marker>
+
+      </google-map>
+
+      <div class="panel__hint">
+        Azul: track grabado · Punto: tu ubicación
+      </div>
+    </section>
+
+    <aside class="panel panel--info">
+      <header class="info__header">
+        <h2 class="info__title">En vivo</h2>
+        <span class="badge">
+          {{ isRecording ? 'GRABANDO' : 'PAUSADO' }}
+        </span>
+      </header>
+
+      <div class="info__content">
+        <div class="row">
+          <span class="label">Distancia</span>
+          <span class="value">{{ distanceLabel(distanceKm) }}</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Desnivel +</span>
+          <span class="value">{{ ascent }} m</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Desnivel -</span>
+          <span class="value">{{ descent }} m</span>
+        </div>
+
+        <div class="row">
+          <span class="label">Waypoints</span>
+          <span class="value">{{ waypointMarkers.length }}</span>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="note">
+          Nota: el desnivel solo se acumula si recibimos altitud fiable (en web a veces viene vacía).
+        </div>
+      </div>
+    </aside>
+  </section>
+</section>
