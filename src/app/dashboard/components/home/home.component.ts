@@ -1,7 +1,6 @@
 // src/app/dashboard/pages/home/home.component.ts
 
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, HostListener, OnInit } from '@angular/core';
 
 import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
 import {
@@ -11,17 +10,13 @@ import {
 } from '../../../shared/models/track-list-params-model';
 import { TracksService } from '../../services/track.service';
 import { TrackListResponse } from '../../../shared/responses/list.response';
-import { GeolocationService, GeoPoint } from '../../services/otros/location.service';
-
-// ⚠️ Ajusta la ruta de import según dónde tengas tu servicio.
-// Si no existe esa ruta, pon la ruta real (por ejemplo: '../../services/geolocation.service')
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit {
   tracks: Track[] = [];
   loading = false;
   error: string | null = null;
@@ -61,33 +56,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
 
-
-
-  constructor(
-    private tracksService: TracksService,
-    private geo: GeolocationService
-  ) {}
+  constructor(private tracksService: TracksService) {}
 
   ngOnInit(): void {
-
-
-    // 2) Cargamos tracks (como lo tenías)
     setTimeout(() => {
       this.loadTracks(true);
     }, 100);
-
-
-  }
-
-  ngOnDestroy(): void {
-
-
-    // Si activas watch, paramos al salir de Home
-    this.geo.stopWatch();
   }
 
   loadTracks(reset: boolean = false): void {
-    // En reset: volver al estado inicial
     if (reset) {
       this.page = 1;
       this.total = 0;
@@ -95,11 +72,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.tracks = [];
     }
 
-    // evita pedir dos veces la misma page
     if (this.lastRequestedPage === this.page && !reset) return;
     this.lastRequestedPage = this.page;
 
-    // flags de carga
     if (this.isMobile && !reset && this.page > 1) {
       this.loadingMore = true;
     } else {
@@ -127,7 +102,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.tracksService.getTracks(params).subscribe({
       next: (res: TrackListResponse) => {
-        // concat en móvil si no es reset y page>1
         if (this.isMobile && !reset && this.page > 1) {
           const existingIds = new Set(this.tracks.map((t) => t.id));
           const newOnes = res.items.filter((t) => !existingIds.has(t.id));
@@ -140,13 +114,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.page = res.page;
         this.limit = res.limit;
 
-        // ¿hay más páginas?
         this.canLoadMore = this.page < this.totalPages;
 
         this.loading = false;
         this.loadingMore = false;
 
-        // tu lógica de “sin rutas” / modal:
         if (
           this.tracks.length === 0 &&
           !this.filterRouteType &&
@@ -158,8 +130,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         ) {
           this.error = 'No hay ninguna ruta subida aún';
         } else {
-          // IMPORTANTE: en móvil con infinite scroll NO queremos modal al cargar más.
-          // Solo mostrar modal si es reset (aplicar filtros / limpiar)
           if (this.tracks.length === 0 && reset) {
             this.errorMessage = 'No se han encontrado rutas con esos filtros.';
             this.showErrorModal = true;
@@ -224,12 +194,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadTracks();
   }
 
-  // 🔹 Cerrar el modal
   closeErrorModal() {
     this.showErrorModal = false;
   }
 
-  // 🔹 Cierra TODOS los selects
   private closeAllSelects() {
     this.isRouteTypeOpen = false;
     this.isDifficultyOpen = false;
@@ -237,7 +205,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isSortOrderOpen = false;
   }
 
-  // 🔹 Toggler de cada select (cierra los demás antes de abrir)
   toggleRouteType() {
     const willOpen = !this.isRouteTypeOpen;
     this.closeAllSelects();
@@ -274,7 +241,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isSortOrderOpen = false;
   }
 
-  // 🔹 Click en cualquier parte del documento → cerrar todos
   @HostListener('document:click')
   onDocumentClick() {
     this.closeAllSelects();
@@ -285,7 +251,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (!this.isMobile) return;
     if (this.loading || this.loadingMore || !this.canLoadMore) return;
 
-    // umbral: cuando quede poco para el final
     const threshold = 250;
     const pos = window.innerHeight + window.scrollY;
     const max = document.documentElement.scrollHeight;
@@ -299,7 +264,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   onResize() {
     const next = window.matchMedia('(max-width: 580px)').matches;
 
-    // si cambia el modo (de desktop->móvil o al revés) reseteamos y recargamos
     if (next !== this.isMobile) {
       this.isMobile = next;
       this.page = 1;

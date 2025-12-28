@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { GoogleMap } from '@angular/google-maps';
 import { Subscription } from 'rxjs';
+
 import { GeolocationService } from '../../services/otros/location.service';
 import { TrackRecorderService } from '../../services/track-recorder.service';
 import { GpxExportService } from '../../services/gpx-export.service';
-
 
 type LatLngLiteral = google.maps.LatLngLiteral;
 
@@ -79,7 +79,7 @@ export class TrackRecorderComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
-    // ✅ orden: primero suscripción, luego arrancar geolocalización en microtarea
+    // ✅ orden: primero suscripción, luego enganchar al stream
     this.bindState();
 
     queueMicrotask(() => {
@@ -89,13 +89,13 @@ export class TrackRecorderComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
-    this.geo.stopWatch();
+    // ❌ NO parar el watch global aquí
+    // this.geo.stop();
   }
 
   private bindState(): void {
     this.sub.add(
       this.rec.state$.subscribe((s) => {
-        // ✅ importantísimo: aplicar cambios del template fuera del check
         queueMicrotask(() => {
           this.isRecording = s.isRecording;
 
@@ -122,43 +122,24 @@ export class TrackRecorderComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  // ✅ ahora consume ubicación global
   private startLocation(): void {
-    // primer fix
     this.sub.add(
-      this.geo
-        .getBestLocation({ timeoutMs: 8000, enableHighAccuracy: true, maximumAgeMs: 15000 })
-        .subscribe((p) => {
-          if (!p) return;
+      this.geo.location$.subscribe((p) => {
+        if (!p) return;
 
-          // ✅ actualiza servicio (estado) y el resto viene del subscribe
-          this.rec.updateMyLocation({
-            lat: p.lat,
-            lng: p.lng,
-            accuracy: p.accuracy ?? null,
-            time: new Date(),
-          });
-
-          // ✅ solo center/zoom también fuera del check
-          queueMicrotask(() => {
-            this.center = { lat: p.lat, lng: p.lng };
-            this.zoom = Math.max(this.zoom, 15);
-          });
-        })
-    );
-
-    // watch gps
-    this.geo.watchBrowserLocation(
-      (p) => {
         this.rec.updateMyLocation({
           lat: p.lat,
           lng: p.lng,
           accuracy: p.accuracy ?? null,
           time: new Date(),
-          // ele: si lo obtienes, pásalo aquí
         });
-      },
-      () => {},
-      { timeoutMs: 10_000, enableHighAccuracy: true, maximumAgeMs: 5_000 }
+
+        queueMicrotask(() => {
+          this.center = { lat: p.lat, lng: p.lng };
+          this.zoom = Math.max(this.zoom, 15);
+        });
+      })
     );
   }
 
@@ -209,11 +190,7 @@ export class TrackRecorderComponent implements AfterViewInit, OnDestroy {
   // ---------------------------------
 
   private kmNumberForDisplay(meters: number, isRecording: boolean): number | null {
-    // Si no hay distancia:
-    // - grabando => 0 (para mostrar "0 m")
-    // - no grabando => null (para mostrar "—")
     if (!meters || meters <= 0) return isRecording ? 0 : null;
-
     return Math.round((meters / 1000) * 10) / 10;
   }
 
@@ -222,6 +199,4 @@ export class TrackRecorderComponent implements AfterViewInit, OnDestroy {
     if (km < 1) return `${Math.round(km * 1000)} m`;
     return `${km.toFixed(1)} km`;
   }
-
-  
 }

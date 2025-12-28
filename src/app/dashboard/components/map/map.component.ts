@@ -1,7 +1,18 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { GoogleMap } from '@angular/google-maps';
-import { Subject, catchError, debounceTime, finalize, from, map, mergeMap, of, toArray } from 'rxjs';
+import {
+  Subject,
+  Subscription,
+  catchError,
+  debounceTime,
+  finalize,
+  from,
+  map,
+  mergeMap,
+  of,
+  toArray,
+} from 'rxjs';
 
 import {
   ViewportDensity,
@@ -71,10 +82,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private readonly viewportChanged$ = new Subject<void>();
 
-  // Anti-duplicados (dragend -> idle, zoom_changed -> idle)
   private lastTriggerAt = 0;
-
-  // Guardamos listeners (opcional)
   private nativeListeners: google.maps.MapsEventListener[] = [];
 
   private wheelTimeout: any = null;
@@ -97,7 +105,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private hoverPolylineCache = new Map<string, google.maps.LatLngLiteral[]>();
   private hoverLoadTimer: any = null;
 
-  // Pin estilo Google (misma forma, solo cambia el color)
   readonly pinNormalUrl: string = this.svgToDataUrl(`
     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24">
       <path fill="#d93025" d="M12 2c-3.314 0-6 2.686-6 6 0 4.418 6 14 6 14s6-9.582 6-14c0-3.314-2.686-6-6-6z"/>
@@ -112,7 +119,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     </svg>
   `);
 
-  // ✅ Icono hover como DATA URL (string), compatible con map-marker
   readonly hoverIconUrl: string = this.svgToDataUrl(`
     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30">
       <circle cx="15" cy="15" r="9" fill="#ffffff" stroke="#111a16" stroke-width="5"/>
@@ -143,21 +149,18 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   myLocation: google.maps.LatLngLiteral | null = null;
 
-  // ✅ precisión (metros). Solo cuando viene de GPS
   myAccuracy: number | null = null;
 
-  // ✅ Punto azul estilo Google (círculo azul con borde blanco)
   myBlueDotIcon: google.maps.Symbol = {
     path: google.maps.SymbolPath.CIRCLE,
-    fillColor: '#1a73e8',      // azul Google
+    fillColor: '#1a73e8',
     fillOpacity: 1,
-    strokeColor: '#ffffff',   // borde blanco
+    strokeColor: '#ffffff',
     strokeOpacity: 1,
     strokeWeight: 1,
     scale: 5,
   };
 
-  // ✅ Halo/precisión (radio en metros)
   myAccuracyCircleOptions: google.maps.CircleOptions = {
     strokeOpacity: 0,
     fillColor: '#1a73e8',
@@ -165,10 +168,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     zIndex: 10,
   };
 
-  // para no autocentrar si el usuario ya movió el mapa
   private userMovedMap = false;
 
   distanceToStart: number | null = null;
+
+  // ✅ subs para limpiar
+  private sub = new Subscription();
 
   constructor(
     private readonly tracksService: TracksService,
@@ -177,24 +182,28 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
-    this.viewportChanged$
-      .pipe(debounceTime(250))
-      .subscribe(() => this.loadViewport());
+    this.sub.add(
+      this.viewportChanged$.pipe(debounceTime(250)).subscribe(() => this.loadViewport())
+    );
 
     queueMicrotask(() => {
       this.attachNativeMapListeners();
-      // primera carga
       this.viewportChanged$.next();
-      // ✅ Localiza y activa el punto azul al entrar
+
+      // ✅ Si quieres que el punto azul se active al entrar:
       this.enableMyLocationOnEnter();
     });
   }
 
   ngOnDestroy(): void {
-    this.geolocationService.stopWatch();
+    // ✅ NO parar el GPS global aquí
+    this.sub.unsubscribe();
+
+    for (const l of this.nativeListeners) l.remove();
+    this.nativeListeners = [];
+
     this.myLocation = null;
     this.myAccuracy = null;
-    // tu cleanup actual (subjects/subs) aquí...
   }
 
   // =========================
@@ -217,29 +226,25 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   recenter(): void {
     const target = this.myLocation
-      ? { lat: this.myLocation.lat, lng: this.myLocation.lng } // ✅ nueva referencia
-      : { lat: 40.4168, lng: -3.7038 };                        // ✅ nueva referencia
+      ? { lat: this.myLocation.lat, lng: this.myLocation.lng }
+      : { lat: 40.4168, lng: -3.7038 };
 
     const targetZoom = this.myLocation ? 13 : 11;
 
-    // 1) Actualiza bindings (Angular)
     this.center = target;
     this.zoom = targetZoom;
 
-    // 2) Fuerza movimiento real en el mapa (Google Maps JS)
     const map = this.googleMap?.googleMap;
     if (map) {
       map.panTo(target);
-      //map.setZoom(targetZoom);  //con zoom o sin zoom el centrado
+      // map.setZoom(targetZoom);
     }
 
-    // 3) Refresca viewport (tu lógica)
     queueMicrotask(() => this.viewportChanged$.next());
   }
 
-
   // =========================
-  // Listeners nativos (zoom/pan fiables)
+  // Listeners nativos
   // =========================
 
   private attachNativeMapListeners(): void {
@@ -249,13 +254,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     for (const l of this.nativeListeners) l.remove();
     this.nativeListeners = [];
 
-    this.nativeListeners.push(
-      map.addListener('zoom_changed', () => this.triggerViewportRefresh())
-    );
-
-    this.nativeListeners.push(
-      map.addListener('dragend', () => this.triggerViewportRefresh())
-    );
+    this.nativeListeners.push(map.addListener('zoom_changed', () => this.triggerViewportRefresh()));
+    this.nativeListeners.push(map.addListener('dragend', () => this.triggerViewportRefresh()));
   }
 
   private triggerViewportRefresh(): void {
@@ -301,17 +301,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
           this.sortViewportTracksByDistance();
 
-          // Render base markers (con limitación)
           this.renderMarkers(res.items);
 
-          // ✅ Mantén coherente el hover si el track ya no está visible
           this.syncHoveredMarkerAfterRefresh();
         },
         error: (err) => {
           this.error =
-            err?.error?.message ||
-            err?.message ||
-            'No se pudieron cargar las rutas del mapa.';
+            err?.error?.message || err?.message || 'No se pudieron cargar las rutas del mapa.';
           this.lastResponse = null;
           this.total = 0;
           this.density = null;
@@ -436,27 +432,19 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (this.wheelTimeout) clearTimeout(this.wheelTimeout);
 
     this.wheelTimeout = setTimeout(() => {
-      if (this.lastWheelDirection === 'IN') this.triggerViewportRefresh();
-      else if (this.lastWheelDirection === 'OUT') this.triggerViewportRefresh();
-
+      this.triggerViewportRefresh();
       this.lastWheelDirection = null;
       this.wheelTimeout = null;
     }, 300);
   }
 
-  // Convierte SVG -> data URL (para icon string)
   private svgToDataUrl(svg: string): string {
-    const cleaned = svg
-      .replace(/\n/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const cleaned = svg.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(cleaned)}`;
   }
 
   getMarkerIconFor(trackId: string): string | undefined {
-    if (this.hoveredTrackId === trackId) {
-      return this.hoverIconUrl;
-    }
+    if (this.hoveredTrackId === trackId) return this.hoverIconUrl;
     return undefined;
   }
 
@@ -486,11 +474,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private buildPolylineFromDetail(detail: any): google.maps.LatLngLiteral[] {
     const pts = detail?.trackPointsForFront ?? [];
     if (!Array.isArray(pts) || pts.length < 2) return [];
-
-    return pts.map((p: any) => ({
-      lat: p.lat,
-      lng: p.lon,
-    }));
+    return pts.map((p: any) => ({ lat: p.lat, lng: p.lon }));
   }
 
   private loadHoverPolyline(trackId: string | null): void {
@@ -602,101 +586,71 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   trackByPolylineId = (_: number, item: { trackId: string }) => item.trackId;
 
   // =========================
-  // My location: auto on enter + toggle + watch
+  // My location (centralizado con location$)
   // =========================
 
   private enableMyLocationOnEnter(): void {
-    this.geolocationService
-      .getBestLocation({ timeoutMs: 8000, enableHighAccuracy: true, maximumAgeMs: 15000 })
-      .subscribe((p) => {
+    // Si quieres que al entrar aparezca el punto azul:
+    this.isMyLocationEnabled = true;
+
+    this.sub.add(
+      this.geolocationService.location$.subscribe((p) => {
+        if (!this.isMyLocationEnabled) return;
         if (!p) return;
 
         this.myLocation = { lat: p.lat, lng: p.lng };
-        this.isMyLocationEnabled = true;
 
-        // ✅ halo solo si viene de GPS
+        // halo solo si viene de GPS
         this.myAccuracy =
           p.source === 'gps' && typeof p.accuracy === 'number'
             ? Math.max(30, Math.round(p.accuracy))
             : null;
+
+        this.sortViewportTracksByDistance();
 
         if (!this.userMovedMap) {
           this.center = this.myLocation;
           this.zoom = Math.max(this.zoom, 13);
           queueMicrotask(() => this.viewportChanged$.next());
         }
-
-        this.startMyLocationWatch();
-      });
-  }
-
-  toggleMyLocation(): void {
-    if (this.isMyLocationEnabled) {
-      this.disableMyLocation();
-    } else {
-      this.enableMyLocation();
-    }
-  }
-
-  private enableMyLocation(): void {
-    this.isMyLocationEnabled = true;
-
-    this.geolocationService
-      .getBestLocation({ timeoutMs: 8000, enableHighAccuracy: true, maximumAgeMs: 15000 })
-      .subscribe((p) => {
-        if (p) {
-          this.myLocation = { lat: p.lat, lng: p.lng };
-
-          this.myAccuracy =
-            p.source === 'gps' && typeof p.accuracy === 'number'
-              ? Math.max(30, Math.round(p.accuracy))
-              : null;
-
-          if (!this.userMovedMap) {
-            this.center = this.myLocation;
-            this.zoom = Math.max(this.zoom, 13);
-            queueMicrotask(() => this.viewportChanged$.next());
-          }
-        }
-      });
-
-    this.startMyLocationWatch();
-  }
-
-  private disableMyLocation(): void {
-    this.isMyLocationEnabled = false;
-    this.myLocation = null;
-    this.myAccuracy = null;
-    this.geolocationService.stopWatch();
-  }
-
-  private startMyLocationWatch(): void {
-    if (!this.isMyLocationEnabled) return;
-
-    this.geolocationService.watchBrowserLocation(
-      (p) => {
-        if (!this.isMyLocationEnabled) return;
-
-        this.myLocation = { lat: p.lat, lng: p.lng };
-        this.myAccuracy =
-          typeof p.accuracy === 'number'
-            ? Math.max(30, Math.round(p.accuracy))
-            : this.myAccuracy;
-
-        this.sortViewportTracksByDistance();
-        
-      },
-      (_msg) => {
-        // si falla, mantenemos lo que hubiera (IP o última posición)
-      },
-      { timeoutMs: 10_000, enableHighAccuracy: true, maximumAgeMs: 10_000 }
+      })
     );
   }
 
+  toggleMyLocation(): void {
+    this.isMyLocationEnabled = !this.isMyLocationEnabled;
 
-  /** Distancia Haversine en metros entre 2 puntos */
+    if (!this.isMyLocationEnabled) {
+      this.myLocation = null;
+      this.myAccuracy = null;
+      return;
+    }
+
+    // si se vuelve a activar, usa el último snapshot si existe (sin esperar al próximo tick)
+    const snap = this.geolocationService.snapshot;
+    if (snap) {
+      this.myLocation = { lat: snap.lat, lng: snap.lng };
+      this.myAccuracy =
+        snap.source === 'gps' && typeof snap.accuracy === 'number'
+          ? Math.max(30, Math.round(snap.accuracy))
+          : null;
+
+      if (!this.userMovedMap) {
+        this.center = this.myLocation;
+        this.zoom = Math.max(this.zoom, 13);
+        queueMicrotask(() => this.viewportChanged$.next());
+      }
+    }
+
+    this.sortViewportTracksByDistance();
+  }
+
+  // =========================
+  // Distancias
+  // =========================
+
   private distanceMeters(a: google.maps.LatLngLiteral, b: google.maps.LatLngLiteral): number {
-    const R = 6371000; // radio Tierra en m
+    const R = 6371000;
     const toRad = (deg: number) => (deg * Math.PI) / 180;
 
     const dLat = toRad(b.lat - a.lat);
@@ -709,17 +663,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     const sinDLng = Math.sin(dLng / 2);
 
     const h =
-      sinDLat * sinDLat +
-      Math.cos(lat1) * Math.cos(lat2) * (sinDLng * sinDLng);
+      sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * (sinDLng * sinDLng);
 
     const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
     return R * c;
   }
 
-  /**
-   * Calcula distancia desde mi ubicación al inicio de una ruta.
-   * Devuelve null si no hay ubicación o si la ruta no tiene coords válidas.
-   */
   getDistanceToTrackStartMeters(track: { startLat: any; startLon: any }): number | null {
     if (!this.myLocation) return null;
 
@@ -730,24 +679,18 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     return this.distanceMeters(this.myLocation, { lat, lng });
   }
 
-  /** Formatea la distancia para UI (m / km) */
   formatDistance(meters: number | null): number | null {
     if (meters === null) return null;
-    if (meters < 1000) return Math.round(meters) / 1000; // 0.x km
+    if (meters < 1000) return Math.round(meters) / 1000;
     return Math.round((meters / 1000) * 10) / 10;
   }
 
-  /**
-   * Devuelve una lista de tracks del viewport con su distancia calculada,
-   * ordenados por cercanía (si hay myLocation).
-   */
   getViewportTracksWithDistance(): Array<{ track: any; distanceMeters: number | null }> {
     const list = (this.viewportTracks ?? []).map((t: any) => ({
       track: t,
       distanceMeters: this.getDistanceToTrackStartMeters(t),
     }));
 
-    // Si no hay ubicación, no ordenamos
     if (!this.myLocation) return list;
 
     return list.sort((a, b) => {
@@ -761,7 +704,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (!this.myLocation) return;
     if (!Array.isArray(this.viewportTracks) || this.viewportTracks.length === 0) return;
 
-    // Clonamos para no tocar referencias raras de Angular
     const list = [...this.viewportTracks];
 
     list.sort((a: any, b: any) => {
@@ -776,7 +718,4 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     this.viewportTracks = list;
   }
-
-
-
 }

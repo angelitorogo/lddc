@@ -1,100 +1,55 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AuthService } from '../../../../auth/services/auth.service';
 import { Subscription } from 'rxjs';
-import { GeolocationService, GeoPoint } from '../../../services/otros/location.service';
 
+import { AuthService } from '../../../../auth/services/auth.service';
+import { GeolocationService, GeoPoint } from '../../../services/otros/location.service';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit, OnDestroy{
-
+export class DashboardComponent implements OnInit, OnDestroy {
   constructor(public authService: AuthService, private geo: GeolocationService) {}
-  
+
   currentYear = new Date().getFullYear();
 
   private subs = new Subscription();
 
+  // ✅ para debug/UI global si quieres
   userLocation: GeoPoint | null = null;
   locationError: string | null = null;
 
   ngOnInit(): void {
-    
     this.authService.comprobarUser();
-    this.initLocation();
-    //this.startWatchLocation();
 
+    // ✅ arranque global: un único watch para todo el dashboard
+    this.geo.start({
+      timeoutMs: 15_000,
+      enableHighAccuracy: true,
+      maximumAgeMs: 5_000,
+    });
+
+    // ✅ escuchar ubicación global
+    this.subs.add(
+      this.geo.location$.subscribe((p) => {
+        this.userLocation = p;
+      })
+    );
+
+    // ✅ escuchar error global
+    this.subs.add(
+      this.geo.error$.subscribe((e) => {
+        this.locationError = e;
+      })
+    );
   }
 
   ngOnDestroy(): void {
-
     this.subs.unsubscribe();
-    //this.geo.stopWatch();
 
+    // ⚠️ Normalmente NO pares el GPS aquí si Dashboard es tu layout/shell.
+    // Si de verdad quieres parar al salir del dashboard, descomenta:
+    // this.geo.stop();
   }
-  
-
-  private initLocation(): void {
-    this.locationError = null;
-
-    const s = this.geo
-      .getBestLocation({
-        timeoutMs: 12_000,
-        enableHighAccuracy: true,
-        maximumAgeMs: 10_000,
-      })
-      .subscribe((p) => {
-        if (!p) {
-          this.userLocation = null;
-          this.locationError =
-            'No se pudo obtener la ubicación (GPS/IP). Revisa permisos o conexión.';
-          return;
-        }
-
-        this.userLocation = p;
-
-        /*
-        console.log(
-          '📍 Ubicación obtenida:',
-          p.source,
-          `(${p.lat}, ${p.lng})`,
-          p.accuracy ? `±${Math.round(p.accuracy)}m` : ''
-        );
-        */
-      });
-
-    this.subs.add(s);
-  }
-
-  /*
-  private startWatchLocation(): void {
-    this.geo.watchBrowserLocation(
-      (p) => {
-        this.userLocation = p;
-        console.log(
-          '🛰️ Watch GPS:',
-          `(${p.lat}, ${p.lng})`,
-          p.accuracy ? `±${Math.round(p.accuracy)}m` : ''
-        );
-      },
-      (msg) => {
-        this.locationError = msg ?? 'Error en seguimiento GPS.';
-        console.warn('⚠️ Watch GPS error:', this.locationError);
-      },
-      {
-        timeoutMs: 15_000,
-        enableHighAccuracy: true,
-        maximumAgeMs: 5_000,
-      }
-    );
-  }
-    */
-  
-
-
-
-
-
 }

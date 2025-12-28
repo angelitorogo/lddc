@@ -107,11 +107,11 @@ export class TrackFollowComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
-    this.geo.stopWatch();
+    // ❌ NO parar el watch global aquí
+    // this.geo.stop();
   }
 
   private loadTargetTrack(): void {
-
     queueMicrotask(() => {
       this.loading = true;
       this.error = '';
@@ -183,35 +183,28 @@ export class TrackFollowComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-
+  // ✅ ahora consume la ubicación global
   private startLocation(): void {
-    // primer fix (GPS o IP)
     this.sub.add(
-      this.geo.getBestLocation({ timeoutMs: 8000, enableHighAccuracy: true, maximumAgeMs: 15000 })
-        .subscribe((p) => {
-          if (!p) return;
-          this.follow.updateMyPosition({ lat: p.lat, lng: p.lng, accuracy: p.accuracy ?? null });
+      this.geo.location$.subscribe((p) => {
+        if (!p) return;
+
+        queueMicrotask(() => {
+          this.follow.updateMyPosition({
+            lat: p.lat,
+            lng: p.lng,
+            accuracy: p.accuracy ?? null,
+          });
 
           if (this.followMe) {
             this.center = { lat: p.lat, lng: p.lng };
             this.zoom = Math.max(this.zoom, 15);
           }
-        })
-    );
-
-    // watch gps
-    this.geo.watchBrowserLocation(
-      (p) => {
-        this.follow.updateMyPosition({
-          lat: p.lat,
-          lng: p.lng,
-          accuracy: p.accuracy ?? null,
         });
-      },
-      () => {},
-      { timeoutMs: 10_000, enableHighAccuracy: true, maximumAgeMs: 5_000 }
+      })
     );
   }
+
 
   toggleFollowMe(): void {
     this.followMe = !this.followMe;
