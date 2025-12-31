@@ -188,3 +188,10 @@ hr {
     transform: translateY(0);
   }
 }
+
+/* Responsivo básico */
+@media (max-width: 768px) {
+  .container {
+    background-position: 33% 50%;
+  }
+}

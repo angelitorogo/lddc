@@ -33,7 +33,6 @@
         <!--*ngIf="authService.isLoggedIn() && authService.user?.role === 'ADMIN'"-->
         <a
           class="nav-links__item"
-          *ngIf="authService.isLoggedIn()"
           routerLink="/dashboard/create"
           routerLinkActive="nav-links__item--active"
           (click)="onNavigate()"
@@ -114,7 +113,7 @@
         </a>
         <a
           class="nav-mobile__item"
-          *ngIf="authService.isLoggedIn()"
+
           routerLink="/dashboard/create"
           routerLinkActive="nav-mobile__item--active"
           (click)="onNavigate()"
@@ -124,6 +123,7 @@
         </a>
         <a
           class="nav-mobile__item"
+
           routerLink="/dashboard/tracks/record"
           routerLinkActive="nav-mobile__item--active"
           (click)="onNavigate()"

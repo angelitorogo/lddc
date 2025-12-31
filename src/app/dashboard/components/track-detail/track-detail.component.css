@@ -620,8 +620,8 @@
 
 @media (max-width: 960px) {
   .track-panel__pend {
-    width: 8rem;
-    font-size: 1rem;
+    width: unset;
+    font-size: 1.4rem;
     margin-bottom: 0;
   }
 
@@ -960,7 +960,7 @@ textarea:focus {
 
 .slope {
   display: inline-block;
-  padding: 0.4rem 0.6rem 0.4rem;
+  padding: 0.5rem 0.6rem 0.4rem;
   width: 6rem;
   border-radius: 999px;
   font-weight: 800;
@@ -1003,7 +1003,8 @@ textarea:focus {
 @media (max-width: 960px) {
   .slope {
     padding: 0.4rem 0.6rem 0.4rem;
-    width: 4rem;
+    width: 4.8rem;
+    font-size: 1rem;
   }
 }
 

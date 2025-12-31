@@ -240,4 +240,15 @@ export class TracksService {
     });
   }
 
+
+  
+  elevationBatch(points: { lat: number; lon: number }[]): Observable<{ elevations: Array<number | null> }> {
+    return this.http.post<{ elevations: Array<number | null> }>(
+      `${this.baseUrl}/elevation/batch`,
+      { points },
+      { withCredentials: true }
+    );
+  }
+  
+
 }

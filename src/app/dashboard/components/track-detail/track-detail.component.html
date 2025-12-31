@@ -197,11 +197,11 @@
     <!-- FILA 2: PERFIL DE ELEVACIÓN -->
     <section class="track-panel track-page__profile">
       <h2 class="track-panel__title title__perfil">
-        <span>Perfil de elevación</span>
+        <span>Perfil</span>
 
         <div class="track-panel__poi_pend">
           <span class="track-panel__pend" *ngIf="pendiente">
-            {{isMobileView ? 'Pend.' : 'Pendiente'}}
+            {{isMobileView ? '' : 'Pendiente'}}
             <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{ pendiente }}%</span>
           </span>
           <button
@@ -284,8 +284,7 @@
         <div class="track-page__attribution">
           <i class="bi bi-info-circle"></i>
           <span>
-            Datos de puntos de interés ©
-            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
+            POIs © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
               OpenStreetMap contributors
             </a>
           </span>

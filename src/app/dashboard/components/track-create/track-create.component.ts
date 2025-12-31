@@ -275,12 +275,14 @@ export class TrackCreateComponent {
     this.creating = true;
 
     // Aquí prepararías el FormData o payload real
+    /*
     console.log('Crear track con imágenes:', {
       name,
       description,
       gpxFile: this.selectedFile.name,
       images: this.selectedImages.map(f => f.name),
     });
+    */
 
     this.trackService
     .createFromGpx(
@@ -291,7 +293,7 @@ export class TrackCreateComponent {
     )
     .subscribe({
       next: (res) => {
-        console.log('Track creado:', res);
+        //console.log('Track creado:', res);
         // si quieres limpiar el formulario:
         this.form.reset();
         this.clearFileAndPreview(true);

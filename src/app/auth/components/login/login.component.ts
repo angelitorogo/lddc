@@ -1,16 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
 })
 export class LoginComponent implements OnInit {
-
   formLogin: FormGroup;
+
+  // 🔹 si aún quieres soportar ?returnUrl=..., lo dejamos como fallback
   returnUrl: string | null = null;
 
   // 🔹 Estado del modal de error
@@ -24,18 +30,44 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     this.formLogin = this.fb.group({
-      email: new FormControl('angelitorogo@hotmail.com', [Validators.required, Validators.email]),
+      email: new FormControl('angelitorogo@hotmail.com', [
+        Validators.required,
+        Validators.email,
+      ]),
       password: new FormControl('Rod00gom!', Validators.required),
     });
   }
 
   ngOnInit(): void {
+    // (opcional) mantienes el returnUrl antiguo como fallback
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-    if (this.returnUrl) {
-      // decodificar la URL (%2F → /)
-      this.returnUrl = decodeURIComponent(this.returnUrl);
+    if (this.returnUrl) this.returnUrl = decodeURIComponent(this.returnUrl);
+
+    // ✅ 1) Si ya está logueado en memoria, redirige directo
+    if (this._authService.isLoggedIn()) {
+      this._router.navigateByUrl('/dashboard/home');
+      return;
     }
+
+    // ✅ 2) Robusto con cookies: si hay sesión válida, verify devuelve user
+    this._authService.getUserInfo().subscribe({
+      next: (resp) => {
+        if (resp?.user) {
+          this._authService.setUser(resp.user);
+
+          // si venía de un guard, puedes llevarlo ahí; si no, home
+          const redirectFromGuard = this._authService.consumeRedirectUrl();
+          const redirectTo = redirectFromGuard || '/dashboard/home';
+
+          this._router.navigateByUrl(redirectTo);
+        }
+      },
+      error: () => {
+        // no hay sesión -> se queda en login
+      },
+    });
   }
+
 
   submit() {
     if (this.formLogin.invalid) {
@@ -47,23 +79,45 @@ export class LoginComponent implements OnInit {
 
     this._authService.login(email, password).subscribe({
       next: () => {
-        const redirectTo = this.returnUrl || '/dashboard/home';
-        this._router.navigateByUrl(redirectTo);
+        // ✅ MUY IMPORTANTE en tu arquitectura:
+        // tras login por cookies, “loggedIn” solo se pone a true cuando llamas a setUser(...)
+        // así que comprobamos el usuario (verify) y luego redirigimos.
+        this._authService.getUserInfo().subscribe({
+          next: (response) => {
+            this._authService.setUser(response.user);
+
+            // ✅ Prioridad:
+            // 1) URL guardada por el guard (lo que intentaba abrir: /tracks/:id/follow)
+            // 2) returnUrl por query param (fallback antiguo)
+            // 3) home por defecto
+            const redirectFromGuard = this._authService.consumeRedirectUrl();
+            const redirectTo =
+              redirectFromGuard || this.returnUrl || '/dashboard/home';
+
+            this._router.navigateByUrl(redirectTo);
+          },
+          error: () => {
+            // Si por lo que sea falla verify, al menos no lo dejamos colgado
+            const redirectFromGuard = this._authService.consumeRedirectUrl();
+            const redirectTo =
+              redirectFromGuard || this.returnUrl || '/dashboard/home';
+
+            this._router.navigateByUrl(redirectTo);
+          },
+        });
       },
       error: (err) => {
-        const error = 'Login fallido: ' + (err?.error?.message || 'Error desconocido');
+        const error =
+          'Login fallido: ' + (err?.error?.message || 'Error desconocido');
         console.error(error);
 
-        // 🔹 Guardamos el mensaje y abrimos el modal
         this.errorMessage = error;
         this.showErrorModal = true;
       },
     });
   }
 
-  // 🔹 Cerrar el modal
   closeErrorModal() {
     this.showErrorModal = false;
   }
-
 }

@@ -13,6 +13,7 @@ import { TermsPrivacyComponent } from './components/otros/terms-privacy/terms-pr
 import { CookiesSettingsComponent } from './components/otros/cookies-settings/cookies-settings.component';
 import { TrackFollowComponent } from './components/track-follow/track-follow.component';
 import { TrackRecorderComponent } from './components/track-recorder/track-recorder.component';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 
 
@@ -32,6 +33,7 @@ const routes: Routes = [
       },
       { 
         path: 'create', 
+        canActivate: [AuthGuard],
         component: TrackCreateComponent
       },
       { 
@@ -68,10 +70,12 @@ const routes: Routes = [
       },
       {
         path: 'tracks/:id/follow',
+        canActivate: [AuthGuard],
         component: TrackFollowComponent,
       },
       {
         path: 'tracks/record',
+        canActivate: [AuthGuard],
         component: TrackRecorderComponent,
       },
       /*

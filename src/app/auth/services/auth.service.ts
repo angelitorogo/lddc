@@ -20,6 +20,8 @@ export class AuthService {
   private _user$ = new BehaviorSubject<any>(null);
   user$ = this._user$.asObservable();
 
+  private redirectUrl: string | null = null;
+
   constructor(private http: HttpClient, private router: Router) { }
 
   // Método para inicializar el token
@@ -166,6 +168,16 @@ export class AuthService {
 
   getUserById(userId?: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/auth/user/${userId}`);
+  }
+
+  setRedirectUrl(url: string): void {
+    this.redirectUrl = url;
+  }
+
+  consumeRedirectUrl(): string | null {
+    const url = this.redirectUrl;
+    this.redirectUrl = null; // 🔥 importante: solo se usa una vez
+    return url;
   }
 
 }

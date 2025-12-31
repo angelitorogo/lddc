@@ -9,7 +9,7 @@ export interface LatLng {
 export interface RecordedPoint {
   lat: number;
   lng: number;
-  ele?: number | null; // en web puede ser null
+  ele?: number | null;
   time: Date;
 }
 
@@ -36,6 +36,9 @@ export interface RecorderState {
   ascentMeters: number;
   descentMeters: number;
   lastSpeedMps: number | null;
+
+  // 👇 NUEVO: índice desde el que hay puntos sin elevación confirmada
+  pendingEleStartIndex: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -59,6 +62,7 @@ export class TrackRecorderService {
       ascentMeters: 0,
       descentMeters: 0,
       lastSpeedMps: null,
+      pendingEleStartIndex: null,
     });
   }
 
@@ -71,11 +75,8 @@ export class TrackRecorderService {
 
     this._state$.next({
       ...s,
-      // mantenemos ubicación actual
       myLocation: s.myLocation,
       myAccuracy: s.myAccuracy,
-
-      // reseteamos sesión de grabación
       isRecording: false,
       startedAt: null,
       path: [],
@@ -84,9 +85,9 @@ export class TrackRecorderService {
       ascentMeters: 0,
       descentMeters: 0,
       lastSpeedMps: null,
+      pendingEleStartIndex: null,
     });
   }
-
 
   addWaypointFromCurrent(name?: string, desc?: string): void {
     const s = this.snapshot;
@@ -111,7 +112,6 @@ export class TrackRecorderService {
     const myLocation = { lat: p.lat, lng: p.lng };
     const myAccuracy = typeof p.accuracy === 'number' ? p.accuracy : s.myAccuracy;
 
-    // si no graba, solo actualiza blue dot
     if (!s.isRecording) {
       this._state$.next({ ...s, myLocation, myAccuracy: myAccuracy ?? null });
       return;
@@ -130,8 +130,6 @@ export class TrackRecorderService {
     }
 
     let distance = s.distanceMeters;
-    let ascent = s.ascentMeters;
-    let descent = s.descentMeters;
     let speed: number | null = null;
 
     if (prev) {
@@ -140,25 +138,86 @@ export class TrackRecorderService {
 
       const dtSec = Math.max(0.5, (now.getTime() - prev.time.getTime()) / 1000);
       speed = d / dtSec;
-
-      const e1 = prev.ele ?? null;
-      const e2 = next.ele ?? null;
-      if (e1 !== null && e2 !== null) {
-        const de = e2 - e1;
-        if (de > 0) ascent += de;
-        else descent += Math.abs(de);
-      }
     }
+
+    const newPath = [...s.path, next];
+
+    // 👇 si el punto entra sin ele (lo normal en web), marcamos pendientes
+    const pendingEleStartIndex =
+      s.pendingEleStartIndex !== null
+        ? s.pendingEleStartIndex
+        : (next.ele == null ? newPath.length - 1 : null);
 
     this._state$.next({
       ...s,
       myLocation,
       myAccuracy: myAccuracy ?? null,
-      path: [...s.path, next],
+      path: newPath,
       distanceMeters: distance,
+      // ascent/descent se actualizarán cuando apliquemos elevaciones batch
+      ascentMeters: s.ascentMeters,
+      descentMeters: s.descentMeters,
+      lastSpeedMps: speed,
+      pendingEleStartIndex,
+    });
+  }
+
+  /**
+   * Marca manualmente que desde un índice hay puntos pendientes (por si quieres forzar).
+   */
+  markPendingElevationFrom(index: number): void {
+    const s = this.snapshot;
+    if (s.pendingEleStartIndex === null || index < s.pendingEleStartIndex) {
+      this._state$.next({ ...s, pendingEleStartIndex: index });
+    }
+  }
+
+  /**
+   * Aplica elevaciones devueltas por backend para un tramo (startIndex..).
+   * Recalcula ascent/descent completo (simple y fiable).
+   */
+  applyElevationBatch(startIndex: number, elevations: Array<number | null>): void {
+    const s = this.snapshot;
+
+
+    if (!elevations?.length) return;
+
+    const path = [...s.path];
+
+    for (let j = 0; j < elevations.length; j++) {
+      const i = startIndex + j;
+      if (!path[i]) continue;
+      path[i] = { ...path[i], ele: elevations[j] };
+    }
+
+    // Recalcular desnivel total (fiable)
+    let ascent = 0;
+    let descent = 0;
+
+    for (let i = 1; i < path.length; i++) {
+      const e1 = path[i - 1].ele;
+      const e2 = path[i].ele;
+      if (e1 == null || e2 == null) continue;
+      const de = e2 - e1;
+      if (de > 0) ascent += de;
+      else descent += Math.abs(de);
+    }
+
+    // si ya no quedan null al final del tramo, limpiamos pendingEleStartIndex
+    let pending: number | null = null;
+    for (let i = 0; i < path.length; i++) {
+      if (path[i].ele == null) {
+        pending = i;
+        break;
+      }
+    }
+
+    this._state$.next({
+      ...s,
+      path,
       ascentMeters: ascent,
       descentMeters: descent,
-      lastSpeedMps: speed,
+      pendingEleStartIndex: pending,
     });
   }
 
@@ -175,6 +234,7 @@ export class TrackRecorderService {
       ascentMeters: 0,
       descentMeters: 0,
       lastSpeedMps: null,
+      pendingEleStartIndex: null,
     };
   }
 
