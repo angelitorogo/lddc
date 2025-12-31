@@ -1261,34 +1261,37 @@ export class TrackDetailComponent
    * - Llama a applyHoverIndex para sincronizar tooltip/mapa/POI
    */
   onProfileTouch(ev: TouchEvent): void {
-    if (!this.elevationChart) return;
-    if (!this.profileWrap) return;
+  if (!this.elevationChart) return;
+  if (!this.profileWrap) return;
 
-    ev.preventDefault();
+  ev.preventDefault();
 
-    const touch = ev.touches[0];
-    if (!touch) return;
+  const touch = ev.touches[0];
+  if (!touch) return;
 
-    const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
-    const xInCanvas = touch.clientX - canvasRect.left;
+  const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
+  const xInCanvas = touch.clientX - canvasRect.left;
 
-    const xScale = (this.elevationChart as any).scales?.x;
-    if (!xScale) return;
+  const xScale = (this.elevationChart as any).scales?.x;
+  if (!xScale) return;
 
-    const idxFloat = xScale.getValueForPixel(xInCanvas);
-    let idx = Math.round(idxFloat);
-    idx = Math.max(0, Math.min(this.elevationProfile.length - 1, idx));
+  // ✅ ahora es km (por ser scale linear)
+  const kmAtCursor = Number(xScale.getValueForPixel(xInCanvas));
 
-    this.elevationChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
-    // @ts-ignore
-    this.elevationChart.tooltip?.setActiveElements(
-      [{ datasetIndex: 0, index: idx }],
-      { x: xInCanvas, y: 0 }
-    );
-    this.elevationChart.update('none');
+  // ✅ convertir km -> índice real del elevationProfile
+  const idx = this.findNearestElevationIndexByKm(kmAtCursor);
 
-    this.applyHoverIndex(idx);
-  }
+  this.elevationChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
+  // @ts-ignore
+  this.elevationChart.tooltip?.setActiveElements(
+    [{ datasetIndex: 0, index: idx }],
+    { x: xInCanvas, y: 0 }
+  );
+  this.elevationChart.update('none');
+
+  this.applyHoverIndex(idx);
+}
+
 
   /**
    * Aplica un índice “hover” de perfil y sincroniza UI:
