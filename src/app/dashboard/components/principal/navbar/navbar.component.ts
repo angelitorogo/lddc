@@ -63,7 +63,7 @@ export class NavbarComponent implements OnInit{
         const currentRoute = this.router.url;
         //console.log('Ruta actual:', currentRoute);
 
-        if (currentRoute === '/dashboard/profile') {
+        if (currentRoute === '/dashboard/profile' || currentRoute === '/dashboard/create' || currentRoute === '/dashboard/tracks/record' || currentRoute.includes('/follow')) {
           this.router.navigate(['/dashboard/home']);
         }
 

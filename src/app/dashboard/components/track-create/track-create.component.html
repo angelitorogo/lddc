@@ -11,9 +11,113 @@
     <p class="track-create__subtitle">
       Sube un archivo GPX y revisa el trazado en el mapa antes de guardar el track.
     </p>
+
+    <!-- ✅ selector modo -->
+    <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;" *ngIf="authService.isLoggedIn() && authService.user.role == 'ADMIN'">
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="creating || bulkUploading"
+        (click)="setBulkMode(false)"
+        [style.opacity]="bulkMode ? 0.65 : 1"
+      >
+        Crear 1 track
+      </button>
+
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="creating || bulkUploading"
+        (click)="setBulkMode(true)"
+        [style.opacity]="bulkMode ? 1 : 0.65"
+      >
+        Importación masiva (varios GPX)
+      </button>
+    </div>
   </header>
 
-  <form class="track-create__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <!-- =========================
+       ✅ MODO BULK
+       ========================= -->
+  <section *ngIf="bulkMode" class="track-create__form">
+    <!-- input oculto bulk -->
+    <input
+      #bulkGpxInput
+      type="file"
+      accept=".gpx"
+      multiple
+      style="display: none"
+      (change)="onBulkFilesSelected($event)"
+    />
+
+    <div class="form-field">
+      <label>Importación masiva</label>
+
+      <div class="file-input-row" style="align-items: center; gap: 10px;">
+        <button
+          type="button"
+          class="btn-upload"
+          (click)="openBulkDialog()"
+          [disabled]="bulkUploading"
+        >
+          <i class="bi bi-upload"></i>
+          <span>Seleccionar GPX</span>
+        </button>
+
+        <span class="file-input__filename" *ngIf="bulkFiles.length">
+          {{ bulkFiles.length }} GPX seleccionado(s)
+        </span>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="cancelBulk()"
+          [disabled]="(!bulkFiles.length && !bulkJobId) || bulkUploading"
+        >
+          Quitar selección
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary btn-primary--action"
+          *ngIf="bulkFiles.length"
+          (click)="uploadBulk()"
+          [disabled]="bulkUploading"
+        >
+          <span class="btn-spinner" *ngIf="bulkUploading" aria-hidden="true"></span>
+          {{ bulkUploading ? 'Procesando...' : ('Enviar ' + bulkFiles.length + ' GPX') }}
+        </button>
+      </div>
+
+      <p class="form-field__hint">
+        En importación masiva no se piden nombres ni imágenes: el nombre del track se toma del nombre del archivo GPX.
+      </p>
+
+      <div class="form-field__error" *ngIf="fileError">
+        {{ fileError }}
+      </div>
+
+      <div *ngIf="bulkUploading" style="margin-top: 8px; opacity:.9;">
+        {{ bulkProgressText }}
+      </div>
+    </div>
+
+    <div class="track-create__actions">
+      <button
+        type="button"
+        class="btn-primary btn-primary--action"
+        (click)="onBack()"
+        [disabled]="bulkUploading"
+      >
+        Volver
+      </button>
+    </div>
+  </section>
+
+  <!-- =========================
+       ✅ MODO NORMAL (tu form)
+       ========================= -->
+  <form *ngIf="!bulkMode" class="track-create__form" [formGroup]="form" (ngSubmit)="onSubmit()">
     <!-- NOMBRE -->
     <div class="form-field">
       <label for="name">Nombre *</label>
@@ -26,8 +130,12 @@
     <!-- DESCRIPCIÓN -->
     <div class="form-field">
       <label for="description">Descripción (opcional)</label>
-      <textarea id="description" rows="8" formControlName="description"
-        placeholder="Aquí puedes escribir una descripción narrativa de la ruta..."></textarea>
+      <textarea
+        id="description"
+        rows="8"
+        formControlName="description"
+        placeholder="Aquí puedes escribir una descripción narrativa de la ruta..."
+      ></textarea>
     </div>
 
     <!-- ARCHIVO GPX -->
@@ -35,31 +143,26 @@
       <label for="gpxFile">Archivo GPX</label>
 
       <div class="file-input-row">
+        <input
+          #fileInput
+          id="gpxFile"
+          type="file"
+          accept=".gpx"
+          (change)="onFileSelected($event)"
+          class="file-input__hidden"
+        />
 
-        <!-- INPUT REAL OCULTO -->
-        <input #fileInput id="gpxFile" type="file" accept=".gpx" (change)="onFileSelected($event)"
-          class="file-input__hidden" />
-
-        <!-- BOTÓN PERSONALIZADO -->
         <button type="button" class="btn-upload" (click)="openFileDialog()" [disabled]="creating">
           <i class="bi bi-upload"></i>
-          <span>
-            {{ selectedFile ? 'Cambiar archivo' : 'Seleccionar GPX' }}
-          </span>
+          <span>{{ selectedFile ? 'Cambiar archivo' : 'Seleccionar GPX' }}</span>
         </button>
 
-        <!-- MOSTRAR NOMBRE DEL ARCHIVO -->
-        <span class="file-input__filename" *ngIf="selectedFile">
-          {{ selectedFile.name }}
-        </span>
+        <span class="file-input__filename" *ngIf="selectedFile">{{ selectedFile.name }}</span>
 
-        <!-- BOTÓN QUITAR ARCHIVO -->
         <button type="button" class="btn-secondary" (click)="onCancelFile()" [disabled]="!selectedFile || creating">
           Quitar archivo
         </button>
-
       </div>
-
 
       <p class="form-field__hint">
         Selecciona un archivo .gpx para previsualizar el trazado en el mapa.
@@ -94,30 +197,35 @@
       <label for="imageFile">Imágenes</label>
 
       <div class="file-input-row">
-        <!-- INPUT IMAGES REAL OCULTO -->
-        <input #imageInput id="imageFile" type="file" accept=".jpg, .jpeg, .png, .webp" multiple
-          (change)="onImageSelected($event)" class="file-input__hidden" />
+        <input
+          #imageInput
+          id="imageFile"
+          type="file"
+          accept=".jpg, .jpeg, .png, .webp"
+          multiple
+          (change)="onImageSelected($event)"
+          class="file-input__hidden"
+        />
 
-        <!-- BOTÓN PERSONALIZADO -->
         <button type="button" class="btn-upload" (click)="openImageDialog()" [disabled]="creating">
           <i class="bi bi-upload"></i>
-          <span>
-            {{ selectedImages.length ? 'Cambiar imágenes' : 'Seleccionar imágenes' }}
-          </span>
+          <span>{{ selectedImages.length ? 'Cambiar imágenes' : 'Seleccionar imágenes' }}</span>
         </button>
 
-        <!-- RESUMEN -->
         <span class="file-input__filename" *ngIf="selectedImages.length">
           {{ selectedImages.length }} imagen(es) seleccionada(s)
         </span>
 
-        <!-- BOTÓN QUITAR IMÁGENES -->
-        <button type="button" class="btn-secondary" (click)="onCancelImages()" [disabled]="!selectedImages.length || creating">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="onCancelImages()"
+          [disabled]="!selectedImages.length || creating"
+        >
           Quitar imágenes
         </button>
       </div>
 
-      <!-- PREVIEW DE IMÁGENES -->
       <div class="image-preview-grid" *ngIf="imagePreviews.length">
         <div class="image-preview-card" *ngFor="let img of imagePreviews; let i = index">
           <div class="image-preview-thumb">
@@ -133,32 +241,18 @@
           </div>
         </div>
       </div>
-
-
-
     </div>
-
 
     <!-- ACCIONES -->
     <div class="track-create__actions">
-      <button
-        type="submit"
-        class="btn-primary btn-primary--action"
-        [disabled]="creating"
-      >
+      <button type="submit" class="btn-primary btn-primary--action" [disabled]="creating">
         <span class="btn-spinner" *ngIf="creating" aria-hidden="true"></span>
         {{ creating ? 'Creando...' : 'Crear track' }}
       </button>
 
-      <button
-        type="button"
-        class="btn-primary btn-primary--action"
-        (click)="onBack()"
-        [disabled]="creating"
-      >
+      <button type="button" class="btn-primary btn-primary--action" (click)="onBack()" [disabled]="creating">
         Cancelar
       </button>
     </div>
-
   </form>
 </section>

@@ -12,28 +12,21 @@ import { NearbyTrackItem } from '../../shared/models/track.model';
 import { compressImages } from '../../shared/helpers/compressor.helper';
 import { ViewportTracksQuery, ViewportTracksResponse } from '../../shared/interfaces/viewport.interfaces';
 
-
 @Injectable({
   providedIn: 'root',
 })
 export class TracksService {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  /**
-   * Lista tracks con filtros y paginación.
-   * Mapea directamente al endpoint GET /tracks del client-gateway.
-   */
   getTracks(params: TrackListParams = {}): Observable<TrackListResponse> {
     let httpParams = new HttpParams();
 
-    //usuario
     if (params.userId !== undefined) {
       httpParams = httpParams.set('userId', params.userId.toString());
     }
 
-    // paginación
     if (params.page !== undefined) {
       httpParams = httpParams.set('page', params.page.toString());
     }
@@ -41,7 +34,6 @@ export class TracksService {
       httpParams = httpParams.set('limit', params.limit.toString());
     }
 
-    // filtros
     if (params.routeType) {
       httpParams = httpParams.set('routeType', params.routeType);
     }
@@ -55,7 +47,6 @@ export class TracksService {
       httpParams = httpParams.set('difficulty', params.difficulty);
     }
 
-    // ordenación
     if (params.sortBy) {
       httpParams = httpParams.set('sortBy', params.sortBy);
     }
@@ -63,19 +54,16 @@ export class TracksService {
       httpParams = httpParams.set('sortOrder', params.sortOrder);
     }
 
-    //console.log(httpParams)
-
     return this.http.get<TrackListResponse>(this.baseUrl, {
       params: httpParams,
-      withCredentials: true, // por si usas cookies de sesión (no afecta a GET)
+      withCredentials: true,
     });
   }
 
   getTrackById(id: string): Observable<DetailResponse> {
-    return this.http.get<any>(
-      `${this.baseUrl}/${id}`,
-      { withCredentials: true } // por si usas cookies de sesión (no afecta a GET)
-    );
+    return this.http.get<any>(`${this.baseUrl}/${id}`, {
+      withCredentials: true,
+    });
   }
 
   createFromGpx(
@@ -84,15 +72,13 @@ export class TracksService {
     gpxFile: File,
     images: File[],
   ): Observable<CreateTrackResponse> {
-
-    // OJO: esto es async, así que lo convertimos a Observable con from(...)
     return new Observable<CreateTrackResponse>((observer) => {
       (async () => {
         try {
           const compressed = await compressImages(images, {
-            maxWidth: 1920, //1600
-            maxHeight: 1920, //1600
-            quality: 0.82, //0.78
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.82,
             mimeType: 'image/webp',
           });
 
@@ -103,13 +89,17 @@ export class TracksService {
 
           compressed.forEach((img) => formData.append('images', img, img.name));
 
-          this.http.post<CreateTrackResponse>(`${this.baseUrl}/gpx`, formData, {
-            withCredentials: true,
-          }).subscribe({
-            next: (res) => { observer.next(res); observer.complete(); },
-            error: (err) => observer.error(err),
-          });
-
+          this.http
+            .post<CreateTrackResponse>(`${this.baseUrl}/gpx`, formData, {
+              withCredentials: true,
+            })
+            .subscribe({
+              next: (res) => {
+                observer.next(res);
+                observer.complete();
+              },
+              error: (err) => observer.error(err),
+            });
         } catch (e) {
           observer.error(e);
         }
@@ -134,7 +124,10 @@ export class TracksService {
       httpParams = httpParams.set('trackExcluded', params.trackExcluded);
     }
 
-    return this.http.get<NearbyTrackItem[]>(`${this.baseUrl}/nearby`, { params: httpParams });
+    return this.http.get<NearbyTrackItem[]>(`${this.baseUrl}/nearby`, {
+      params: httpParams,
+      withCredentials: true,
+    });
   }
 
   downloadGpx(trackId: string): void {
@@ -147,14 +140,13 @@ export class TracksService {
     data: { name?: string; description?: string },
     images: File[] = [],
   ): Observable<any> {
-
     return new Observable<any>((observer) => {
       (async () => {
         try {
           const compressed = await compressImages(images, {
-            maxWidth: 1920, //1600
-            maxHeight: 1920, //1600
-            quality: 0.82, //0.78
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.82,
             mimeType: 'image/webp',
           });
 
@@ -166,13 +158,17 @@ export class TracksService {
             form.append('images', file, file.name);
           }
 
-          this.http.put<any>(`${this.baseUrl}/${trackId}`, form, {
-            withCredentials: true,
-          }).subscribe({
-            next: (res) => { observer.next(res); observer.complete(); },
-            error: (err) => observer.error(err),
-          });
-
+          this.http
+            .put<any>(`${this.baseUrl}/${trackId}`, form, {
+              withCredentials: true,
+            })
+            .subscribe({
+              next: (res) => {
+                observer.next(res);
+                observer.complete();
+              },
+              error: (err) => observer.error(err),
+            });
         } catch (e) {
           observer.error(e);
         }
@@ -180,14 +176,12 @@ export class TracksService {
     });
   }
 
-  // ✅ NUEVO: borrar imagen existente
   deleteTrackImage(trackId: string, imageId: string): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${trackId}/images/${imageId}`, {
       withCredentials: true,
     });
   }
 
-  // ✅ si ya tienes esto en TrackDetail, puedes reutilizarlo aquí también
   getUrlImage(image: any): string {
     return `${this.baseUrl}/images/${image.id}`;
   }
@@ -198,10 +192,6 @@ export class TracksService {
     });
   }
 
-  /**
-   * Obtiene tracks cuyo punto de inicio (startLat/startLon) cae dentro del viewport.
-   * Importante: withCredentials por si estás usando cookies de sesión.
-   */
   getTracksInViewport(query: ViewportTracksQuery): Observable<ViewportTracksResponse> {
     let params = new HttpParams()
       .set('minLat', String(query.minLat))
@@ -213,17 +203,12 @@ export class TracksService {
       params = params.set('zoomLevel', String(query.zoomLevel));
     }
 
-    // Ajusta el path si tu controller usa otro prefijo
     return this.http.get<ViewportTracksResponse>(`${this.baseUrl}/viewport`, {
       params,
       withCredentials: true,
     });
   }
 
-
-  /**
-   * Busca tracks por texto (GET /tracks/search)
-   */
   searchTracks(params: {
     q: string;
     page?: number;
@@ -240,8 +225,6 @@ export class TracksService {
     });
   }
 
-
-  
   elevationBatch(points: { lat: number; lon: number }[]): Observable<{ elevations: Array<number | null> }> {
     return this.http.post<{ elevations: Array<number | null> }>(
       `${this.baseUrl}/elevation/batch`,
@@ -249,6 +232,19 @@ export class TracksService {
       { withCredentials: true }
     );
   }
-  
 
+  createFromGpxBulkAsync(files: File[]): Observable<{ jobId: string }> {
+    const formData = new FormData();
+    for (const f of files) formData.append('gpx', f, f.name);
+
+    return this.http.post<{ jobId: string }>(`${this.baseUrl}/gpx/bulk`, formData, {
+      withCredentials: true,
+    });
+  }
+
+  getBulkJob(jobId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/gpx/bulk/${jobId}`, {
+      withCredentials: true,
+    });
+}
 }
