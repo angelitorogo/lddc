@@ -74,11 +74,11 @@
           </ng-container>
         </google-map>
       </figure>
-      <div class="map-attribution">
+      <!--<div class="map-attribution">
         POIs © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
           OpenStreetMap contributors
         </a>
-      </div>
+      </div>-->
     </section>
 
     <!-- COLUMNA DERECHA (fila 1): resumen + galería -->
@@ -206,13 +206,13 @@
           </span>
           <button
             type="button"
-            *ngIf="track.pois.length > 0"
+            *ngIf="track.waypoints.length > 0"
             class="poi-toggle"
             (click)="togglePois()"
             [attr.aria-pressed]="showPois"
           >
             <i class="bi" [ngClass]="showPois ? 'bi-geo-alt-fill' : 'bi-geo-alt'"></i>
-            <span>{{ showPois ? 'Ocultar POIs' : 'Mostrar POIs' }}</span>
+            <span>{{ showPois ? 'Ocultar WayPoints' : 'Mostrar WayPoints' }}</span>
           </button>
         </div>
        
@@ -266,7 +266,7 @@
 
           <!-- ✅ NUEVO: POI -->
           <div class="elev-tooltip__row" *ngIf="hoverPoi">
-            <span class="elev-tooltip__label">POI</span>
+            <span class="elev-tooltip__label">WP</span>
             <span class="elev-tooltip__value">
               {{ hoverPoi.name }}
             </span>
@@ -281,14 +281,14 @@
         No hay suficientes datos de altitud para mostrar un perfil.
       </p>
       <!-- ATRIBUCIÓN OSM -->
-        <div class="track-page__attribution">
+        <!--<div class="track-page__attribution">
           <i class="bi bi-info-circle"></i>
           <span>
             POIs © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
               OpenStreetMap contributors
             </a>
           </span>
-        </div>
+        </div>-->
     </section>
 
     <!-- FILA 3: DESCRIPCIÓN -->

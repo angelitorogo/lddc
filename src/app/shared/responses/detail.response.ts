@@ -22,7 +22,7 @@ export interface DetailResponse {
     images:              Image[];
     elevationProfile:    ElevationProfile[];
     trackPointsForFront: TrackPoint[];
-    pois: Poi[];
+    waypoints: Waypoint[];
 }
 
 export interface ElevationProfile {
@@ -47,7 +47,7 @@ export interface TrackPoint {
 }
 
 
-export type PoiType =
+export type WaypointType =
   | 'DRINKING_WATER'
   | 'VIEWPOINT'
   | 'SHELTER'
@@ -56,21 +56,26 @@ export type PoiType =
   | 'PICNIC_SITE'
   | 'INFORMATION';
 
-export interface Poi {
+export interface Waypoint {
   id: string;
   created_at: Date;
   updated_at: Date;
 
   trackId: string;
 
-  type: PoiType;
-  name?: string | null;
+  type: WaypointType;
 
-  osmType?: string | null; // node/way/relation
-  osmId?: string | null;
+  name?: string | null;
+  desc?: string | null;
+  cmt?: string | null;
+  time?: Date | null;
+  ele?: number | null;
 
   lat: number;
   lon: number;
 
   distanceFromStart?: number | null;
+
+  // solo informativo (no lo edita el usuario)
+  gpxIndex?: number | null;
 }

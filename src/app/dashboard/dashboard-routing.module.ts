@@ -73,11 +73,13 @@ const routes: Routes = [
         canActivate: [AuthGuard],
         component: TrackFollowComponent,
       },
+      /*
       {
         path: 'tracks/record',
         canActivate: [AuthGuard],
         component: TrackRecorderComponent,
       },
+      */
       /*
       {
         path: 'home2',

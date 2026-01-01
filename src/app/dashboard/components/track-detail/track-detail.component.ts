@@ -24,7 +24,7 @@ import { Track } from '../../../shared/models/track.model';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../auth/services/auth.service';
 
-import { Poi, PoiType } from '../../../shared/responses/detail.response';
+import { Waypoint, WaypointType  } from '../../../shared/responses/detail.response';
 import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 
 type ModalType = 'DELETE' | 'SUCCESS';
@@ -32,7 +32,7 @@ type ModalType = 'DELETE' | 'SUCCESS';
 type PoiOnProfile = {
   id: string;
   name: string;
-  type: PoiType;
+  type: WaypointType;
   lat: number;
   lon: number;
   // “anclaje” al perfil
@@ -147,7 +147,7 @@ export class TrackDetailComponent
     id: string;
     position: google.maps.LatLngLiteral;
     options: google.maps.MarkerOptions;
-    data: Poi;
+    data: Waypoint;
   }> = [];
 
   confirmDeleteOpen = false;
@@ -265,7 +265,6 @@ export class TrackDetailComponent
 
       this.userById(this.track);
       this.preparePoiMarkers();
-      this.preparePoiMarkers();
       this.loadNearbyTracks();
 
       if (!this.track.trackPointsForFront) {
@@ -344,7 +343,7 @@ export class TrackDetailComponent
    * - Guarda el POI "anclado" al perfil (x=distancia, y=elevación).
    */
   private buildPoiOnProfile(): void {
-    if (!this.track?.pois?.length) {
+    if (!this.track?.waypoints?.length) {
       this.poiOnProfile = [];
       return;
     }
@@ -364,7 +363,7 @@ export class TrackDetailComponent
 
     const list: PoiOnProfile[] = [];
 
-    for (const p of this.track.pois.slice(0, MAX)) {
+    for (const p of this.track.waypoints.slice(0, MAX)) {
       const poiPos: google.maps.LatLngLiteral = { lat: p.lat, lng: p.lon };
 
       const nearestIdx = this.findNearestPolylineIndexByLatLng(poiPos);
@@ -1778,14 +1777,14 @@ export class TrackDetailComponent
    * - Construye options (title, zIndex, etc.)
    */
   private preparePoiMarkers(): void {
-    if (!this.track?.pois?.length) {
+    if (!this.track?.waypoints?.length) {
       this.poiMarkers = [];
       return;
     }
 
     const MAX = 250;
 
-    this.poiMarkers = this.track.pois.slice(0, MAX).map((p) => {
+    this.poiMarkers = this.track.waypoints.slice(0, MAX).map((p) => {
       const icon = this.buildPoiMarkerIcon(p.type);
       const title = this.getPoiTitle(p);
 
@@ -1807,7 +1806,7 @@ export class TrackDetailComponent
   /**
    * Construye un google.maps.Icon a partir del SVG según tipo POI.
    */
-  private buildPoiMarkerIcon(type: PoiType): google.maps.Icon {
+  private buildPoiMarkerIcon(type: WaypointType): google.maps.Icon {
     const { svg, size, anchorX, anchorY } = this.getPoiSvg(type);
     const url = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 
@@ -1824,7 +1823,7 @@ export class TrackDetailComponent
    * - emoji en el centro
    * - anchor centrado
    */
-  private getPoiSvg(type: PoiType): {
+  private getPoiSvg(type: WaypointType): {
     svg: string;
     size: number;
     anchorX: number;
@@ -1858,7 +1857,7 @@ export class TrackDetailComponent
   /**
    * Color base del POI según tipo.
    */
-  private getPoiColor(type: PoiType): string {
+  private getPoiColor(type: WaypointType): string {
     switch (type) {
       case 'DRINKING_WATER':
         return '#1e88e5';
@@ -1882,7 +1881,7 @@ export class TrackDetailComponent
   /**
    * Emoji del POI según tipo.
    */
-  private getPoiEmoji(type: PoiType): string {
+  private getPoiEmoji(type: WaypointType): string {
     switch (type) {
       case 'DRINKING_WATER':
         return '💧';
@@ -1906,7 +1905,7 @@ export class TrackDetailComponent
   /**
    * Etiqueta humana del tipo de POI.
    */
-  private getPoiTypeLabel(type: PoiType): string {
+  private getPoiTypeLabel(type: WaypointType): string {
     switch (type) {
       case 'DRINKING_WATER':
         return 'Fuente';
@@ -1932,7 +1931,7 @@ export class TrackDetailComponent
    * - Si p.name existe => lo usa
    * - Si no => usa el label por tipo
    */
-  private getPoiTitle(p: Poi): string {
+  private getPoiTitle(p: Waypoint): string {
     const base = this.getPoiTypeLabel(p.type);
     if (p.name && p.name.trim().length) return p.name.trim();
     return base;
