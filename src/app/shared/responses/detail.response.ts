@@ -79,3 +79,15 @@ export interface Waypoint {
   // solo informativo (no lo edita el usuario)
   gpxIndex?: number | null;
 }
+
+export type WaypointPatchDto = {
+  name?: string | null;
+  type?: WaypointType;
+  desc?: string | null;
+  cmt?: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  time?: string | null; // ISO
+  ele?: number | null;
+};
+

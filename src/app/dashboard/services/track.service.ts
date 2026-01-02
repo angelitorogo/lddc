@@ -5,7 +5,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TrackListParams } from '../../shared/models/track-list-params-model';
-import { DetailResponse } from '../../shared/responses/detail.response';
+import { DetailResponse, WaypointPatchDto } from '../../shared/responses/detail.response';
 import { CreateTrackResponse } from '../../shared/responses/create-track.response';
 import { TrackListResponse } from '../../shared/responses/list.response';
 import { NearbyTrackItem } from '../../shared/models/track.model';
@@ -246,5 +246,14 @@ export class TracksService {
     return this.http.get<any>(`${this.baseUrl}/gpx/bulk/${jobId}`, {
       withCredentials: true,
     });
-}
+  }
+
+  updateWaypoint(trackId: string, waypointId: string, dto: WaypointPatchDto): Observable<any> {
+    // Endpoint recomendado:
+    // PATCH /tracks/:trackId/waypoints/:waypointId
+    return this.http.patch<any>(`${this.baseUrl}/${trackId}/waypoints/${waypointId}`, dto, {
+      withCredentials: true,
+    });
+  }
+
 }

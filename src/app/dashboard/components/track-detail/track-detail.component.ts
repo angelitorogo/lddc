@@ -7,12 +7,13 @@ import {
   AfterViewInit,
   HostListener,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
 import { TracksService } from '../../services/track.service';
 import {
   DetailResponse,
   ElevationProfile,
   TrackPoint,
+  WaypointPatchDto,
 } from '../../../shared/responses/detail.response';
 import { environment } from '../../../../environments/environment';
 
@@ -21,10 +22,10 @@ import { ChartOptions } from 'chart.js';
 
 import { GoogleMap } from '@angular/google-maps';
 import { Track } from '../../../shared/models/track.model';
-import { Subscription } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { AuthService } from '../../../auth/services/auth.service';
 
-import { Waypoint, WaypointType  } from '../../../shared/responses/detail.response';
+import { Waypoint, WaypointType } from '../../../shared/responses/detail.response';
 import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 
 type ModalType = 'DELETE' | 'SUCCESS';
@@ -47,8 +48,7 @@ type PoiOnProfile = {
   styleUrl: './track-detail.component.css',
 })
 export class TrackDetailComponent
-  implements OnInit, OnDestroy, AfterViewInit
-{
+  implements OnInit, OnDestroy, AfterViewInit {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
   private routeSub?: Subscription;
@@ -70,6 +70,7 @@ export class TrackDetailComponent
     disableDefaultUI: false,
     draggable: true,
     scrollwheel: true,
+    gestureHandling: 'greedy',
     disableDoubleClickZoom: true,
     keyboardShortcuts: false,
   };
@@ -109,7 +110,7 @@ export class TrackDetailComponent
   hoverMapPoint: google.maps.LatLngLiteral | null = null;
 
   hoverMarkerOptions: google.maps.MarkerOptions = {
-    clickable: false,
+    clickable: true,
     draggable: false,
     zIndex: 9999,
     optimized: true,
@@ -169,12 +170,44 @@ export class TrackDetailComponent
 
   @ViewChild('descTa', { static: false }) descTa?: ElementRef<HTMLTextAreaElement>;
 
+
+  private lastHoverPolylineIdx: number | null = null;
+
+  currentUrl!: string;
+
+  // ✅ Modal Waypoint
+  waypointModalOpen = false;
+  selectedWaypoint: Waypoint | null = null;
+  selectedWaypointOnProfile: PoiOnProfile | null = null;
+
+  onHoverWayPoint: boolean = false;
+
+  // =========================
+  // Modal Waypoint
+  // =========================// si lo usas como PoiOnProfile, tipa como corresponda
+
+  isEditingWaypoint = false;
+  savingWaypoint = false;
+  waypointSaveError: string | null = null;
+
+  editWp: {
+    name: string;
+    type: WaypointType;
+    desc: string;
+    cmt: string;
+  } = {
+    name: '',
+    type: 'INFORMATION',
+    desc: '',
+    cmt: '',
+  };
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private trackService: TracksService,
-    public authService: AuthService
-  ) {}
+    public authService: AuthService,
+  ) { }
 
   // =========================================================
   // ✅ CICLO DE VIDA
@@ -186,13 +219,16 @@ export class TrackDetailComponent
    * - Cada vez que cambia, recarga el detalle del track.
    */
   ngOnInit(): void {
+
+    this.currentUrl = this.router.url;
+
     this.routeSub = this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (!id) return;
       this.loadDetailTrack(id);
     });
 
-    
+
   }
 
   /**
@@ -351,10 +387,7 @@ export class TrackDetailComponent
       this.poiOnProfile = [];
       return;
     }
-    if (
-      !this.polylinePath?.length ||
-      this.cumulativeDistancesMeters.length !== this.polylinePath.length
-    ) {
+    if (!this.polylinePath?.length) {
       this.poiOnProfile = [];
       return;
     }
@@ -367,9 +400,15 @@ export class TrackDetailComponent
       const poiPos: google.maps.LatLngLiteral = { lat: p.lat, lng: p.lon };
 
       const nearestIdx = this.findNearestPolylineIndexByLatLng(poiPos);
-      const dist = this.cumulativeDistancesMeters[nearestIdx] ?? 0;
 
-      const profIdx = this.findNearestElevationIndexByDistance(dist);
+      const n = this.elevationProfile.length;
+      const m = this.polylinePath.length;
+
+      const profIdx = Math.max(
+        0,
+        Math.min(n - 1, Math.round(nearestIdx * (n - 1) / (m - 1)))
+      );
+
       const ep = this.elevationProfile[profIdx];
 
       if (!ep) continue;
@@ -409,33 +448,6 @@ export class TrackDetailComponent
       }
     }
     return bestIdx;
-  }
-
-  /**
-   * Devuelve el índice del elevationProfile cuyo distanceMeters está más cerca de targetMeters.
-   * Implementa búsqueda binaria (O(log n)).
-   */
-  private findNearestElevationIndexByDistance(targetMeters: number): number {
-    const arr = this.elevationProfile;
-    if (!arr?.length) return 0;
-
-    let lo = 0;
-    let hi = arr.length - 1;
-
-    while (lo < hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      if ((arr[mid].distanceMeters ?? 0) < targetMeters) lo = mid + 1;
-      else hi = mid;
-    }
-
-    const i = lo;
-    if (i === 0) return 0;
-
-    const prev = i - 1;
-    const d1 = Math.abs((arr[i].distanceMeters ?? 0) - targetMeters);
-    const d0 = Math.abs((arr[prev].distanceMeters ?? 0) - targetMeters);
-
-    return d0 <= d1 ? prev : i;
   }
 
   /**
@@ -511,22 +523,15 @@ export class TrackDetailComponent
     };
   }
 
-  /**
-   * Si el punto de hover queda fuera de los bounds visibles del mapa,
-   * hace panTo para traerlo de vuelta.
-   */
+
   private ensurePointVisibleOnMap(point: google.maps.LatLngLiteral): void {
     const map = this.mapComponent?.googleMap;
     if (!map) return;
 
-    const bounds = map.getBounds();
-    if (!bounds) return;
-
     const latLng = new google.maps.LatLng(point.lat, point.lng);
-    if (bounds.contains(latLng)) return;
-
     map.panTo(latLng);
   }
+
 
   /**
    * Restaura el encuadre original del mapa:
@@ -639,6 +644,9 @@ export class TrackDetailComponent
    * Navega al editor del track actual.
    */
   onEditTrack(): void {
+
+    this.authService.setRedirectUrl(this.currentUrl);
+
     this.router.navigate(['/dashboard/edit', this.track?.id]);
   }
 
@@ -647,6 +655,15 @@ export class TrackDetailComponent
    */
   onDeleteTrack(): void {
     console.log('Eliminar ruta', this.track?.id);
+  }
+
+  onClickFollow(): void {
+    this.authService.setRedirectUrl(this.currentUrl);
+
+    const url = '/dashboard/tracks/' + this.track!.id + '/follow';
+
+    this.router.navigate([url]);
+
   }
 
   // =========================================================
@@ -754,312 +771,398 @@ export class TrackDetailComponent
    * - Configura interacción (hover/touch)
    */
   private buildElevationChart(): void {
-  if (!this.elevationCanvas) return;
-  if (!this.hasElevationProfile()) return;
+    if (!this.elevationCanvas) return;
+    if (!this.hasElevationProfile()) return;
 
-  if (this.elevationChart) {
-    this.elevationChart.destroy();
-    this.elevationChart = undefined;
-  }
+    if (this.elevationChart) {
+      this.elevationChart.destroy();
+      this.elevationChart = undefined;
+    }
 
-  const ctx = this.elevationCanvas.nativeElement.getContext('2d');
-  if (!ctx) return;
+    const ctx = this.elevationCanvas.nativeElement.getContext('2d');
+    if (!ctx) return;
 
-  // ✅ suavizado visual SOLO para el chart (no altera this.elevationProfile)
-  const smoothedProfile = this.smoothElevations(this.elevationProfile, 5);
+    // ✅ suavizado visual SOLO para el chart (no altera this.elevationProfile)
+    const smoothedProfile = this.smoothElevations(this.elevationProfile, 5);
 
-  // ✅ X numérico real (km) + Y (m)
-  const series = smoothedProfile.map((p) => ({
-    x: p.distanceMeters / 1000, // km
-    y: p.elevationMeters,       // m
-  }));
+    // ✅ X numérico real (km) + Y (m)
+    const series = smoothedProfile.map((p) => ({
+      x: p.distanceMeters / 1000, // km
+      y: p.elevationMeters,       // m
+    }));
 
-  // ✅ recorte del hueco final: max X exacto a los datos (para cualquier track)
-  const maxKmRaw =
-    smoothedProfile.length > 0
-      ? smoothedProfile[smoothedProfile.length - 1].distanceMeters / 1000
-      : 0;
+    // ✅ recorte del hueco final: max X exacto a los datos (para cualquier track)
+    const maxKmRaw =
+      smoothedProfile.length > 0
+        ? smoothedProfile[smoothedProfile.length - 1].distanceMeters / 1000
+        : 0;
 
-  // ✅ evita que Chart “suba” al siguiente tick grande (ej: 13.2 -> 14)
-  //    Lo dejamos a 1 decimal hacia abajo (se ve natural en la UI)
-  const maxKm = Math.floor(maxKmRaw * 10) / 10;
+    // ✅ evita que Chart “suba” al siguiente tick grande (ej: 13.2 -> 14)
+    //    Lo dejamos a 1 decimal hacia abajo (se ve natural en la UI)
+    const maxKm = Math.floor(maxKmRaw * 10) / 10;
 
-  // bounds de Y
-  const yValues = smoothedProfile.map((p) => p.elevationMeters);
-  const gracePct = 0.10; // prueba: 0.06, 0.10, 0.15, 0.20
-  const yBounds = this.computeNiceYBounds(yValues, gracePct);
-  const yStep = this.computeYTickStep(yBounds.min, yBounds.max);
+    // bounds de Y
+    const yValues = smoothedProfile.map((p) => p.elevationMeters);
+    const gracePct = 0.10; // prueba: 0.06, 0.10, 0.15, 0.20
+    const yBounds = this.computeNiceYBounds(yValues, gracePct);
+    const yStep = this.computeYTickStep(yBounds.min, yBounds.max);
 
-  const verticalLinePlugin = {
-    id: 'verticalLinePlugin',
-    afterDraw: (chart: any) => {
-      const ctx = chart.ctx;
-      const { top, bottom, left, right } = chart.chartArea;
+    const verticalLinePlugin = {
+      id: 'verticalLinePlugin',
+      afterDraw: (chart: any) => {
+        const ctx = chart.ctx;
+        const { top, bottom, left, right } = chart.chartArea;
 
-      // ===============================
-      // HOVER (línea vertical + punto morado)
-      // ===============================
-      const active = chart.tooltip?._active;
-      if (active && active.length) {
-        const activePoint = active[0];
-        const x = activePoint.element.x;
-        const y = activePoint.element.y;
+        // ===============================
+        // HOVER (línea vertical + punto morado)
+        // ===============================
+        const active = chart.tooltip?._active;
+        if (active && active.length) {
+          const activePoint = active[0];
+          const x = activePoint.element.x;
+          const y = activePoint.element.y;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x, top);
+          ctx.lineTo(x, bottom);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(180, 123, 245, 0.589)';
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 4.2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgb(156, 91, 231)';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // ===============================
+        // POIs pegados a la CURVA
+        // (solo si showPois = true)
+        // ===============================
+        if (!this.showPois || !this.poiOnProfile?.length) return;
+
+        const meta0 = chart.getDatasetMeta(0); // dataset de la línea
+        if (!meta0?.data?.length) return;
+
+        const pois = [...this.poiOnProfile].sort((a, b) => a.index - b.index);
 
         ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(x, top);
-        ctx.lineTo(x, bottom);
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
-        ctx.stroke();
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const isMobile = this.isMobileView;
+
+        // tamaños según viewport
+        const baseRadius = isMobile ? 2.0 : 3.2;
+        const innerRadius = isMobile ? 2.8 : 4.2;
+
+        const badgeW = isMobile ? 0 : 18;
+        const badgeH = isMobile ? 0 : 18;
+        const offsetY = isMobile ? 10 : 14;
+        const r = isMobile ? 4 : 5;
+        const iconFontSize = isMobile ? 9 : 12; // ajusta a gusto
+
+        for (const poi of pois) {
+          const el = meta0.data[poi.index];
+          if (!el) continue;
+
+          const x = el.x;
+          const y = el.y;
+
+          // si queda fuera del área útil, no lo pintes
+          if (x < left || x > right || y < top || y > bottom) continue;
+
+          // punto base en la curva
+          ctx.beginPath();
+          ctx.arc(x, y, baseRadius, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(180, 123, 245, 0.95)';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
+          ctx.stroke();
+
+          // badge con emoji ligeramente por encima de la curva
+          //const offsetY = 14;
+          //const badgeW = 6;
+          //const badgeH = 6;
+          //const r = 5;
+          const bx = x - badgeW / 2;
+          const by = y - offsetY - badgeH / 2;
+
+          const byClamped = Math.max(top + 6, by);
+
+          // rect redondeado
+          ctx.arc(x, y, innerRadius, 0, Math.PI * 2);
+          ctx.beginPath();
+          ctx.moveTo(bx + r, byClamped);
+          ctx.lineTo(bx + badgeW - r, byClamped);
+          ctx.quadraticCurveTo(bx + badgeW, byClamped, bx + badgeW, byClamped + r);
+          ctx.lineTo(bx + badgeW, byClamped + badgeH - r);
+          ctx.quadraticCurveTo(
+            bx + badgeW,
+            byClamped + badgeH,
+            bx + badgeW - r,
+            byClamped + badgeH
+          );
+          ctx.lineTo(bx + r, byClamped + badgeH);
+          ctx.quadraticCurveTo(bx, byClamped + badgeH, bx, byClamped + badgeH - r);
+          ctx.lineTo(bx, byClamped + r);
+          ctx.quadraticCurveTo(bx, byClamped, bx + r, byClamped);
+          ctx.closePath();
+
+          ctx.fillStyle = 'rgba(5, 16, 13, 0.85)';
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+          ctx.stroke();
+
+          ctx.fillStyle = 'rgba(255,255,255,0.92)';
+          ctx.font = `${iconFontSize}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(this.getPoiEmoji(poi.type), x, byClamped + badgeH / 2);
+        }
+
         ctx.restore();
+      },
+    };
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(180, 123, 245, 0.589)';
-        ctx.fill();
-        ctx.restore();
+    const chartData = {
+      datasets: [
+        {
+          label: this.isMobileView ? '' : 'Altitud (m)',
+          data: series,     // ✅ [{x,y}]
+          parsing: false,   // ✅ importantísimo para que use x/y
+          yAxisID: 'y',
+          tension: 0.3,
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          borderColor: 'rgba(0, 230, 118, 1)',
+          backgroundColor: 'rgba(0, 230, 118, 0.15)',
+        },
+      ],
+    };
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, 4.2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgb(156, 91, 231)';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
-        ctx.stroke();
-        ctx.restore();
-      }
+    const options: ChartOptions<'line'> = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: { enabled: false },
+        legend: { display: false },
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
 
-      // ===============================
-      // POIs pegados a la CURVA
-      // (solo si showPois = true)
-      // ===============================
-      if (!this.showPois || !this.poiOnProfile?.length) return;
+      /**
+       * Evento hover del chart:
+       * - Actualiza tooltip (distancia/altitud)
+       * - Sincroniza punto en mapa
+       * - Calcula pendiente
+       * - Detecta POI cercano (hoverPoi)
+       */
+      
 
-      const meta0 = chart.getDatasetMeta(0); // dataset de la línea
-      if (!meta0?.data?.length) return;
+      onHover: (event: any, activeEls: any[], chart: any) => {
+        if (!this.profileWrap) return;
 
-      const pois = [...this.poiOnProfile].sort((a, b) => a.index - b.index);
+        if (!activeEls || activeEls.length === 0) {
+          this.clearElevationHover(true);
+          return;
+        }
 
-      ctx.save();
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      for (const poi of pois) {
-        const el = meta0.data[poi.index];
-        if (!el) continue;
-
+        const el = activeEls[0].element;
         const x = el.x;
-        const y = el.y;
+        const yTop = chart.chartArea.top;
 
-        // si queda fuera del área útil, no lo pintes
-        if (x < left || x > right || y < top || y > bottom) continue;
+        // ✅ con eje X "linear", getValueForPixel devuelve KM
+        const xScale = chart.scales.x;
+        const kmAtCursor = Number(xScale.getValueForPixel(x));
 
-        // punto base en la curva
-        ctx.beginPath();
-        ctx.arc(x, y, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(180, 123, 245, 0.95)';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
-        ctx.stroke();
+        // ✅ convertimos km -> índice real en elevationProfile (distanciaMeters)
+        const nearestIdx = this.findNearestElevationIndexByKm(kmAtCursor);
 
-        // badge con emoji ligeramente por encima de la curva
-        const offsetY = 14;
-        const badgeW = 18;
-        const badgeH = 18;
-        const r = 5;
-        const bx = x - badgeW / 2;
-        const by = y - offsetY - badgeH / 2;
+        const p = this.elevationProfile[nearestIdx];
+        if (!p) {
+          this.elevTooltip.visible = false;
+          return;
+        }
 
-        const byClamped = Math.max(top + 6, by);
+        const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
+        const wrapRect = this.profileWrap.nativeElement.getBoundingClientRect();
+        const xInWrap = x + (canvasRect.left - wrapRect.left);
 
-        // rect redondeado
-        ctx.beginPath();
-        ctx.moveTo(bx + r, byClamped);
-        ctx.lineTo(bx + badgeW - r, byClamped);
-        ctx.quadraticCurveTo(bx + badgeW, byClamped, bx + badgeW, byClamped + r);
-        ctx.lineTo(bx + badgeW, byClamped + badgeH - r);
-        ctx.quadraticCurveTo(
-          bx + badgeW,
-          byClamped + badgeH,
-          bx + badgeW - r,
-          byClamped + badgeH
+        const tooltipY = Math.max(6, yTop - 46);
+
+        const wrapWidth = wrapRect.width;
+        const PADDING = 12;
+        const clampedX = Math.max(PADDING, Math.min(wrapWidth - PADDING, xInWrap));
+
+        this.elevTooltip.visible = true;
+        this.elevTooltip.x = clampedX;
+        this.elevTooltip.y = tooltipY;
+        this.elevTooltip.distanceKm = p.distanceMeters / 1000;
+        this.elevTooltip.altitudeM = p.elevationMeters;
+
+        if (
+          this.polylinePath &&
+          this.polylinePath.length > 0 &&
+          this.cumulativeDistancesMeters.length === this.polylinePath.length
+        ) {
+          /*
+          const targetDist = p.distanceMeters;
+          const nearestPolylineIdx = this.findNearestPolylineIndexByDistance(targetDist);
+          this.hoverMapPoint = this.polylinePath[nearestPolylineIdx];
+          this.ensurePointVisibleOnMap(this.hoverMapPoint);
+          */
+          const polyIdx = this.mapProfileIndexToPolylineIndex(nearestIdx);
+
+          // ✅ Actualiza SIEMPRE el punto (marker morado) con el MISMO índice
+          this.hoverMapPoint = this.polylinePath[polyIdx];
+
+          // ✅ PAN solo si cambia el índice
+          if (this.lastHoverPolylineIdx !== polyIdx) {
+            this.lastHoverPolylineIdx = polyIdx;
+            this.ensurePointVisibleOnMap(this.hoverMapPoint);
+          }
+
+        }
+
+        if (this.recenterResetTimer) {
+          clearTimeout(this.recenterResetTimer);
+          this.recenterResetTimer = null;
+        }
+
+        this.applyHoverIndex(nearestIdx);
+      },
+
+      onClick: (event: any, activeEls: any[], chart: any) => {
+
+        if( !this.showPois) return;
+        if (!activeEls || activeEls.length === 0) return;
+        if (!this.poiOnProfile?.length) return;
+
+        const el = activeEls[0].element;
+        const x = el.x;
+
+        // eje X linear -> km
+        const xScale = chart.scales.x;
+        const kmAtCursor = Number(xScale.getValueForPixel(x));
+
+        // índice del perfil
+        const nearestIdx = this.findNearestElevationIndexByKm(kmAtCursor);
+
+        // ✅ buscar POI más cercano en el perfil
+        let best: PoiOnProfile | null = null;
+        let bestDiff = Number.POSITIVE_INFINITY;
+
+        for (const poi of this.poiOnProfile) {
+          const diff = Math.abs(poi.index - nearestIdx);
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            best = poi;
+          }
+        }
+
+        // ✅ umbral: cuántos puntos permites de “distancia” para considerar click en POI
+        // (ajústalo; en móvil suele convenir 8–12, en desktop 4–6)
+        const threshold = this.isMobileView ? 10 : 6;
+
+        if (!best || bestDiff > threshold) return;
+
+        // ✅ obtener el Waypoint real por id
+        const wp = this.track?.waypoints?.find(w => w.id === best!.id);
+        if (!wp) return;
+
+        // ✅ Pintar línea vertical fija en el perfil (crosshair)
+        this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: best.index }]);
+        // @ts-ignore
+        this.elevationChart?.tooltip?.setActiveElements(
+          [{ datasetIndex: 0, index: best.index }],
+          { x: 0, y: 0 }
         );
-        ctx.lineTo(bx + r, byClamped + badgeH);
-        ctx.quadraticCurveTo(bx, byClamped + badgeH, bx, byClamped + badgeH - r);
-        ctx.lineTo(bx, byClamped + r);
-        ctx.quadraticCurveTo(bx, byClamped, bx + r, byClamped);
-        ctx.closePath();
+        this.elevationChart?.update('none');
 
-        ctx.fillStyle = 'rgba(5, 16, 13, 0.85)';
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
-        ctx.stroke();
+        // ✅ Reutilizar tu lógica central (tooltip HTML + hoverMapPoint + hoverPoi)
+        this.applyHoverIndex(best.index);
 
-        ctx.fillStyle = 'rgba(255,255,255,0.92)';
-        ctx.fillText(this.getPoiEmoji(poi.type), x, byClamped + badgeH / 2);
-      }
-
-      ctx.restore();
-    },
-  };
-
-  const chartData = {
-    datasets: [
-      {
-        label: this.isMobileView ? '' : 'Altitud (m)',
-        data: series,     // ✅ [{x,y}]
-        parsing: false,   // ✅ importantísimo para que use x/y
-        yAxisID: 'y',
-        tension: 0.3,
-        borderWidth: 2,
-        pointRadius: 0,
-        fill: true,
-        borderColor: 'rgba(0, 230, 118, 1)',
-        backgroundColor: 'rgba(0, 230, 118, 0.15)',
+        // ✅ abre modal usando tu flujo único
+        this.onWaypointMarkerClick(wp);
       },
-    ],
-  };
 
-  const options: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      tooltip: { enabled: false },
-      legend: { display: false },
-    },
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
 
-    /**
-     * Evento hover del chart:
-     * - Actualiza tooltip (distancia/altitud)
-     * - Sincroniza punto en mapa
-     * - Calcula pendiente
-     * - Detecta POI cercano (hoverPoi)
-     */
-    onHover: (event: any, activeEls: any[], chart: any) => {
-      if (!this.profileWrap) return;
-
-      if (!activeEls || activeEls.length === 0) {
-        this.clearElevationHover(true);
-        return;
-      }
-
-      const el = activeEls[0].element;
-      const x = el.x;
-      const yTop = chart.chartArea.top;
-
-      // ✅ con eje X "linear", getValueForPixel devuelve KM
-      const xScale = chart.scales.x;
-      const kmAtCursor = Number(xScale.getValueForPixel(x));
-
-      // ✅ convertimos km -> índice real en elevationProfile (distanciaMeters)
-      const nearestIdx = this.findNearestElevationIndexByKm(kmAtCursor);
-
-      const p = this.elevationProfile[nearestIdx];
-      if (!p) {
-        this.elevTooltip.visible = false;
-        return;
-      }
-
-      const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
-      const wrapRect = this.profileWrap.nativeElement.getBoundingClientRect();
-      const xInWrap = x + (canvasRect.left - wrapRect.left);
-
-      const tooltipY = Math.max(6, yTop - 46);
-
-      const wrapWidth = wrapRect.width;
-      const PADDING = 12;
-      const clampedX = Math.max(PADDING, Math.min(wrapWidth - PADDING, xInWrap));
-
-      this.elevTooltip.visible = true;
-      this.elevTooltip.x = clampedX;
-      this.elevTooltip.y = tooltipY;
-      this.elevTooltip.distanceKm = p.distanceMeters / 1000;
-      this.elevTooltip.altitudeM = p.elevationMeters;
-
-      if (
-        this.polylinePath &&
-        this.polylinePath.length > 0 &&
-        this.cumulativeDistancesMeters.length === this.polylinePath.length
-      ) {
-        const targetDist = p.distanceMeters;
-        const nearestPolylineIdx = this.findNearestPolylineIndexByDistance(targetDist);
-        this.hoverMapPoint = this.polylinePath[nearestPolylineIdx];
-        this.ensurePointVisibleOnMap(this.hoverMapPoint);
-      }
-
-      if (this.recenterResetTimer) {
-        clearTimeout(this.recenterResetTimer);
-        this.recenterResetTimer = null;
-      }
-
-      this.applyHoverIndex(nearestIdx);
-    },
-
-    scales: {
-      x: {
-        type: 'linear',
-        min: 0,
-        max: maxKm,        // ✅ recorta el hueco final (para cualquier track)
-        offset: false,
-        bounds: 'data',
-        grace: 0,
-        title: { display: !this.isMobileView, text: 'Distancia (km)' },
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: {
-          display: true,
-          maxTicksLimit: this.isMobileView ? 6 : 8,
-          maxRotation: 0,
-          minRotation: 0,
-          callback: (value: any) => {
-            const km = Number(value);
-            if (!Number.isFinite(km)) return '';
-            return km.toFixed(1);
+      scales: {
+        x: {
+          type: 'linear',
+          min: 0,
+          max: maxKm,        // ✅ recorta el hueco final (para cualquier track)
+          offset: false,
+          bounds: 'data',
+          grace: 0,
+          title: { display: !this.isMobileView, text: 'Distancia (km)' },
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: {
+            display: true,
+            maxTicksLimit: this.isMobileView ? 6 : 8,
+            maxRotation: 0,
+            minRotation: 0,
+            callback: (value: any) => {
+              const km = Number(value);
+              if (!Number.isFinite(km)) return '';
+              return km.toFixed(1);
+            },
+          },
+          border: { display: !this.isMobileView },
+        },
+        y: {
+          position: 'left',
+          grace: 0,
+          min: yStep < 100 ? yBounds.min : this.redondearACentenaDown(yBounds.min),
+          max: yStep < 100 ? yBounds.max : this.redondearACentenaDown(yBounds.max + yStep),
+          title: { display: !this.isMobileView, text: 'Altitud (m)' },
+          ticks: {
+            stepSize: this.redondearACentenaUp(yStep),
+            display: true,
+            callback: (value: any, index: number, ticks: any[]) => {
+              // ❌ Oculta el primer tick y el último
+              if (index === 0) return '';
+              if (index === ticks.length - 1) return '';
+              return `${Number(value).toFixed(0)}`;
+            },
+          },
+          border: { display: !this.isMobileView },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.08)',
+            drawTicks: !this.isMobileView,
           },
         },
-        border: { display: !this.isMobileView },
       },
-      y: {
-        position: 'left',
-        grace: 0,
-        min: yStep < 100 ? yBounds.min : this.redondearACentenaDown(yBounds.min),
-        max: yStep < 100 ? yBounds.max : this.redondearACentenaDown(yBounds.max + yStep),
-        title: { display: !this.isMobileView, text: 'Altitud (m)' },
-        ticks: {
-          stepSize: this.redondearACentenaUp(yStep),
-          display: true,
-          callback: (value: any, index: number, ticks: any[]) => {
-            // ❌ Oculta el primer tick y el último
-            if (index === 0) return '';
-            if (index === ticks.length - 1) return '';
-            return `${Number(value).toFixed(0)}`;
-          },
-        },
-        border: { display: !this.isMobileView },
-        grid: {
-          color: 'rgba(255, 255, 255, 0.08)',
-          drawTicks: !this.isMobileView,
-        },
-      },
-    },
-  };
+    };
 
-  this.elevationChart = new Chart(ctx, {
-    type: 'line',
-    data: chartData as any,
-    options,
-    plugins: [verticalLinePlugin],
-  });
-}
+    this.elevationChart = new Chart(ctx, {
+      type: 'line',
+      data: chartData as any,
+      options,
+      plugins: [verticalLinePlugin],
+    });
+  }
 
   /**
    * ✅ NUEVO helper: dado un km del chart (X linear), encuentra el índice más cercano
@@ -1233,6 +1336,7 @@ export class TrackDetailComponent
   private clearElevationHover(resetMap: boolean): void {
     this.elevTooltip.visible = false;
     this.hoverMapPoint = null;
+    this.lastHoverPolylineIdx = null;
     this.pendiente = undefined;
 
     if (this.elevationChart) {
@@ -1260,36 +1364,37 @@ export class TrackDetailComponent
    * - Llama a applyHoverIndex para sincronizar tooltip/mapa/POI
    */
   onProfileTouch(ev: TouchEvent): void {
-  if (!this.elevationChart) return;
-  if (!this.profileWrap) return;
 
-  ev.preventDefault();
+    if (!this.elevationChart) return;
+    if (!this.profileWrap) return;
 
-  const touch = ev.touches[0];
-  if (!touch) return;
+    ev.preventDefault();
 
-  const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
-  const xInCanvas = touch.clientX - canvasRect.left;
+    const touch = ev.touches[0];
+    if (!touch) return;
 
-  const xScale = (this.elevationChart as any).scales?.x;
-  if (!xScale) return;
+    const canvasRect = this.elevationCanvas.nativeElement.getBoundingClientRect();
+    const xInCanvas = touch.clientX - canvasRect.left;
 
-  // ✅ ahora es km (por ser scale linear)
-  const kmAtCursor = Number(xScale.getValueForPixel(xInCanvas));
+    const xScale = (this.elevationChart as any).scales?.x;
+    if (!xScale) return;
 
-  // ✅ convertir km -> índice real del elevationProfile
-  const idx = this.findNearestElevationIndexByKm(kmAtCursor);
+    // ✅ ahora es km (por ser scale linear)
+    const kmAtCursor = Number(xScale.getValueForPixel(xInCanvas));
 
-  this.elevationChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
-  // @ts-ignore
-  this.elevationChart.tooltip?.setActiveElements(
-    [{ datasetIndex: 0, index: idx }],
-    { x: xInCanvas, y: 0 }
-  );
-  this.elevationChart.update('none');
+    // ✅ convertir km -> índice real del elevationProfile
+    const idx = this.findNearestElevationIndexByKm(kmAtCursor);
 
-  this.applyHoverIndex(idx);
-}
+    this.elevationChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
+    // @ts-ignore
+    this.elevationChart.tooltip?.setActiveElements(
+      [{ datasetIndex: 0, index: idx }],
+      { x: xInCanvas, y: 0 }
+    );
+    this.elevationChart.update('none');
+
+    this.applyHoverIndex(idx);
+  }
 
 
   /**
@@ -1336,12 +1441,9 @@ export class TrackDetailComponent
       this.elevTooltip.x = this.computeStickyTooltipX(xInWrap, wrapRect2.width);
     });
 
-    if (
-      this.polylinePath?.length &&
-      this.cumulativeDistancesMeters.length === this.polylinePath.length
-    ) {
-      const nearestIdx = this.findNearestPolylineIndexByDistance(p.distanceMeters);
-      this.hoverMapPoint = this.polylinePath[nearestIdx];
+    if (this.polylinePath?.length) {
+      const polyIdx = this.mapProfileIndexToPolylineIndex(idx);
+      this.hoverMapPoint = this.polylinePath[polyIdx];
     }
 
     this.hoverPoi = this.showPois ? this.findHoverPoiByIndex(idx) : null;
@@ -1829,9 +1931,9 @@ export class TrackDetailComponent
     anchorX: number;
     anchorY: number;
   } {
-    const size = 34;
-    const cx = 17;
-    const cy = 17;
+    const size = 24;
+    const cx = 12;
+    const cy = 12;
 
     const color = this.getPoiColor(type);
 
@@ -2065,22 +2167,22 @@ export class TrackDetailComponent
 
   showProfile() {
 
-    if(!this.authService.user) {
+    if (!this.authService.user) {
       this.router.navigateByUrl(`/dashboard/profile/${this.track?.authorUserId}`);
     } else {
 
-      
 
-      if(this.track?.authorUserId === this.authService.user?.id) {
+
+      if (this.track?.authorUserId === this.authService.user?.id) {
         this.router.navigateByUrl('/dashboard/profile');
       } else {
         this.router.navigateByUrl(`/dashboard/profile/${this.track?.authorUserId}`);
       }
-      
+
 
     }
 
-    
+
 
   }
 
@@ -2092,6 +2194,176 @@ export class TrackDetailComponent
   redondearACentenaUp(num: number): number {
     return Math.round(num / 100) * 100;
   }
+
+
+  
+  // =========================
+  // Abrir modal desde marker
+  // =========================
+  onWaypointMarkerClick(wp: Waypoint): void {
+    this.selectedWaypoint = wp;
+
+    // ancla si quieres mostrar distancia/altitud del perfil
+    this.selectedWaypointOnProfile =
+      this.poiOnProfile?.find((p: any) => p.id === wp.id) ?? null;
+
+    this.isEditingWaypoint = false;
+    this.savingWaypoint = false;
+    this.waypointSaveError = null;
+
+    this.waypointModalOpen = true;
+
+    // ✅ Pintar línea fija en el perfil al abrir modal (si existe en poiOnProfile)
+    if (this.selectedWaypointOnProfile?.index != null) {
+      const idx = this.selectedWaypointOnProfile.index;
+
+      this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: idx }]);
+      // @ts-ignore
+      this.elevationChart?.tooltip?.setActiveElements(
+        [{ datasetIndex: 0, index: idx }],
+        { x: 0, y: 0 }
+      );
+      this.elevationChart?.update('none');
+
+      this.applyHoverIndex(idx);
+    }
+  }
+
+  // =========================
+  // Editar
+  // =========================
+  startEditWaypoint(): void {
+    if (!this.selectedWaypoint) return;
+
+    this.isEditingWaypoint = true;
+    this.waypointSaveError = null;
+
+    // ✅ copiar valores actuales al formulario
+    this.editWp = {
+      name: (this.selectedWaypoint.name ?? '').trim(),
+      type: (this.selectedWaypoint.type ?? 'INFORMATION') as WaypointType,
+      desc: (this.selectedWaypoint.desc ?? '').trim(),
+      cmt: (this.selectedWaypoint.cmt ?? '').trim(),
+    };
+  }
+
+  cancelEditWaypoint(): void {
+    this.isEditingWaypoint = false;
+    this.waypointSaveError = null;
+  }
+
+  // =========================
+  // Guardar (PATCH)
+  // =========================
+  saveWaypointEdit(): void {
+    if (!this.track?.id) return;
+    if (!this.selectedWaypoint?.id) return;
+    if (this.savingWaypoint) return;
+
+    this.savingWaypoint = true;
+    this.waypointSaveError = null;
+
+    const trackId = this.track.id;
+    const waypointId = this.selectedWaypoint.id;
+
+    // ✅ payload PATCH (solo lo que editamos ahora)
+    const dto: WaypointPatchDto = {
+      name: this.editWp.name?.trim() || null,
+      type: this.editWp.type,
+      desc: this.editWp.desc?.trim() || null,
+      cmt: this.editWp.cmt?.trim() || null,
+    };
+
+    this.trackService
+      .updateWaypoint(trackId, waypointId, dto)
+      .pipe(finalize(() => (this.savingWaypoint = false)))
+      .subscribe({
+        next: (updated: Partial<Waypoint> | null) => {
+
+          if (!updated?.id) {
+            this.waypointSaveError = 'El backend devolvió un waypoint inválido (null/sin id).';
+            console.log(this.waypointSaveError)
+            return;
+          }
+
+          // ✅ Actualiza estado local sin recargar todo
+          if (this.track?.waypoints?.length) {
+            this.track.waypoints = (this.track.waypoints ?? []).filter((w): w is Waypoint => !!w);
+            const idx = this.track.waypoints.findIndex((w) => w?.id === updated.id);
+            if (idx >= 0) {
+              this.track.waypoints[idx] = { ...this.track.waypoints[idx], ...updated };
+            }
+          }
+
+          // ✅ actualizar el seleccionado
+          this.selectedWaypoint = { ...this.selectedWaypoint!, ...updated };
+
+          // ✅ reconstruye los POIs del perfil (por si cambiaste name/type)
+          this.buildPoiOnProfile();
+          this.preparePoiMarkers(); // si tu método se llama distinto, ajusta
+
+          // ✅ salir de modo edición
+          this.isEditingWaypoint = false;
+
+          // ✅ mantener línea fija tras rebuild (recalcula anchor)
+          this.selectedWaypointOnProfile =
+            this.poiOnProfile?.find((p: any) => p.id === updated.id) ?? null;
+
+          if (this.selectedWaypointOnProfile?.index != null) {
+            const pIdx = this.selectedWaypointOnProfile.index;
+            this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: pIdx }]);
+            // @ts-ignore
+            this.elevationChart?.tooltip?.setActiveElements(
+              [{ datasetIndex: 0, index: pIdx }],
+              { x: 0, y: 0 }
+            );
+            this.elevationChart?.update('none');
+            this.applyHoverIndex(pIdx);
+          }
+        },
+        error: (err) => {
+          this.waypointSaveError =
+            err?.error?.message ?? 'No se pudo guardar el waypoint';
+        },
+      });
+  }
+
+  // =========================
+  // Cerrar modal
+  // =========================
+  closeWaypointModal(): void {
+    this.waypointModalOpen = false;
+    this.selectedWaypoint = null;
+    this.selectedWaypointOnProfile = null;
+
+    this.isEditingWaypoint = false;
+    this.savingWaypoint = false;
+    this.waypointSaveError = null;
+
+    // ✅ quitar línea vertical al cerrar
+    this.clearElevationHover(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void {
+    if (this.waypointModalOpen) this.closeWaypointModal();
+  }
+
+
+  private mapProfileIndexToPolylineIndex(profileIdx: number): number {
+    const n = this.elevationProfile?.length ?? 0;
+    const m = this.polylinePath?.length ?? 0;
+
+    if (n <= 1 || m <= 1) return 0;
+
+    const i = Math.max(0, Math.min(n - 1, profileIdx));
+    const j = Math.round(i * (m - 1) / (n - 1));
+
+    return Math.max(0, Math.min(m - 1, j));
+  }
+
+
+
 
 
 

@@ -5,13 +5,16 @@
 .track-edit {
   max-width: 900px;
   margin: 0 auto 2rem;
-  padding-top: 1rem;
   color: var(--text-color);
 }
 
 /* HEADER */
 
 .track-edit__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
   margin-bottom: 1.5rem;
 }
 
@@ -30,7 +33,6 @@
     border-color 0.15s ease,
     color 0.15s ease,
     background-color 0.15s ease;
-  margin-bottom: 0.75rem;
 }
 
 .track-edit__back:hover {
@@ -525,7 +527,17 @@ textarea:focus {
 
 /* RESPONSIVE */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+
+  .track-edit__header {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .track-edit__back {
+    margin-bottom: 0.75rem;
+  }
+
   .track-edit__panel {
     padding: 0.9rem;
   }

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TracksService } from '../../services/track.service';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-track-edit',
@@ -45,6 +46,7 @@ export class TrackEditComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private trackService: TracksService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -69,7 +71,10 @@ export class TrackEditComponent implements OnInit, OnDestroy {
   // navegación
   // =========================
   onBack(): void {
-    this.router.navigate(['/dashboard/home']);
+    const redirectFromGuard = this.authService.consumeRedirectUrl();
+    const redirectTo = redirectFromGuard || '/dashboard/home';
+
+    this.router.navigateByUrl(redirectTo);
   }
 
   onCancel(): void {

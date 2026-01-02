@@ -171,6 +171,7 @@ export class AuthService {
   }
 
   setRedirectUrl(url: string): void {
+    console.log(url)
     this.redirectUrl = url;
   }
 

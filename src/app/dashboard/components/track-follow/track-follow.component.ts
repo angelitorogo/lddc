@@ -1,11 +1,12 @@
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { GoogleMap } from '@angular/google-maps';
 import { Subscription } from 'rxjs';
 
 import { TracksService } from '../../services/track.service';
 import { GeolocationService } from '../../services/otros/location.service';
 import { TrackFollowOnlyService } from '../../services/track-follow-only.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 type LatLngLiteral = google.maps.LatLngLiteral;
 
@@ -86,8 +87,10 @@ export class TrackFollowComponent implements AfterViewInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly tracksService: TracksService,
+    private authService: AuthService,
     private readonly geo: GeolocationService,
-    private readonly follow: TrackFollowOnlyService
+    private readonly follow: TrackFollowOnlyService,
+    private router: Router
   ) {}
 
   ngAfterViewInit(): void {
@@ -227,4 +230,12 @@ export class TrackFollowComponent implements AfterViewInit, OnDestroy {
     if (this.wrongDirection) return 'SENTIDO CONTRARIO';
     return 'EN RUTA';
   }
+
+  onBack(): void {
+    const redirectFromGuard = this.authService.consumeRedirectUrl();
+    const redirectTo = redirectFromGuard || '/dashboard/home';
+
+    this.router.navigateByUrl(redirectTo);
+  }
+
 }

@@ -17,12 +17,17 @@ export class AuthGuard implements CanActivate {
     _route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
+
+
+    
     if (this._authService.isLoggedIn()) {
       return true;
     }
 
     // ✅ guardamos la ruta a la que intentaba ir
     this._authService.setRedirectUrl(state.url);
+    
+    
 
     // ✅ al login
     this.router.navigate(['/auth/login']);

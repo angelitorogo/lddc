@@ -70,6 +70,7 @@
               *ngFor="let m of poiMarkers; trackBy: trackByPoiId"
               [position]="m.position"
               [options]="m.options"
+              (mapClick)="onWaypointMarkerClick(m.data)"
             ></map-marker>
           </ng-container>
         </google-map>
@@ -137,7 +138,7 @@
         </div>
 
         <div class="actions_panel">
-          <a class="btn-outline track-page__footer-btn btn-follow" [routerLink]="['/dashboard/tracks', track.id, 'follow']">
+          <a class="btn-outline track-page__footer-btn btn-follow" (click)="onClickFollow()">
             <i class="bi bi-signpost-2"></i>
             Seguir
           </a>
@@ -517,5 +518,229 @@
 
   </footer>
 </section>
+
+
+<!-- ✅ MODAL WAYPOINT -->
+<!--<div
+  class="wp-modal__backdrop"
+  *ngIf="waypointModalOpen"
+  (click)="closeWaypointModal()"
+>
+  <div class="wp-modal" (click)="$event.stopPropagation()">
+    <div class="wp-modal__header">
+      <div class="wp-modal__title">
+        {{ selectedWaypoint?.name || 'Waypoint' }}
+      </div>
+
+      <button class="wp-modal__close" type="button" (click)="closeWaypointModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="wp-modal__body" *ngIf="selectedWaypoint as wp">
+      <div class="wp-modal__row">
+        <span class="wp-modal__label">Tipo</span>
+        <span class="wp-modal__value">
+          {{ wp.type }}
+        </span>
+      </div>
+
+      <div class="wp-modal__row" *ngIf="selectedWaypointOnProfile">
+        <span class="wp-modal__label">Distancia</span>
+        <span class="wp-modal__value">
+          {{ (selectedWaypointOnProfile.distanceMeters / 1000) | number:'1.2-2' }} km
+        </span>
+      </div>
+
+      <div class="wp-modal__row" *ngIf="wp.ele != null">
+        <span class="wp-modal__label">Altitud</span>
+        <span class="wp-modal__value">
+          {{ wp.ele | number:'1.0-0' }} m
+        </span>
+      </div>
+
+      <div class="wp-modal__row">
+        <span class="wp-modal__label">Lat/Lon</span>
+        <span class="wp-modal__value">
+          {{ wp.lat | number:'1.6-6' }}, {{ wp.lon | number:'1.6-6' }}
+        </span>
+      </div>
+
+      <div class="wp-modal__row" *ngIf="wp.time">
+        <span class="wp-modal__label">Hora</span>
+        <span class="wp-modal__value">
+          {{ wp.time | date:'d/M/yyyy HH:mm' }}
+        </span>
+      </div>
+
+      <div class="wp-modal__row" *ngIf="wp.desc">
+        <span class="wp-modal__label">Descripción</span>
+        <span class="wp-modal__value wp-modal__value--multiline">
+          {{ wp.desc }}
+        </span>
+      </div>
+
+      <div class="wp-modal__row" *ngIf="wp.cmt">
+        <span class="wp-modal__label">Comentario</span>
+        <span class="wp-modal__value wp-modal__value--multiline">
+          {{ wp.cmt }}
+        </span>
+      </div>
+
+      <div class="wp-modal__actions">
+        <button class="btn-outline" type="button" (click)="closeWaypointModal()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>-->
+
+<!-- ✅ MODAL WAYPOINT (ver / editar) -->
+<div
+  class="wp-modal__backdrop"
+  *ngIf="waypointModalOpen"
+  (click)="closeWaypointModal()"
+>
+  <div class="wp-modal" (click)="$event.stopPropagation()" *ngIf="selectedWaypoint as wp">
+    <div class="wp-modal__header">
+      <div class="wp-modal__title">
+        {{ (isEditingWaypoint ? (editWp?.name || 'Waypoint') : (wp.name || 'Waypoint')) }}
+      </div>
+
+      <div class="wp-modal__header-actions">
+        <!-- Editar (solo si NO estás editando) -->
+        <button
+          class="wp-modal__btn wp-modal__btn--edit"
+          type="button"
+          *ngIf="!isEditingWaypoint"
+          (click)="startEditWaypoint()"
+        >
+          <i class="bi bi-pencil"></i>
+          Editar
+        </button>
+
+        <!-- Guardar (solo si estás editando) -->
+        <button
+          class="wp-modal__btn wp-modal__btn--save"
+          type="button"
+          *ngIf="isEditingWaypoint"
+          (click)="saveWaypointEdit()"
+        >
+          <i class="bi bi-check2"></i>
+          Guardar
+        </button>
+
+        <!-- Cerrar (siempre) -->
+        <button
+          class="wp-modal__close"
+          type="button"
+          (click)="closeWaypointModal()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="wp-modal__body">
+      <!-- =========================
+           MODO LECTURA
+      ========================== -->
+      <ng-container *ngIf="!isEditingWaypoint; else editMode">
+        <div class="wp-modal__row">
+          <span class="wp-modal__label">Tipo</span>
+          <span class="wp-modal__value">
+            {{ wp.type }}
+          </span>
+        </div>
+
+        <div class="wp-modal__row" *ngIf="wp.ele != null">
+          <span class="wp-modal__label">Altitud</span>
+          <span class="wp-modal__value">{{ wp.ele | number:'1.0-0' }} m</span>
+        </div>
+
+        <div class="wp-modal__row">
+          <span class="wp-modal__label">Lat/Lon</span>
+          <span class="wp-modal__value">
+            {{ wp.lat | number:'1.6-6' }}, {{ wp.lon | number:'1.6-6' }}
+          </span>
+        </div>
+
+        <div class="wp-modal__row" *ngIf="wp.time">
+          <span class="wp-modal__label">Hora</span>
+          <span class="wp-modal__value">
+            {{ wp.time | date:'d/M/yyyy HH:mm' }}
+          </span>
+        </div>
+
+        <div class="wp-modal__row" *ngIf="wp.desc">
+          <span class="wp-modal__label">Descripción</span>
+          <span class="wp-modal__value wp-modal__value--multiline">{{ wp.desc }}</span>
+        </div>
+
+        <div class="wp-modal__row" *ngIf="wp.cmt">
+          <span class="wp-modal__label">Comentario</span>
+          <span class="wp-modal__value wp-modal__value--multiline">{{ wp.cmt }}</span>
+        </div>
+      </ng-container>
+
+      <!-- =========================
+           MODO EDICIÓN
+      ========================== -->
+      <ng-template #editMode>
+        <div class="wp-form">
+          <div class="wp-form__field">
+            <label class="wp-form__label">Nombre</label>
+            <input
+              class="wp-form__input"
+              type="text"
+              [(ngModel)]="editWp.name"
+              placeholder="Nombre del waypoint"
+            />
+          </div>
+
+          <div class="wp-form__field">
+            <label class="wp-form__label">Tipo</label>
+            <select class="wp-form__select" [(ngModel)]="editWp.type">
+              <option value="DRINKING_WATER">DRINKING_WATER</option>
+              <option value="VIEWPOINT">VIEWPOINT</option>
+              <option value="SHELTER">SHELTER</option>
+              <option value="PARKING">PARKING</option>
+              <option value="CAMP_SITE">CAMP_SITE</option>
+              <option value="PICNIC_SITE">PICNIC_SITE</option>
+              <option value="INFORMATION">INFORMATION</option>
+            </select>
+          </div>
+
+          <div class="wp-form__field">
+            <label class="wp-form__label">Descripción</label>
+            <textarea
+              class="wp-form__textarea"
+              rows="3"
+              [(ngModel)]="editWp.desc"
+              placeholder="Descripción (opcional)"
+            ></textarea>
+          </div>
+
+          <div class="wp-form__field">
+            <label class="wp-form__label">Comentario</label>
+            <textarea
+              class="wp-form__textarea"
+              rows="3"
+              [(ngModel)]="editWp.cmt"
+              placeholder="Comentario (opcional)"
+            ></textarea>
+          </div>
+
+          <div class="wp-form__hint">
+            <i class="bi bi-info-circle"></i>
+            Por ahora editas nombre, tipo, descripción y comentario.
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
 
 

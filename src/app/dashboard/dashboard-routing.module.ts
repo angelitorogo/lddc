@@ -38,6 +38,7 @@ const routes: Routes = [
       },
       { 
         path: 'edit/:id', 
+        canActivate: [AuthGuard],
         component: TrackEditComponent 
       },
       {
