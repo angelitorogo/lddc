@@ -68,7 +68,7 @@ export interface Waypoint {
   name?: string | null;
   desc?: string | null;
   cmt?: string | null;
-  time?: Date | null;
+  time?: string | null;
   ele?: number | null;
 
   lat: number;

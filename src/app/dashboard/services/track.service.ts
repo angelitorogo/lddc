@@ -256,4 +256,12 @@ export class TracksService {
     });
   }
 
+
+  createWaypoint(trackId: string, dto: WaypointPatchDto): Observable<WaypointPatchDto> {
+
+    return this.http.post<WaypointPatchDto>(`${this.baseUrl}/${trackId}/waypoints`, dto, {
+      withCredentials: true,
+    });
+  }
+
 }

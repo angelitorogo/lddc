@@ -1468,4 +1468,27 @@ body.no-scroll {
   }
 }
 
+.wp-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.8fr;
+  gap: 0.75rem;
+}
+
+.wp-form__input--readonly {
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+.wp-form__input--readonly:focus {
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .wp-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 

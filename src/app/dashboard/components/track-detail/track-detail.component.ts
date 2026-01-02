@@ -80,6 +80,7 @@ export class TrackDetailComponent
 
   polylinePath: google.maps.LatLngLiteral[] = [];
   polylineOptions: google.maps.PolylineOptions = {
+    clickable: true,
     strokeColor: '#00e676',
     strokeOpacity: 1,
     strokeWeight: 4,
@@ -186,6 +187,7 @@ export class TrackDetailComponent
   // Modal Waypoint
   // =========================// si lo usas como PoiOnProfile, tipa como corresponda
 
+
   isEditingWaypoint = false;
   savingWaypoint = false;
   waypointSaveError: string | null = null;
@@ -195,12 +197,25 @@ export class TrackDetailComponent
     type: WaypointType;
     desc: string;
     cmt: string;
+    lat: number | null;
+    lon: number | null;
+    ele: number | null;
   } = {
-    name: '',
-    type: 'INFORMATION',
-    desc: '',
-    cmt: '',
-  };
+      name: '',
+      type: 'INFORMATION',
+      desc: '',
+      cmt: '',
+      lat: null,
+      lon: null,
+      ele: null,
+    };
+
+
+  // crear waypoint
+  isAddWaypointMode = false;
+  pendingWaypointLatLng: google.maps.LatLngLiteral | null = null;
+  isCreatingWaypoint = false;
+  isCreatingNewWaypoint = false;
 
   constructor(
     private router: Router,
@@ -978,7 +993,7 @@ export class TrackDetailComponent
        * - Calcula pendiente
        * - Detecta POI cercano (hoverPoi)
        */
-      
+
 
       onHover: (event: any, activeEls: any[], chart: any) => {
         if (!this.profileWrap) return;
@@ -1054,10 +1069,7 @@ export class TrackDetailComponent
       },
 
       onClick: (event: any, activeEls: any[], chart: any) => {
-
-        if( !this.showPois) return;
         if (!activeEls || activeEls.length === 0) return;
-        if (!this.poiOnProfile?.length) return;
 
         const el = activeEls[0].element;
         const x = el.x;
@@ -1066,46 +1078,78 @@ export class TrackDetailComponent
         const xScale = chart.scales.x;
         const kmAtCursor = Number(xScale.getValueForPixel(x));
 
-        // índice del perfil
+        // índice del perfil (punto “real” del click)
         const nearestIdx = this.findNearestElevationIndexByKm(kmAtCursor);
 
-        // ✅ buscar POI más cercano en el perfil
-        let best: PoiOnProfile | null = null;
-        let bestDiff = Number.POSITIVE_INFINITY;
-
-        for (const poi of this.poiOnProfile) {
-          const diff = Math.abs(poi.index - nearestIdx);
-          if (diff < bestDiff) {
-            bestDiff = diff;
-            best = poi;
-          }
-        }
-
-        // ✅ umbral: cuántos puntos permites de “distancia” para considerar click en POI
-        // (ajústalo; en móvil suele convenir 8–12, en desktop 4–6)
-        const threshold = this.isMobileView ? 10 : 6;
-
-        if (!best || bestDiff > threshold) return;
-
-        // ✅ obtener el Waypoint real por id
-        const wp = this.track?.waypoints?.find(w => w.id === best!.id);
-        if (!wp) return;
-
-        // ✅ Pintar línea vertical fija en el perfil (crosshair)
-        this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: best.index }]);
+        // ✅ siempre pintamos línea/tooltip donde has clicado
+        this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: nearestIdx }]);
         // @ts-ignore
         this.elevationChart?.tooltip?.setActiveElements(
-          [{ datasetIndex: 0, index: best.index }],
+          [{ datasetIndex: 0, index: nearestIdx }],
           { x: 0, y: 0 }
         );
         this.elevationChart?.update('none');
 
-        // ✅ Reutilizar tu lógica central (tooltip HTML + hoverMapPoint + hoverPoi)
-        this.applyHoverIndex(best.index);
+        this.applyHoverIndex(nearestIdx);
 
-        // ✅ abre modal usando tu flujo único
-        this.onWaypointMarkerClick(wp);
+        // =========================================================
+        // 1) SI hay POIs y click cerca de uno -> abrir modal existente
+        // =========================================================
+        if (this.showPois && this.poiOnProfile?.length && this.track?.waypoints?.length) {
+          let best: PoiOnProfile | null = null;
+          let bestDiff = Number.POSITIVE_INFINITY;
+
+          for (const poi of this.poiOnProfile) {
+            const diff = Math.abs(poi.index - nearestIdx);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              best = poi;
+            }
+          }
+
+          // umbral: cuántos puntos “de distancia” aceptas
+          const threshold = this.isMobileView ? 10 : 6;
+
+          if (best && bestDiff <= threshold) {
+            const wp = this.track.waypoints.find(w => w?.id === best!.id);
+            if (wp) {
+              // abre modal existente
+              this.onWaypointMarkerClick(wp);
+              return; // ✅ importante: si abrimos uno existente, no creamos
+            }
+          }
+        }
+
+        // =========================================================
+        // 2) Si NO era un POI y estás en modo “Añadir waypoint”
+        //    -> abrir modal de creación en ese punto del track
+        // =========================================================
+        if (!this.isAddWaypointMode) return;
+
+        // Mapear profileIdx -> polyIdx (tú ya lo usas en hover)
+        const polyIdx = this.mapProfileIndexToPolylineIndex(nearestIdx);
+        const snapped = this.polylinePath?.[polyIdx];
+        if (!snapped) return;
+
+        // ele (si trackPointsForFront está alineado con polylinePath)
+        let ele: number | null = null;
+        let time: string | null = null;
+
+        if (this.track?.trackPointsForFront?.length === this.polylinePath.length) {
+          const tp = this.track?.trackPointsForFront[polyIdx];
+          if (tp && typeof tp.ele === 'number') ele = tp.ele;
+          if (tp && typeof tp.time === 'string') time = tp.time;
+        }
+
+        this.openCreateWaypointModalFromTrackPoint({
+          lat: snapped.lat,
+          lon: snapped.lng,
+          ele,
+          time,
+          polyIdx,
+        });
       },
+
 
 
       scales: {
@@ -1590,7 +1634,7 @@ export class TrackDetailComponent
    */
   private buildPublicTrackUrl(): string {
     if (!this.track?.id) return environment.DOMAIN_URL;
-    return `${environment.DOMAIN_URL}/dashboard/track/${this.track.id}`;
+    return `${environment.DOMAIN_URL}/#/dashboard/track/${this.track.id}`;
   }
 
   /**
@@ -1625,6 +1669,7 @@ export class TrackDetailComponent
   /**
    * Comparte el enlace usando Web Share API si existe; si no, copia el enlace.
    */
+  /*
   async onShareLink(): Promise<void> {
     const url = this.buildPublicTrackUrl();
     const title = this.track?.name ?? 'Ruta';
@@ -1640,6 +1685,65 @@ export class TrackDetailComponent
       console.log('ℹ️ Share cancelado o no disponible', err);
     }
   }
+  */
+ 
+  async onShareLink(): Promise<void> {
+    const url = this.buildPublicTrackUrl();
+    const title = this.track?.name ?? 'Ruta';
+    const text = 'Mira esta ruta';
+
+    try {
+      // Si hay Web Share 2 (files), intentamos adjuntar portada
+      const cover = this.track?.images?.[0];
+
+      if (cover && navigator.share) {
+        const coverUrl = this.trackService.getUrlImage(cover);
+
+        // Descarga y convierte a File
+        const file = await this.fetchUrlAsFile(coverUrl, 'cover.webp');
+
+        // Solo si el navegador soporta compartir archivos
+        const canShareFiles =
+          typeof (navigator as any).canShare === 'function' &&
+          (navigator as any).canShare({ files: [file] });
+
+        if (canShareFiles) {
+          await navigator.share({
+            title,
+            text,
+            url,
+            files: [file],
+          } as any);
+          return;
+        }
+      }
+
+      // Fallback clásico (Web Share 1 o sin soporte de files)
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        return;
+      }
+
+      await this.onCopyLink();
+    } catch (err) {
+      console.log('ℹ️ Share cancelado o no disponible', err);
+    }
+  }
+
+  /** Convierte una URL (misma origin / CORS permitido) en File para Web Share 2 */
+  private async fetchUrlAsFile(fileUrl: string, filename: string): Promise<File> {
+    const res = await fetch(fileUrl, { credentials: 'include' });
+    if (!res.ok) throw new Error(`No se pudo descargar imagen (${res.status})`);
+
+    const blob = await res.blob();
+
+    // Intentar usar el mime real; si no, caer a image/webp
+    const type = blob.type || 'image/webp';
+
+    // Si el filename no coincide con mime, no pasa nada; el type manda
+    return new File([blob], filename, { type });
+  }
+
 
   // =========================================================
   // ✅ DESCARGA GPX
@@ -2196,7 +2300,7 @@ export class TrackDetailComponent
   }
 
 
-  
+
   // =========================
   // Abrir modal desde marker
   // =========================
@@ -2244,6 +2348,9 @@ export class TrackDetailComponent
       type: (this.selectedWaypoint.type ?? 'INFORMATION') as WaypointType,
       desc: (this.selectedWaypoint.desc ?? '').trim(),
       cmt: (this.selectedWaypoint.cmt ?? '').trim(),
+      lat: this.selectedWaypoint.lat ?? null,
+      lon: this.selectedWaypoint.lon ?? null,
+      ele: this.selectedWaypoint.ele ?? null,
     };
   }
 
@@ -2257,16 +2364,29 @@ export class TrackDetailComponent
   // =========================
   saveWaypointEdit(): void {
     if (!this.track?.id) return;
-    if (!this.selectedWaypoint?.id) return;
     if (this.savingWaypoint) return;
+
+    // En editar, necesito id real
+    if (!this.isCreatingNewWaypoint && !this.selectedWaypoint?.id) return;
+
+    // En crear, necesito lat/lon
+    if (this.isCreatingNewWaypoint) {
+      const hasLatLon =
+        this.selectedWaypoint &&
+        typeof this.selectedWaypoint.lat === 'number' &&
+        typeof this.selectedWaypoint.lon === 'number';
+      if (!hasLatLon) {
+        this.waypointSaveError = 'No hay coordenadas para crear el waypoint.';
+        return;
+      }
+    }
 
     this.savingWaypoint = true;
     this.waypointSaveError = null;
 
     const trackId = this.track.id;
-    const waypointId = this.selectedWaypoint.id;
 
-    // ✅ payload PATCH (solo lo que editamos ahora)
+    // ✅ payload (común)
     const dto: WaypointPatchDto = {
       name: this.editWp.name?.trim() || null,
       type: this.editWp.type,
@@ -2274,43 +2394,67 @@ export class TrackDetailComponent
       cmt: this.editWp.cmt?.trim() || null,
     };
 
-    this.trackService
-      .updateWaypoint(trackId, waypointId, dto)
+    // ✅ si estamos creando, mandamos también lat/lon (y lo que quieras en el futuro)
+    if (this.isCreatingNewWaypoint) {
+      dto.lat = this.selectedWaypoint!.lat;
+      dto.lon = this.selectedWaypoint!.lon;
+      dto.time = this.selectedWaypoint!.time?.toString();
+      dto.ele = this.selectedWaypoint!.ele;
+    }
+
+    const req$ = this.isCreatingNewWaypoint
+      ? this.trackService.createWaypoint(trackId, dto)
+      : this.trackService.updateWaypoint(trackId, this.selectedWaypoint!.id, dto);
+
+    req$
       .pipe(finalize(() => (this.savingWaypoint = false)))
       .subscribe({
-        next: (updated: Partial<Waypoint> | null) => {
-
-          if (!updated?.id) {
+        next: (saved: Partial<Waypoint> | null) => {
+          if (!saved?.id) {
             this.waypointSaveError = 'El backend devolvió un waypoint inválido (null/sin id).';
-            console.log(this.waypointSaveError)
+            console.log(this.waypointSaveError, saved);
             return;
           }
 
-          // ✅ Actualiza estado local sin recargar todo
-          if (this.track?.waypoints?.length) {
-            this.track.waypoints = (this.track.waypoints ?? []).filter((w): w is Waypoint => !!w);
-            const idx = this.track.waypoints.findIndex((w) => w?.id === updated.id);
-            if (idx >= 0) {
-              this.track.waypoints[idx] = { ...this.track.waypoints[idx], ...updated };
-            }
+          // ✅ asegurar array consistente
+          if (!this.track!.waypoints) this.track!.waypoints = [];
+          this.track!.waypoints = (this.track!.waypoints ?? []).filter((w): w is Waypoint => !!w);
+
+          // ✅ upsert en la lista local
+          const idx = this.track!.waypoints.findIndex((w) => w?.id === saved.id);
+          if (idx >= 0) {
+            this.track!.waypoints[idx] = { ...this.track!.waypoints[idx], ...saved } as Waypoint;
+          } else {
+            this.track!.waypoints.push(saved as Waypoint);
           }
 
-          // ✅ actualizar el seleccionado
-          this.selectedWaypoint = { ...this.selectedWaypoint!, ...updated };
+          // ✅ actualizar seleccionado (ya con id real si era creación)
+          this.selectedWaypoint = {
+            ...(this.selectedWaypoint as any),
+            ...(saved as any),
+          };
 
-          // ✅ reconstruye los POIs del perfil (por si cambiaste name/type)
+          // ✅ reconstruye POIs del perfil y markers
           this.buildPoiOnProfile();
-          this.preparePoiMarkers(); // si tu método se llama distinto, ajusta
+          this.preparePoiMarkers();
 
-          // ✅ salir de modo edición
+          // ✅ salir edición
           this.isEditingWaypoint = false;
+
+          // ✅ si era creación, ya no estamos creando
+          if (this.isCreatingNewWaypoint) {
+            this.isCreatingNewWaypoint = false;
+            this.isAddWaypointMode = false; // si lo usas
+            this.pendingWaypointLatLng = null; // si lo usas
+          }
 
           // ✅ mantener línea fija tras rebuild (recalcula anchor)
           this.selectedWaypointOnProfile =
-            this.poiOnProfile?.find((p: any) => p.id === updated.id) ?? null;
+            this.poiOnProfile?.find((p: any) => p.id === saved.id) ?? null;
 
           if (this.selectedWaypointOnProfile?.index != null) {
             const pIdx = this.selectedWaypointOnProfile.index;
+
             this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: pIdx }]);
             // @ts-ignore
             this.elevationChart?.tooltip?.setActiveElements(
@@ -2318,12 +2462,12 @@ export class TrackDetailComponent
               { x: 0, y: 0 }
             );
             this.elevationChart?.update('none');
+
             this.applyHoverIndex(pIdx);
           }
         },
         error: (err) => {
-          this.waypointSaveError =
-            err?.error?.message ?? 'No se pudo guardar el waypoint';
+          this.waypointSaveError = err?.error?.message ?? 'No se pudo guardar el waypoint';
         },
       });
   }
@@ -2362,6 +2506,118 @@ export class TrackDetailComponent
     return Math.max(0, Math.min(m - 1, j));
   }
 
+
+  toggleAddWaypointMode(): void {
+    this.isAddWaypointMode = !this.isAddWaypointMode;
+    this.pendingWaypointLatLng = null;
+  }
+
+  onTrackPolylineClick(ev: google.maps.MapMouseEvent): void {
+    // Solo si estás en modo "añadir waypoint"
+    if (!this.isAddWaypointMode) return;
+
+    const latLng = ev.latLng?.toJSON();
+    if (!latLng) return;
+
+    // 1) “Snap” al track: buscamos el punto más cercano de la polilínea
+    const nearestIdx = this.findNearestPolylineIndexByLatLng({
+      lat: latLng.lat,
+      lng: latLng.lng,
+    });
+
+    const snapped = this.polylinePath?.[nearestIdx];
+    if (!snapped) return;
+
+    // 2) Ele: la sacamos del trackPointsForFront (si está alineado con polylinePath)
+    let ele: number | null = null;
+    let time: string | null = null;
+
+    if (this.track!.trackPointsForFront.length === this.polylinePath.length) {
+      const tp = this.track!.trackPointsForFront[nearestIdx];
+      if (tp && typeof tp.ele === 'number') ele = tp.ele;
+      if (tp && typeof tp.time === 'string') time = tp.time;
+    }
+
+    // 3) Abrir modal en modo creación usando snapped + ele
+    this.openCreateWaypointModalFromTrackPoint({
+      lat: snapped.lat,
+      lon: snapped.lng,
+      ele,
+      time,
+      polyIdx: nearestIdx,
+    });
+  }
+
+
+  openCreateWaypointModalFromTrackPoint(p: {
+    lat: number;
+    lon: number;
+    ele: number | null;
+    time: string | null;
+    polyIdx: number;
+  }): void {
+    this.isCreatingNewWaypoint = true;
+
+    // mock seleccionado (sin id real todavía)
+    this.selectedWaypoint = {
+      id: 'NEW',
+      created_at: new Date(),
+      updated_at: new Date(),
+      trackId: this.track!.id,
+      type: 'INFORMATION',
+      name: null,
+      desc: null,
+      cmt: null,
+      time: p.time,
+      ele: p.ele,
+      lat: p.lat,
+      lon: p.lon,
+      distanceFromStart: null,
+      gpxIndex: null,
+    };
+
+    // form state (incluye lat/lon/ele readonly)
+    this.editWp = {
+      name: '',
+      type: 'INFORMATION',
+      desc: '',
+      cmt: '',
+      lat: p.lat,
+      lon: p.lon,
+      ele: p.ele,
+    };
+
+    this.waypointModalOpen = true;
+    this.isEditingWaypoint = true;
+    this.waypointSaveError = null;
+
+    // ✅ pinta línea del perfil en esa posición (mapeo polyIdx -> profileIdx)
+    const profIdx = this.mapPolylineIndexToProfileIndex(p.polyIdx);
+
+    if (profIdx != null) {
+      this.elevationChart?.setActiveElements([{ datasetIndex: 0, index: profIdx }]);
+      // @ts-ignore
+      this.elevationChart?.tooltip?.setActiveElements(
+        [{ datasetIndex: 0, index: profIdx }],
+        { x: 0, y: 0 }
+      );
+      this.elevationChart?.update('none');
+
+      this.applyHoverIndex(profIdx);
+    }
+  }
+
+  private mapPolylineIndexToProfileIndex(polyIdx: number): number | null {
+    if (!this.cumulativeDistancesMeters?.length) return null;
+    if (!this.elevationProfile?.length) return null;
+
+    const distMeters = this.cumulativeDistancesMeters[polyIdx];
+    if (typeof distMeters !== 'number') return null;
+
+    const km = distMeters / 1000;
+
+    return this.findNearestElevationIndexByKm(km);
+  }
 
 
 
