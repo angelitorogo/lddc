@@ -59,6 +59,18 @@
           <map-polyline [path]="polylinePath" [options]="polylineOptions" (polylineClick)="onTrackPolylineClick($event)"></map-polyline>
 
           <map-marker
+            *ngIf="startMarkerPos"
+            [position]="startMarkerPos"
+            [options]="startMarkerOptions">
+          </map-marker>
+
+          <map-marker
+            *ngIf="endMarkerPos"
+            [position]="endMarkerPos"
+            [options]="endMarkerOptions">
+          </map-marker>
+          
+          <map-marker
             *ngIf="hoverMapPoint"
             [position]="hoverMapPoint"
             [options]="hoverMarkerOptions"

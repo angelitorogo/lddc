@@ -217,6 +217,48 @@ export class TrackDetailByNameComponent
   isCreatingWaypoint = false;
   isCreatingNewWaypoint = false;
 
+
+  //pines inicio-final
+  pinStartUrl: string = this.svgToDataUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24">
+      <path fill="#1e8e3e" d="M12 2c-3.314 0-6 2.686-6 6 0 4.418 6 14 6 14s6-9.582 6-14c0-3.314-2.686-6-6-6z"/>
+      <circle cx="12" cy="8" r="2.5" fill="#ffffff"/>
+    </svg>
+  `);
+
+  pinEndUrl: string = this.svgToDataUrl(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24">
+      <path fill="#d93025" d="M12 2c-3.314 0-6 2.686-6 6 0 4.418 6 14 6 14s6-9.582 6-14c0-3.314-2.686-6-6-6z"/>
+      <circle cx="12" cy="8" r="2.5" fill="#ffffff"/>
+    </svg>
+  `);
+
+  startMarkerPos: google.maps.LatLngLiteral | null = null;
+  endMarkerPos: google.maps.LatLngLiteral | null = null;
+
+  startMarkerOptions: google.maps.MarkerOptions = {
+    title: 'Inicio del track',
+    clickable: false,
+    zIndex: 100,
+    icon: {
+      url: this.pinStartUrl,
+      scaledSize: new google.maps.Size(36, 36),
+      anchor: new google.maps.Point(18, 36),
+    },
+  };
+
+  endMarkerOptions: google.maps.MarkerOptions = {
+    title: 'Fin del track',
+    clickable: false,
+    zIndex: 100,
+    icon: {
+      url: this.pinEndUrl,
+      scaledSize: new google.maps.Size(36, 36),
+      anchor: new google.maps.Point(18, 36),
+    },
+  };
+
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -381,6 +423,11 @@ export class TrackDetailByNameComponent
       lat: p.lat,
       lng: p.lon,
     }));
+    
+    if (this.polylinePath.length) {
+      this.startMarkerPos = this.polylinePath[0];
+      this.endMarkerPos = this.polylinePath[this.polylinePath.length - 1];
+    }
 
     this.buildCumulativeDistances();
 
@@ -2621,6 +2668,11 @@ export class TrackDetailByNameComponent
     const km = distMeters / 1000;
 
     return this.findNearestElevationIndexByKm(km);
+  }
+
+  private svgToDataUrl(svg: string): string {
+    const cleaned = svg.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(cleaned)}`;
   }
 
 
