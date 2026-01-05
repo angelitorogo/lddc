@@ -18,6 +18,9 @@ import { ViewportTracksQuery, ViewportTracksResponse } from '../../shared/interf
 export class TracksService {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
+  private appName = environment.APP_NAME || 'La Dama del Cancho';
+  private domainName = environment.DOMAIN_URL || 'lddc.argomez.com';
+
   constructor(private http: HttpClient) {}
 
   getTracks(params: TrackListParams = {}): Observable<TrackListResponse> {
@@ -66,6 +69,12 @@ export class TracksService {
     });
   }
 
+  getTrackByName(name: string): Observable<DetailResponse> {
+    return this.http.get<any>(`${this.baseUrl}/name/${name}`, {
+      withCredentials: true,
+    });
+  }
+
   createFromGpx(
     name: string,
     description: string | null,
@@ -84,6 +93,8 @@ export class TracksService {
 
           const formData = new FormData();
           formData.append('name', name);
+          formData.append('appName', this.appName);
+          formData.append('domainName', this.domainName);
           if (description) formData.append('description', description);
           formData.append('gpx', gpxFile, gpxFile.name);
 
@@ -235,7 +246,10 @@ export class TracksService {
 
   createFromGpxBulkAsync(files: File[]): Observable<{ jobId: string }> {
     const formData = new FormData();
+    formData.append('appName', this.appName);
+    formData.append('domainName', this.domainName);
     for (const f of files) formData.append('gpx', f, f.name);
+
 
     return this.http.post<{ jobId: string }>(`${this.baseUrl}/gpx/bulk`, formData, {
       withCredentials: true,

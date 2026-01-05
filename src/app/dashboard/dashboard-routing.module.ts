@@ -14,6 +14,7 @@ import { CookiesSettingsComponent } from './components/otros/cookies-settings/co
 import { TrackFollowComponent } from './components/track-follow/track-follow.component';
 import { TrackRecorderComponent } from './components/track-recorder/track-recorder.component';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { TrackDetailByNameComponent } from './components/track-detail-by-name/track-detail-by-name.component';
 
 
 
@@ -30,6 +31,10 @@ const routes: Routes = [
       { 
         path: 'track/:id', 
         component: TrackDetailComponent 
+      },
+      { 
+        path: 'track/name/:name', 
+        component: TrackDetailByNameComponent 
       },
       { 
         path: 'create', 

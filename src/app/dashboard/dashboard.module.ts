@@ -24,6 +24,7 @@ import { TracksUserComponent } from './components/tracks-user/tracks-user.compon
 import { MapComponent } from './components/map/map.component';
 import { TrackFollowComponent } from './components/track-follow/track-follow.component';
 import { TrackRecorderComponent } from './components/track-recorder/track-recorder.component';
+import { TrackDetailByNameComponent } from './components/track-detail-by-name/track-detail-by-name.component';
 
 
 
@@ -38,6 +39,7 @@ import { TrackRecorderComponent } from './components/track-recorder/track-record
     NavbarComponent,
     FooterComponent,
     TrackDetailComponent,
+    TrackDetailByNameComponent,
     TrackCreateComponent,
     TrackEditComponent,
     ProfileComponent,

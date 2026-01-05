@@ -44,10 +44,10 @@ type PoiOnProfile = {
 
 @Component({
   selector: 'app-track-detail',
-  templateUrl: './track-detail.component.html',
-  styleUrl: './track-detail.component.css',
+  templateUrl: './track-detail-by-name.component.html',
+  styleUrl: './track-detail-by-name.component.css',
 })
-export class TrackDetailComponent
+export class TrackDetailByNameComponent
   implements OnInit, OnDestroy, AfterViewInit {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
@@ -238,9 +238,10 @@ export class TrackDetailComponent
     this.currentUrl = this.router.url;
 
     this.routeSub = this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      if (!id) return;
-      this.loadDetailTrack(id);
+      const name = params.get('name');
+      if (!name) return;
+      
+      this.loadDetailTrack(name);
     });
 
 
@@ -306,10 +307,11 @@ export class TrackDetailComponent
    * - Vincula POIs al perfil (poiOnProfile).
    * - Reconstruye mapa + chart si la vista ya existe.
    */
-  private loadDetailTrack(id: string): void {
+  private loadDetailTrack(name: string): void {
+
     this.resetElevationChartHard();
 
-    this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
+    this.trackService.getTrackByName(name).subscribe((resp: DetailResponse) => {
       this.track = resp;
 
       setTimeout(() => this.autoResizeDesc(), 0);

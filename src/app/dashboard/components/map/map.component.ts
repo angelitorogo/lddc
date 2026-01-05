@@ -135,7 +135,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   viewportPolylineOptions: google.maps.PolylineOptions = {
     strokeColor: '#00e676',
     strokeOpacity: 0.8,
-    strokeWeight: 3,
+    strokeWeight: 2,
     zIndex: 50,
   };
 
