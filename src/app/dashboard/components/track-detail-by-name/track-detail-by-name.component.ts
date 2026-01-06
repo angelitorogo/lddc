@@ -258,6 +258,8 @@ export class TrackDetailByNameComponent
     },
   };
 
+  // ✅ Modal deleted Waypoint
+  deleteOpenWp = false;
 
   constructor(
     private router: Router,
@@ -2493,7 +2495,7 @@ export class TrackDetailByNameComponent
           // ✅ si era creación, ya no estamos creando
           if (this.isCreatingNewWaypoint) {
             this.isCreatingNewWaypoint = false;
-            this.isAddWaypointMode = false; // si lo usas
+            //this.isAddWaypointMode = false; // si lo usas
             this.pendingWaypointLatLng = null; // si lo usas
           }
 
@@ -2675,7 +2677,30 @@ export class TrackDetailByNameComponent
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(cleaned)}`;
   }
 
+  removeWaypoint(trackId: string, waypointId: string): void {
 
+    this.trackService.deleteWaypoint(trackId, waypointId).subscribe({
+      next: () => {
+
+        // 1) quítalo del array local para no recargar
+        this.track!.waypoints = this.track!.waypoints.filter((w: any) => w.id !== waypointId);
+        // reconstruye POIs del perfil y markers
+        this.buildPoiOnProfile();
+        this.preparePoiMarkers();
+        // 2) Cambiar modal a SUCCESS
+        this.deleteOpenWp = true;
+          
+      },
+      error: (err) => {
+        console.error(err)
+      },
+    });
+  }
+
+  successOkWp():void {
+    this.deleteOpenWp = false;
+    this.closeWaypointModal()
+  }
 
 
 

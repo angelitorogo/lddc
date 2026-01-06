@@ -278,4 +278,10 @@ export class TracksService {
     });
   }
 
+  deleteWaypoint(trackId: string, waypointId: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/${trackId}/waypoints/${waypointId}`, {
+      withCredentials: true,
+    });
+  }
+
 }

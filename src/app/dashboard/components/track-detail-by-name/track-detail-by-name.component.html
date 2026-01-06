@@ -550,6 +550,16 @@
       </div>
 
       <div class="wp-modal__header-actions">
+        <button
+          class="wp-modal__btn wp-modal__btn--remove"
+          type="button"
+          *ngIf="!isEditingWaypoint && authService.user?.id === track!.authorUserId"
+          (click)="removeWaypoint(track!.id, wp.id)"
+        >
+          <i class="bi bi-trash"></i>
+          Eliminar
+        </button>
+        
         <!-- Editar (solo si NO estás editando) -->
         <button
           class="wp-modal__btn wp-modal__btn--edit"
@@ -714,4 +724,17 @@
 </div>
 
 
+<!-- MODAL (ELIMINAR WP) -->
+<div class="modal" *ngIf="deleteOpenWp" (click)="successOkWp()">
+  <div class="modal__panel" (click)="$event.stopPropagation()">
+    <h3 class="modal__title">WayPoint Eliminado</h3>
 
+    <p class="modal__text">
+      El WayPoint se ha eliminado correctamente
+    </p>
+
+    <div class="modal__actions">
+      <button class="btn-outline track-modal-btn" (click)="successOkWp()">Aceptar</button>
+    </div>
+  </div>
+</div>

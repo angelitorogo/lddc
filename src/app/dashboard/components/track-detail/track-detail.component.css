@@ -1331,9 +1331,9 @@ body.no-scroll {
   border: 1px solid rgba(255,255,255,0.10);
   color: rgba(255,255,255,0.85);
   border-radius: 10px;
-  padding: 0.42rem 0.65rem;
+  padding: 0.42rem 0.65rem 0.35rem;
   cursor: pointer;
-  font-weight: 700;
+  font-size: 1.2rem;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -1342,6 +1342,11 @@ body.no-scroll {
 .wp-modal__btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.wp-modal__btn--remove:hover {
+  border-color: var(--color-error);
+  color: #ef9a9a;
 }
 
 .wp-modal__btn--save:hover {
@@ -1381,13 +1386,11 @@ body.no-scroll {
 }
 
 .wp-modal__label {
-  color: var(--text-muted-color);
   font-size: 1.02rem;
 }
 
 .wp-modal__value {
   color: rgba(255,255,255,0.92);
-  font-weight: 650;
   font-size: 1.02rem;
   text-align: right;
 }

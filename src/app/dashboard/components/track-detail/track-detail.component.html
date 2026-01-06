@@ -512,30 +512,30 @@
       <span>Eliminar ruta</span>
     </button>
 
-    <!-- MODAL CONFIRM (ELIMINAR RUTA) -->
-    <div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDelete()">
-      <div class="modal__panel" (click)="$event.stopPropagation()">
-        <h3 class="modal__title">{{ titleModal }}</h3>
-
-        <p class="modal__text">
-          {{ textModal }}
-        </p>
-
-        <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
-          <button class="btn-outline track-modal-btn" (click)="cancelDelete()">Cancelar</button>
-          <button class="btn-danger track-modal-btn" (click)="confirmDelete()">Eliminar</button>
-        </div>
-
-        <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
-          <button class="btn-outline track-modal-btn" (click)="successOk()">Aceptar</button>
-        </div>
-      </div>
-    </div>
+    
 
   </footer>
 </section>
 
+<!-- MODAL CONFIRM (ELIMINAR RUTA) -->
+<div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDelete()">
+  <div class="modal__panel" (click)="$event.stopPropagation()">
+    <h3 class="modal__title">{{ titleModal }}</h3>
 
+    <p class="modal__text">
+      {{ textModal }}
+    </p>
+
+    <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
+      <button class="btn-outline track-modal-btn" (click)="cancelDelete()">Cancelar</button>
+      <button class="btn-danger track-modal-btn" (click)="confirmDelete()">Eliminar</button>
+    </div>
+
+    <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
+      <button class="btn-outline track-modal-btn" (click)="successOk()">Aceptar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ✅ MODAL WAYPOINT (ver / editar) -->
 <div
@@ -550,9 +550,20 @@
       </div>
 
       <div class="wp-modal__header-actions">
+
+        <button
+          class="wp-modal__btn wp-modal__btn--remove"
+          type="button"
+          *ngIf="!isEditingWaypoint && authService.user?.id === track!.authorUserId"
+          (click)="removeWaypoint(track!.id, wp.id)"
+        >
+          <i class="bi bi-trash"></i>
+          Eliminar
+        </button>
+
         <!-- Editar (solo si NO estás editando) -->
         <button
-          class="wp-modal__btn wp-modal__btn--edit"
+          class="wp-modal__btn"
           type="button"
           *ngIf="!isEditingWaypoint && authService.user?.id === track!.authorUserId"
           (click)="startEditWaypoint()"
@@ -714,4 +725,17 @@
 </div>
 
 
+<!-- MODAL (ELIMINAR WP) -->
+<div class="modal" *ngIf="deleteOpenWp" (click)="successOkWp()">
+  <div class="modal__panel" (click)="$event.stopPropagation()">
+    <h3 class="modal__title">WayPoint Eliminado</h3>
 
+    <p class="modal__text">
+      El WayPoint se ha eliminado correctamente
+    </p>
+
+    <div class="modal__actions">
+      <button class="btn-outline track-modal-btn" (click)="successOkWp()">Aceptar</button>
+    </div>
+  </div>
+</div>

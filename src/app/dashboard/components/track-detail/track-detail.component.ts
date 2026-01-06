@@ -157,6 +157,8 @@ export class TrackDetailComponent
   titleModal = '';
   textModal = '';
 
+  private waypointToDelete: { trackId: string; waypointId: string } | null = null;
+
   private deleteInProgress = false;
 
   poiOnProfile: PoiOnProfile[] = [];
@@ -257,6 +259,10 @@ export class TrackDetailComponent
       anchor: new google.maps.Point(18, 36),
     },
   };
+
+
+  // ✅ Modal deleted Waypoint
+  deleteOpenWp = false;
 
   constructor(
     private router: Router,
@@ -487,6 +493,8 @@ export class TrackDetailComponent
     }
 
     this.poiOnProfile = list;
+
+
   }
 
   /**
@@ -957,11 +965,6 @@ export class TrackDetailComponent
           ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
           ctx.stroke();
 
-          // badge con emoji ligeramente por encima de la curva
-          //const offsetY = 14;
-          //const badgeW = 6;
-          //const badgeH = 6;
-          //const r = 5;
           const bx = x - badgeW / 2;
           const by = y - offsetY - badgeH / 2;
 
@@ -2053,6 +2056,8 @@ export class TrackDetailComponent
         },
       };
     });
+
+
   }
 
   /**
@@ -2400,6 +2405,8 @@ export class TrackDetailComponent
     };
   }
 
+  
+
   cancelEditWaypoint(): void {
     this.isEditingWaypoint = false;
     this.waypointSaveError = null;
@@ -2490,7 +2497,7 @@ export class TrackDetailComponent
           // ✅ si era creación, ya no estamos creando
           if (this.isCreatingNewWaypoint) {
             this.isCreatingNewWaypoint = false;
-            this.isAddWaypointMode = false; // si lo usas
+            //this.isAddWaypointMode = false; // si lo usas
             this.pendingWaypointLatLng = null; // si lo usas
           }
 
@@ -2673,6 +2680,29 @@ export class TrackDetailComponent
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(cleaned)}`;
   }
 
+  removeWaypoint(trackId: string, waypointId: string): void {
 
+    this.trackService.deleteWaypoint(trackId, waypointId).subscribe({
+      next: () => {
+
+        // 1) quítalo del array local para no recargar
+        this.track!.waypoints = this.track!.waypoints.filter((w: any) => w.id !== waypointId);
+        // reconstruye POIs del perfil y markers
+        this.buildPoiOnProfile();
+        this.preparePoiMarkers();
+        // 2) Cambiar modal a SUCCESS
+        this.deleteOpenWp = true;
+          
+      },
+      error: (err) => {
+        console.error(err)
+      },
+    });
+  }
+
+  successOkWp():void {
+    this.deleteOpenWp = false;
+    this.closeWaypointModal()
+  }
 
 }

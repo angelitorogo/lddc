@@ -42,6 +42,10 @@
   gap: 2rem;
 }
 
+
+
+    
+
 .filters__group {
   display: flex;
   flex-direction: column;
@@ -327,4 +331,12 @@
   }
 }
 
+
+/* Responsivo básico */
+@media (max-width: 375px) {
+  .filters__row {
+    flex-wrap: nowrap;
+    flex-direction: column;
+  }
+}
 
