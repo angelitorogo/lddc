@@ -171,8 +171,11 @@ export class AuthService {
   }
 
   setRedirectUrl(url: string): void {
-    console.log(url)
     this.redirectUrl = url;
+  }
+
+  deleteRedirectUrl(): void {
+    this.redirectUrl = null;
   }
 
   consumeRedirectUrl(): string | null {

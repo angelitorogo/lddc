@@ -20,7 +20,7 @@ export class CardTrackComponent {
 
   trackImageUrl(track: Track): string |null {
     if (track.images && track.images.length > 0) {
-      return this.baseUrl + '/images/' + track.images[0].id;
+      return this.baseUrl + '/images/general/' + track.images[0].id;
     }
     return null;
 

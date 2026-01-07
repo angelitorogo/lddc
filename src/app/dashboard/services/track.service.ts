@@ -10,7 +10,7 @@ import { CreateTrackResponse } from '../../shared/responses/create-track.respons
 import { TrackListResponse } from '../../shared/responses/list.response';
 import { NearbyTrackItem } from '../../shared/models/track.model';
 import { compressImages } from '../../shared/helpers/compressor.helper';
-import { ViewportTracksQuery, ViewportTracksResponse } from '../../shared/interfaces/viewport.interfaces';
+import { TrackWaypointImage, ViewportTracksQuery, ViewportTracksResponse } from '../../shared/interfaces/viewport.interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -282,6 +282,95 @@ export class TracksService {
     return this.http.delete<any>(`${this.baseUrl}/${trackId}/waypoints/${waypointId}`, {
       withCredentials: true,
     });
+  }
+
+  /**
+   * ✅ Subir imágenes a un waypoint
+   * - Campo multipart: "images"
+   * - Puedes pasar un File[] (selección múltiple)
+   */
+  uploadWaypointImages(
+    trackId: string,
+    waypointId: string,
+    files: File[],
+  ): Observable<TrackWaypointImage[]> {
+    return new Observable<TrackWaypointImage[]>((observer) => {
+      (async () => {
+        try {
+          const compressed = await compressImages(files, {
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.82,
+            mimeType: 'image/webp',
+          });
+
+          const formData = new FormData();
+          for (const file of compressed) {
+            formData.append('images', file, file.name);
+          }
+
+          this.http
+            .post<TrackWaypointImage[]>(
+              `${this.baseUrl}/${trackId}/waypoints/${waypointId}/images`,
+              formData,
+              { withCredentials: true },
+            )
+            .subscribe({
+              next: (res) => {
+                observer.next(res);
+                observer.complete();
+              },
+              error: (err) => observer.error(err),
+            });
+        } catch (e) {
+          observer.error(e);
+        }
+      })();
+    });
+  }
+
+
+  /**
+   * ✅ Listar imágenes de un waypoint
+   */
+  listWaypointImages(
+    trackId: string,
+    waypointId: string,
+  ): Observable<TrackWaypointImage[]> {
+    return this.http.get<TrackWaypointImage[]>(
+      `${this.baseUrl}/${trackId}/waypoints/${waypointId}/images`,
+      { withCredentials: true },
+    );
+  }
+
+  /**
+   * ✅ Actualizar una imagen de waypoint (por ahora: order)
+   */
+  updateWaypointImage(
+    trackId: string,
+    waypointId: string,
+    imageId: string,
+    patch: { order?: number | null },
+  ): Observable<TrackWaypointImage[]> {
+    return this.http.patch<TrackWaypointImage[]>(
+      `${this.baseUrl}/${trackId}/waypoints/${waypointId}/images/${imageId}`,
+      patch,
+      { withCredentials: true },
+    );
+  }
+
+  /**
+   * ✅ Borrar una imagen de waypoint
+   */
+  deleteWaypointImage(
+    trackId: string,
+    waypointId: string,
+    imageId: string,
+  ): Observable<{ ok: boolean; imageId: string; waypointId: string }> {
+    return this.http.delete<{ ok: boolean; imageId: string; waypointId: string }>(
+      `${this.baseUrl}/${trackId}/waypoints/${waypointId}/images/${imageId}`,
+      { withCredentials: true },
+    );
   }
 
 }

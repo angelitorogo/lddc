@@ -1,3 +1,4 @@
+
 import {
   Component,
   ElementRef,
@@ -12,6 +13,7 @@ import { TracksService } from '../../services/track.service';
 import {
   DetailResponse,
   ElevationProfile,
+  Image,
   TrackPoint,
   WaypointPatchDto,
 } from '../../../shared/responses/detail.response';
@@ -40,6 +42,16 @@ type PoiOnProfile = {
   index: number; // índice en elevationProfile / polylinePath
   distanceMeters: number; // X
   elevationMeters: number; // Y
+};
+
+type WpImagePreview = {
+  file: File;
+  url: string;
+};
+
+type WaypointImageVm = {
+  id: string;
+  originalName?: string | null;
 };
 
 @Component({
@@ -157,6 +169,8 @@ export class TrackDetailByNameComponent
   titleModal = '';
   textModal = '';
 
+  private waypointToDelete: { trackId: string; waypointId: string } | null = null;
+
   private deleteInProgress = false;
 
   poiOnProfile: PoiOnProfile[] = [];
@@ -258,8 +272,27 @@ export class TrackDetailByNameComponent
     },
   };
 
+
   // ✅ Modal deleted Waypoint
   deleteOpenWp = false;
+
+  // ✅ input oculto de imágenes del waypoint (en el modal)
+  @ViewChild('wpImageInput') wpImageInput?: ElementRef<HTMLInputElement>;
+
+  // =========================
+  // ✅ Imágenes de Waypoint (modal)
+  // =========================
+
+  // imágenes existentes en servidor (del waypoint seleccionado)
+  waypointExistingImages: WaypointImageVm[] = [];
+  deletingWaypointImageIds = new Set<string>();
+
+  // imágenes nuevas seleccionadas (local)
+  selectedWaypointImages: File[] = [];
+  waypointImagePreviews: WpImagePreview[] = [];
+
+  waypointImagesUploading = false;
+  waypointImagesUploadError: string | null = null;
 
   constructor(
     private router: Router,
@@ -326,6 +359,9 @@ export class TrackDetailByNameComponent
       this.elevationChart = undefined;
     }
     this.elevTooltip.visible = false;
+    this.clearWaypointImagePreviews();
+
+    this.authService.deleteRedirectUrl();
   }
 
   // =========================================================
@@ -356,7 +392,7 @@ export class TrackDetailByNameComponent
     this.resetElevationChartHard();
 
     this.trackService.getTrackByName(name).subscribe((resp: DetailResponse) => {
-      this.track = resp;
+      this.track = this.mergeWaypointImagesIntoTrackImages(resp);
 
       setTimeout(() => this.autoResizeDesc(), 0);
 
@@ -386,6 +422,52 @@ export class TrackDetailByNameComponent
       }
     });
   }
+
+  private mergeWaypointImagesIntoTrackImages(track: DetailResponse): DetailResponse {
+    const trackImages = Array.isArray(track.images) ? track.images : [];
+    const waypoints = Array.isArray(track.waypoints) ? track.waypoints : [];
+
+    // 1) Track images (order local)
+    const orderedTrackImages = [...trackImages].sort((a: any, b: any) => {
+      const ao = Number.isFinite(a?.order) ? a.order : Number.MAX_SAFE_INTEGER;
+      const bo = Number.isFinite(b?.order) ? b.order : Number.MAX_SAFE_INTEGER;
+      return ao - bo;
+    });
+
+    // 2) Waypoints en orden del recorrido
+    const orderedWaypoints = [...waypoints].sort((a: any, b: any) => {
+      // prioriza gpxIndex si existe; si no, distanceFromStart; si no, 0
+      const ag = Number.isFinite(a?.gpxIndex) ? a.gpxIndex : null;
+      const bg = Number.isFinite(b?.gpxIndex) ? b.gpxIndex : null;
+      if (ag != null && bg != null) return ag - bg;
+      if (ag != null) return -1;
+      if (bg != null) return 1;
+
+      const ad = Number.isFinite(a?.distanceFromStart) ? a.distanceFromStart : Number.MAX_SAFE_INTEGER;
+      const bd = Number.isFinite(b?.distanceFromStart) ? b.distanceFromStart : Number.MAX_SAFE_INTEGER;
+      return ad - bd;
+    });
+
+    // 3) Imágenes de waypoints (order local dentro de cada waypoint)
+    const orderedWaypointImages = orderedWaypoints.flatMap((wp: any) => {
+      const imgs = Array.isArray(wp?.images) ? wp.images : [];
+      return [...imgs].sort((a: any, b: any) => {
+        const ao = Number.isFinite(a?.order) ? a.order : Number.MAX_SAFE_INTEGER;
+        const bo = Number.isFinite(b?.order) ? b.order : Number.MAX_SAFE_INTEGER;
+        return ao - bo;
+      });
+    });
+
+    // 4) Merge final + de-dup por id
+    const map = new Map<string, Image>();
+    for (const img of [...orderedTrackImages, ...orderedWaypointImages]) {
+      if (!img?.id) continue;
+      map.set(img.id, img);
+    }
+
+    return { ...track, images: Array.from(map.values()) };
+  }
+
 
   private userById(track: DetailResponse) {
     this.authService.getUserById(track.authorUserId).subscribe((user: UpdateUserResponse) => {
@@ -425,7 +507,7 @@ export class TrackDetailByNameComponent
       lat: p.lat,
       lng: p.lon,
     }));
-    
+
     if (this.polylinePath.length) {
       this.startMarkerPos = this.polylinePath[0];
       this.endMarkerPos = this.polylinePath[this.polylinePath.length - 1];
@@ -492,6 +574,8 @@ export class TrackDetailByNameComponent
     }
 
     this.poiOnProfile = list;
+
+
   }
 
   /**
@@ -627,12 +711,7 @@ export class TrackDetailByNameComponent
   // ✅ HELPERS DE PRESENTACIÓN
   // =========================================================
 
-  /**
-   * Construye la URL de una imagen del track (endpoint /tracks/images/:id).
-   */
-  getUrlImage(trackImage: any): string {
-    return `${this.baseUrl}/images/${trackImage.id}`;
-  }
+  
 
   /**
    * Devuelve el texto de dificultad en español según el enum del backend.
@@ -962,11 +1041,6 @@ export class TrackDetailByNameComponent
           ctx.strokeStyle = 'rgba(5, 16, 13, 0.95)';
           ctx.stroke();
 
-          // badge con emoji ligeramente por encima de la curva
-          //const offsetY = 14;
-          //const badgeW = 6;
-          //const badgeH = 6;
-          //const r = 5;
           const bx = x - badgeW / 2;
           const by = y - offsetY - badgeH / 2;
 
@@ -1428,6 +1502,7 @@ export class TrackDetailByNameComponent
    * - (opcional) reencuadra el mapa tras pequeño delay
    * - Limpia hoverPoi
    */
+
   private clearElevationHover(resetMap: boolean): void {
     this.elevTooltip.visible = false;
     this.hoverMapPoint = null;
@@ -1819,6 +1894,8 @@ export class TrackDetailByNameComponent
   openGallery(index: number): void {
     if (!this.track?.images?.length) return;
 
+    //console.log(this.track.images);
+
     const max = this.track.images.length - 1;
     this.galleryIndex = Math.max(0, Math.min(max, index));
 
@@ -2058,6 +2135,8 @@ export class TrackDetailByNameComponent
         },
       };
     });
+
+
   }
 
   /**
@@ -2162,7 +2241,7 @@ export class TrackDetailByNameComponent
   /**
    * Etiqueta humana del tipo de POI.
    */
-  private getPoiTypeLabel(type: WaypointType): string {
+  public  getPoiTypeLabel(type: WaypointType): string {
     switch (type) {
       case 'DRINKING_WATER':
         return 'Fuente';
@@ -2188,7 +2267,7 @@ export class TrackDetailByNameComponent
    * - Si p.name existe => lo usa
    * - Si no => usa el label por tipo
    */
-  private getPoiTitle(p: Waypoint): string {
+  public getPoiTitle(p: Waypoint): string {
     const base = this.getPoiTypeLabel(p.type);
     if (p.name && p.name.trim().length) return p.name.trim();
     return base;
@@ -2368,6 +2447,10 @@ export class TrackDetailByNameComponent
 
     this.waypointModalOpen = true;
 
+    // ✅ imágenes: limpiar selección nueva y cargar existentes del waypoint
+    this.onCancelWaypointImages();
+    this.syncWaypointExistingImagesFromSelected();
+
     // ✅ Pintar línea fija en el perfil al abrir modal (si existe en poiOnProfile)
     if (this.selectedWaypointOnProfile?.index != null) {
       const idx = this.selectedWaypointOnProfile.index;
@@ -2404,6 +2487,8 @@ export class TrackDetailByNameComponent
       ele: this.selectedWaypoint.ele ?? null,
     };
   }
+
+  
 
   cancelEditWaypoint(): void {
     this.isEditingWaypoint = false;
@@ -2515,6 +2600,25 @@ export class TrackDetailByNameComponent
             this.elevationChart?.update('none');
 
             this.applyHoverIndex(pIdx);
+
+            // =========================
+            // ✅ Subir imágenes nuevas (si hay)
+            // =========================
+            this.uploadNewWaypointImagesIfAny(trackId, saved.id)
+              .then(() => {
+                // tras subir, limpiamos selección local
+                this.onCancelWaypointImages();
+
+                // ✅ refrescar imágenes del modal sin cerrarlo
+                this.refreshSelectedWaypointImages();
+
+              })
+              .catch((err) => {
+                console.error(err);
+                this.waypointSaveError = 'El waypoint se guardó, pero no se pudieron subir las imágenes.';
+              }
+            );
+
           }
         },
         error: (err) => {
@@ -2534,6 +2638,13 @@ export class TrackDetailByNameComponent
     this.isEditingWaypoint = false;
     this.savingWaypoint = false;
     this.waypointSaveError = null;
+
+    // ✅ limpiar imágenes del modal
+    this.onCancelWaypointImages();
+    this.waypointExistingImages = [];
+    this.deletingWaypointImageIds.clear();
+    this.waypointImagesUploading = false;
+    this.waypointImagesUploadError = null;
 
     // ✅ quitar línea vertical al cerrar
     this.clearElevationHover(false);
@@ -2627,6 +2738,7 @@ export class TrackDetailByNameComponent
       lon: p.lon,
       distanceFromStart: null,
       gpxIndex: null,
+      images: []
     };
 
     // form state (incluye lat/lon/ele readonly)
@@ -2641,6 +2753,11 @@ export class TrackDetailByNameComponent
     };
 
     this.waypointModalOpen = true;
+
+    // ✅ imágenes: limpiar selección nueva y cargar existentes del waypoint
+    this.onCancelWaypointImages();
+    this.syncWaypointExistingImagesFromSelected();
+
     this.isEditingWaypoint = true;
     this.waypointSaveError = null;
 
@@ -2672,6 +2789,7 @@ export class TrackDetailByNameComponent
     return this.findNearestElevationIndexByKm(km);
   }
 
+
   private svgToDataUrl(svg: string): string {
     const cleaned = svg.replace(/\n/g, '').replace(/\s+/g, ' ').trim();
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(cleaned)}`;
@@ -2684,9 +2802,15 @@ export class TrackDetailByNameComponent
 
         // 1) quítalo del array local para no recargar
         this.track!.waypoints = this.track!.waypoints.filter((w: any) => w.id !== waypointId);
+
+        // 2) quita imágenes asociadas
+        this.track!.images = this.track!.images.filter((img: any) => img.waypointId !== waypointId);
+
         // reconstruye POIs del perfil y markers
         this.buildPoiOnProfile();
         this.preparePoiMarkers();
+
+        
         // 2) Cambiar modal a SUCCESS
         this.deleteOpenWp = true;
           
@@ -2702,6 +2826,197 @@ export class TrackDetailByNameComponent
     this.closeWaypointModal()
   }
 
+  // =========================================================
+  // ✅ Waypoint images (igual patrón que track-edit / track-create)
+  // =========================================================
 
+  getWaypointImageUrl(imageId: string, type: 'wp'|'general'|'all'): string {
+    return `${this.baseUrl}/images/${type}/${imageId}`;
+  }
+
+  /**
+   * Construye la URL de una imagen del track (endpoint /tracks/images/:id).
+   */
+  getUrlImage(trackImage: any, type: 'wp'|'general'|'all'): string {
+    return `${this.baseUrl}/images/${type}/${trackImage.id}`;
+  }
+
+  private clearWaypointImagePreviews(): void {
+    this.waypointImagePreviews.forEach(p => URL.revokeObjectURL(p.url));
+    this.waypointImagePreviews = [];
+  }
+
+  openWaypointImageDialog(): void {
+    this.wpImageInput?.nativeElement?.click();
+  }
+
+  onWaypointImageSelected(ev: Event): void {
+    const input = ev.target as HTMLInputElement;
+    const files = input.files ? Array.from(input.files) : [];
+
+    // reset previews anteriores
+    this.clearWaypointImagePreviews();
+
+    this.selectedWaypointImages = files;
+
+    this.waypointImagePreviews = files.map(file => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+  }
+
+  onCancelWaypointImages(): void {
+    this.selectedWaypointImages = [];
+    this.clearWaypointImagePreviews();
+
+    if (this.wpImageInput?.nativeElement) {
+      this.wpImageInput.nativeElement.value = '';
+    }
+  }
+
+  removeWaypointNewImage(index: number): void {
+    if (index < 0 || index >= this.selectedWaypointImages.length) return;
+
+    const removed = this.waypointImagePreviews[index];
+    if (removed?.url) URL.revokeObjectURL(removed.url);
+
+    this.selectedWaypointImages.splice(index, 1);
+    this.waypointImagePreviews.splice(index, 1);
+
+    // si se queda vacío, limpiamos input para poder re-seleccionar iguales
+    if (!this.selectedWaypointImages.length && this.wpImageInput?.nativeElement) {
+      this.wpImageInput.nativeElement.value = '';
+    }
+  }
+
+  /**
+   * Carga imágenes existentes del waypoint (si el backend las incluye ya en wp.images,
+   * este método solo normaliza y copia a waypointExistingImages).
+   */
+  private syncWaypointExistingImagesFromSelected(): void {
+    const wp: any = this.selectedWaypoint as any;
+    const imgs = Array.isArray(wp?.images) ? wp.images : [];
+    // Normaliza a VM mínima
+    this.waypointExistingImages = imgs.map((x: any) => ({
+      id: x.id,
+      originalName: x.originalName ?? x.name ?? null,
+    }));
+  }
+
+  requestDeleteWaypointExistingImage(imageId: string): void {
+    if (!this.track?.id || !this.selectedWaypoint?.id) return;
+
+    // bloqueo visual por id
+    this.deletingWaypointImageIds.add(imageId);
+
+    this.trackService.deleteWaypointImage(this.track.id, this.selectedWaypoint.id, imageId).subscribe({
+      next: () => {
+        this.waypointExistingImages = this.waypointExistingImages.filter(i => i.id !== imageId);
+        this.deletingWaypointImageIds.delete(imageId);
+
+        // también actualiza selectedWaypoint.images si existe
+        const wp: any = this.selectedWaypoint as any;
+        if (Array.isArray(wp?.images)) {
+          wp.images = wp.images.filter((i: any) => i?.id !== imageId);
+        }
+
+        // refrescar imágenes existentes desde backend (lo más consistente) 
+        this.loadDetailTrack(this.track!.id);
+
+        
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.deletingWaypointImageIds.delete(imageId);
+        this.waypointSaveError = 'No se ha podido eliminar la imagen del waypoint.';
+      }
+    });
+  }
+
+  /**
+   * Sube imágenes nuevas seleccionadas para el waypoint actual (ya creado)
+   */
+  private uploadNewWaypointImagesIfAny(trackId: string, waypointId: string): Promise<void> {
+    if (!this.selectedWaypointImages.length) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+      this.trackService.uploadWaypointImages(trackId, waypointId, this.selectedWaypointImages).subscribe({
+        next: () => resolve(),
+        error: (err: any) => reject(err),
+      });
+    });
+  }
+
+  async uploadSelectedWaypointImagesNow(): Promise<void> {
+    if (!this.track?.id) return;
+    if (!this.selectedWaypoint?.id) return;
+
+    // si es el waypoint "NEW" (creación), todavía no hay id real
+    if (this.selectedWaypoint.id === 'NEW') {
+      this.waypointImagesUploadError = 'Primero guarda el waypoint para poder subir imágenes.';
+      return;
+    }
+
+    if (!this.selectedWaypointImages.length) return;
+
+    this.waypointImagesUploading = true;
+    this.waypointImagesUploadError = null;
+
+    try {
+      await this.uploadNewWaypointImagesIfAny(this.track.id, this.selectedWaypoint.id);
+
+      // limpiar selección local
+      this.onCancelWaypointImages();
+
+      // refrescar imágenes existentes desde backend (lo más consistente)
+      this.loadDetailTrack(this.track.id);
+
+      // ✅ AÑADE ESTA LÍNEA
+      this.refreshSelectedWaypointImages();
+
+    } catch (err) {
+      console.error(err);
+      this.waypointImagesUploadError = 'No se pudieron subir las imágenes del waypoint.';
+    } finally {
+      this.waypointImagesUploading = false;
+    }
+  }
+
+
+  private refreshSelectedWaypointImages(): void {
+    if (!this.track?.id) return;
+    if (!this.selectedWaypoint?.id) return;
+    if (this.selectedWaypoint.id === 'NEW') return;
+
+    const trackId = this.track.id;
+    const waypointId = this.selectedWaypoint.id;
+
+    this.trackService.listWaypointImages(trackId, waypointId).subscribe({
+      next: (imgs) => {
+        (this.selectedWaypoint as any).images = imgs ?? [];
+        this.syncWaypointExistingImagesFromSelected();
+      },
+      error: (err) => console.error(err),
+    });
+  }
+
+
+  getPoiOnProfile(id: string): PoiOnProfile | null {
+    return this.poiOnProfile?.find(p => p.id === id) ?? null;
+  }
+
+  /**
+   * Abre la galería global en la imagen cuyo id coincida.
+   * Importante: como tú ya haces mergeWaypointImagesIntoTrackImages(),
+   * track.images contiene también las del waypoint.
+   */
+  openGalleryByImageId(imageId: string): void {
+    if (!this.track?.images?.length) return;
+
+    const idx = this.track.images.findIndex((img: any) => img?.id === imageId);
+    if (idx < 0) return;
+
+    this.openGallery(idx);
+  }
 
 }

@@ -69,7 +69,7 @@
             [position]="endMarkerPos"
             [options]="endMarkerOptions">
           </map-marker>
-          
+
           <map-marker
             *ngIf="hoverMapPoint"
             [position]="hoverMapPoint"
@@ -95,7 +95,7 @@
     </section>
 
     <!-- COLUMNA DERECHA (fila 1): resumen + galería -->
-    <div class="track-page__side">
+    <section class="track-page__side">
 
       <section class="track-panel track-panel__user-avatar">
         <div class="user-data">
@@ -176,7 +176,8 @@
               (keydown.space)="openGallery(i + 1)"
             >
               <img
-                [src]="getUrlImage(image)"
+                
+                [src]="getUrlImage(image, 'all')"
                 [alt]="track.name || 'Imagen de la ruta'"
                 loading="lazy"
               />
@@ -205,7 +206,7 @@
           </button>
         </div>
       </section>
-    </div>
+    </section>
 
     <!-- FILA 2: PERFIL DE ELEVACIÓN -->
     <section class="track-panel track-page__profile">
@@ -217,13 +218,13 @@
             {{isMobileView ? '' : 'Pendiente'}}
             <span class="slope" [ngClass]="getSlopeClass(+pendiente!)">{{ pendiente }}%</span>
           </span>
-          <button class="poi-toggle" type="button" (click)="toggleAddWaypointMode()">
+          <button class="poi-toggle" type="button" (click)="toggleAddWaypointMode()" *ngIf="authService.user?.id === track.authorUserId">
             <i class="bi bi-plus-circle"></i>
             {{ isAddWaypointMode ? 'Cancelar' : isMobileView ? 'Añadir WP' : 'Añadir waypoint' }}
           </button>
           <button
             type="button"
-            *ngIf="track.waypoints.length > 0"
+            *ngIf="track.waypoints.length"
             class="poi-toggle"
             (click)="togglePois()"
             [attr.aria-pressed]="showPois"
@@ -386,7 +387,7 @@
           <div class="nearby-card__img">
             <img
               *ngIf="t.images?.length"
-              [src]="getUrlImage(t.images[0])"
+              [src]="getUrlImage(t.images[0], 'general')"
               [alt]="t.name || 'Ruta cercana'"
             />
             <div class="nearby-card__img-placeholder" *ngIf="!t.images?.length">
@@ -416,9 +417,99 @@
         </article>
       </div>
     </section>
+
+    <!-- FILA 5: WAYPOINTS -->
+    <section class="track-panel track-page__waypoints" *ngIf="track.waypoints.length">
+      <div class="track-page__waypoints-header">
+        <h2 class="track-panel__title">Puntos de interés</h2>
+
+        <span class="track-page__waypoints-muted">
+          {{ track.waypoints.length }} punto(s)
+        </span>
+      </div>
+
+      <p class="track-page__description-text track-page__description-text--muted">
+        Pulsa un waypoint para abrir el modal, y pulsa una imagen para verla en la galería.
+      </p>
+
+      <div class="waypoint-row">
+        <article
+          class="waypoint-card"
+          *ngFor="let wp of track.waypoints"
+          role="button"
+          tabindex="0"
+          (click)="onWaypointMarkerClick(wp)"
+          (keydown.enter)="onWaypointMarkerClick(wp)"
+          (keydown.space)="onWaypointMarkerClick(wp)"
+        >
+          <div class="waypoint-card__top">
+            <div class="waypoint-card__title" [title]="getPoiTitle(wp)">
+              {{ getPoiTitle(wp) }}
+            </div>
+
+            <span class="waypoint-card__type">
+              {{ getPoiTypeLabel(wp.type) }}
+            </span>
+          </div>
+
+          <div class="waypoint-noimg">
+            <span *ngIf="wp.distanceFromStart != null">
+              A {{ (wp.distanceFromStart / 1000) | number:'1.1-1' }} km 
+            </span>
+
+            <span *ngIf="wp.ele != null">
+              y a {{ wp.ele | number:'1.0-0' }} m.
+            </span>
+         
+          </div>
+
+          <div class="waypoint-noimg" *ngIf="wp.desc">
+            <span>
+              {{ wp.desc }}
+            </span>
+          </div>
+
+          <div class="waypoint-noimg" *ngIf="wp.cmt">
+            <span>
+              {{ wp.cmt }}
+            </span>
+          </div>
+
+          <!-- Miniaturas (como tu thumbs-row) -->
+          <div class="waypoint-thumbs" *ngIf="wp.images.length">
+            <div class="track-page__thumbs-row">
+              <ng-container *ngFor="let img of wp.images; let i = index">
+                <figure
+                  class="track-page__thumb-card"
+                  role="button"
+                  tabindex="0"
+                  (click)="openGalleryByImageId(img.id); $event.stopPropagation()"
+                  (keydown.enter)="openGalleryByImageId(img.id); $event.stopPropagation()"
+                  (keydown.space)="openGalleryByImageId(img.id); $event.stopPropagation()"
+                >
+                  <img
+                    [src]="getWaypointImageUrl(img.id, 'wp')"
+                    [alt]="track.name || 'Imagen del waypoint'"
+                    loading="lazy"
+                  />
+                </figure>
+              </ng-container>
+            </div>
+          </div>
+
+          <!-- Si no tiene imágenes -->
+          <div class="waypoint-noimg" *ngIf="!wp.images.length">
+            Sin imágenes
+          </div>
+        </article>
+      </div>
+    </section>
+
+
+    
   </div>
 
-  <!-- ===== Lightbox ===== -->
+  <!-- ===== Galeria ===== -->
   <div
     class="lightbox"
     *ngIf="isGalleryOpen"
@@ -449,7 +540,7 @@
       >
         <img
           class="lightbox__img"
-          [src]="getUrlImage(track!.images[galleryIndex])"
+          [src]="getUrlImage(track!.images[galleryIndex], 'all')"
           [alt]="track.name || 'Imagen de la ruta'"
         />
 
@@ -512,30 +603,31 @@
       <span>Eliminar ruta</span>
     </button>
 
-    <!-- MODAL CONFIRM (ELIMINAR RUTA) -->
-    <div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDelete()">
-      <div class="modal__panel" (click)="$event.stopPropagation()">
-        <h3 class="modal__title">{{ titleModal }}</h3>
-
-        <p class="modal__text">
-          {{ textModal }}
-        </p>
-
-        <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
-          <button class="btn-outline track-modal-btn" (click)="cancelDelete()">Cancelar</button>
-          <button class="btn-danger track-modal-btn" (click)="confirmDelete()">Eliminar</button>
-        </div>
-
-        <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
-          <button class="btn-outline track-modal-btn" (click)="successOk()">Aceptar</button>
-        </div>
-      </div>
-    </div>
+    
 
   </footer>
+
 </section>
 
+<!-- MODAL CONFIRM (ELIMINAR RUTA) -->
+<div class="modal" *ngIf="confirmDeleteOpen" (click)="cancelDelete()">
+  <div class="modal__panel" (click)="$event.stopPropagation()">
+    <h3 class="modal__title">{{ titleModal }}</h3>
 
+    <p class="modal__text">
+      {{ textModal }}
+    </p>
+
+    <div class="modal__actions" *ngIf="typeModal === 'DELETE'">
+      <button class="btn-outline track-modal-btn" (click)="cancelDelete()">Cancelar</button>
+      <button class="btn-danger track-modal-btn" (click)="confirmDelete()">Eliminar</button>
+    </div>
+
+    <div class="modal__actions" *ngIf="typeModal === 'SUCCESS'">
+      <button class="btn-outline track-modal-btn" (click)="successOk()">Aceptar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ✅ MODAL WAYPOINT (ver / editar) -->
 <div
@@ -550,6 +642,7 @@
       </div>
 
       <div class="wp-modal__header-actions">
+
         <button
           class="wp-modal__btn wp-modal__btn--remove"
           type="button"
@@ -559,10 +652,10 @@
           <i class="bi bi-trash"></i>
           Eliminar
         </button>
-        
+
         <!-- Editar (solo si NO estás editando) -->
         <button
-          class="wp-modal__btn wp-modal__btn--edit"
+          class="wp-modal__btn"
           type="button"
           *ngIf="!isEditingWaypoint && authService.user?.id === track!.authorUserId"
           (click)="startEditWaypoint()"
@@ -598,10 +691,11 @@
            MODO LECTURA
       ========================== -->
       <ng-container *ngIf="!isEditingWaypoint; else editMode">
+
         <div class="wp-modal__row">
           <span class="wp-modal__label">Tipo</span>
           <span class="wp-modal__value">
-            {{ wp.type }}
+             {{ getPoiTypeLabel(wp.type) }}
           </span>
         </div>
 
@@ -630,9 +724,144 @@
         </div>
 
         <div class="wp-modal__row" *ngIf="wp.cmt">
-          <span class="wp-modal__label">Comentario</span>
+          <span class="wp-modal__label">Comentario</span>image-preview-thumb
           <span class="wp-modal__value wp-modal__value--multiline">{{ wp.cmt }}</span>
         </div>
+
+        <!-- =========================
+        ✅ IMÁGENES DEL WAYPOINT
+        ========================== -->
+        <div class="wp-images" *ngIf="selectedWaypoint as wp">
+          <h3 class="wp-section-title">Imágenes</h3>
+
+          <!-- EXISTENTES (SERVER) -->
+          <p class="muted" *ngIf="!waypointExistingImages.length">
+            No hay imágenes en este waypoint.
+          </p>
+
+          <div class="image-preview-grid" *ngIf="waypointExistingImages.length">
+            <div class="image-preview-card image-preview-thumb__cursor-pointer" *ngFor="let img of waypointExistingImages">
+              <div  class="image-preview-thumb "
+                    (click)="openGalleryByImageId(img.id); $event.stopPropagation()"
+                    (keydown.enter)="openGalleryByImageId(img.id); $event.stopPropagation()"
+                    (keydown.space)="openGalleryByImageId(img.id); $event.stopPropagation()">
+                <img
+                  [src]="getWaypointImageUrl(img.id, 'wp')"
+                  loading="lazy"
+                  [alt]="img.originalName || 'Imagen'"
+                />
+              </div>
+
+              <div class="image-preview-meta">
+                <span class="image-preview-name" [title]="img.originalName || 'Imagen'">
+                  {{ img.originalName || 'Imagen' }}
+                </span>
+
+                <button
+                  type="button"
+                  class="image-preview-remove"
+                  *ngIf="authService.user?.id === track!.authorUserId"
+                  (click)="requestDeleteWaypointExistingImage(img.id)"
+                  [disabled]="deletingWaypointImageIds.has(img.id)"
+                  aria-label="Eliminar imagen"
+                  title="Eliminar"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ AÑADIR NUEVAS (LOCAL) -->
+          <div
+            class="form-field"
+            *ngIf="authService.user?.id === track!.authorUserId"
+            style="margin-top: 10px;"
+          >
+            <label class="form-field__title_img">Añadir imágenes</label>
+
+            <div class="file-input-row">
+              <input
+                #wpImageInput
+                type="file"
+                accept=".jpg, .jpeg, .png, .webp"
+                multiple
+                (change)="onWaypointImageSelected($event)"
+                class="file-input__hidden"
+              />
+
+              <button
+                type="button"
+                class="btn-upload"
+                (click)="openWaypointImageDialog()"
+                [disabled]="savingWaypoint"
+              >
+                <i class="bi bi-upload"></i>
+                <span>
+                  {{ selectedWaypointImages.length ? 'Cambiar imágenes' : 'Seleccionar imágenes' }}
+                </span>
+              </button>
+
+              <span class="file-input__filename" *ngIf="selectedWaypointImages.length">
+                {{ selectedWaypointImages.length }} imagen(es) seleccionada(s)
+              </span>
+
+              <button
+                type="button"
+                class="btn-secondary"
+                (click)="onCancelWaypointImages()"
+                [disabled]="!selectedWaypointImages.length || savingWaypoint"
+              >
+                Quitar imágenes
+              </button>
+            </div>
+
+            <div class="image-preview-grid" *ngIf="waypointImagePreviews.length">
+              <div class="image-preview-card" *ngFor="let img of waypointImagePreviews; let i = index">
+                <div class="image-preview-thumb">
+                  <img [src]="img.url" [alt]="img.file.name" />
+                </div>
+
+                <div class="image-preview-meta">
+                  <span class="image-preview-name" [title]="img.file.name">
+                    {{ img.file.name }}
+                  </span>
+
+                  <button
+                    type="button"
+                    class="image-preview-remove"
+                    (click)="removeWaypointNewImage(i)"
+                    [disabled]="savingWaypoint"
+                    title="Quitar"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn-outline"
+              (click)="uploadSelectedWaypointImagesNow()"
+              *ngIf="selectedWaypointImages.length"
+              [disabled]="waypointImagesUploading || savingWaypoint"
+              style="margin-top: 10px;"
+            >
+              <i class="bi bi-cloud-upload"></i>
+              <span>{{ waypointImagesUploading ? 'Subiendo...' : 'Subir imágenes' }}</span>
+            </button>
+
+            <p class="muted" *ngIf="waypointImagesUploadError" style="margin-top: 8px;">
+              {{ waypointImagesUploadError }}
+            </p>
+
+
+          </div>
+        </div>
+
+
+
       </ng-container>
 
       <!-- =========================
@@ -683,13 +912,13 @@
           <div class="wp-form__field">
             <label class="wp-form__label">Tipo</label>
             <select class="wp-form__select" [(ngModel)]="editWp.type">
-              <option value="DRINKING_WATER">DRINKING_WATER</option>
-              <option value="VIEWPOINT">VIEWPOINT</option>
-              <option value="SHELTER">SHELTER</option>
-              <option value="PARKING">PARKING</option>
-              <option value="CAMP_SITE">CAMP_SITE</option>
-              <option value="PICNIC_SITE">PICNIC_SITE</option>
-              <option value="INFORMATION">INFORMATION</option>
+              <option value="DRINKING_WATER">{{getPoiTypeLabel("DRINKING_WATER")}}</option>
+              <option value="VIEWPOINT">{{getPoiTypeLabel("VIEWPOINT")}}</option>
+              <option value="SHELTER">{{getPoiTypeLabel("SHELTER")}}</option>
+              <option value="PARKING">{{getPoiTypeLabel("PARKING")}}</option>
+              <option value="CAMP_SITE">{{getPoiTypeLabel("CAMP_SITE")}}</option>
+              <option value="PICNIC_SITE">{{getPoiTypeLabel("PICNIC_SITE")}}</option>
+              <option value="INFORMATION">{{getPoiTypeLabel("INFORMATION")}}</option>
             </select>
           </div>
 

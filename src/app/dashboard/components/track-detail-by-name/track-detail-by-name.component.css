@@ -258,7 +258,8 @@
     "cover side"
     "profile profile"
     "description description"
-    "nearby nearby";
+    "nearby nearby"
+    "waypoints waypoints";
   gap: 1.25rem 1.5rem;
   align-items: stretch;
 }
@@ -269,7 +270,8 @@
     "side"
     "profile"
     "description"
-    "nearby";
+    "nearby"
+    "waypoints";
 }
 
 .track-page__cover {
@@ -307,7 +309,8 @@
       "profile"
       "side"
       "description"
-      "nearby";
+      "nearby"
+      "waypoints";
   }
 
   .track-page__side {
@@ -1027,7 +1030,7 @@ body.no-scroll {
 .lightbox {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 9999999999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1386,12 +1389,12 @@ body.no-scroll {
 }
 
 .wp-modal__label {
-  font-size: 1.02rem;
+  font-size: 1.2rem;
 }
 
 .wp-modal__value {
   color: rgba(255,255,255,0.92);
-  font-size: 1.02rem;
+  font-size: 1.2rem;
   text-align: right;
 }
 
@@ -1458,6 +1461,12 @@ body.no-scroll {
   padding-top: 0.25rem;
 }
 
+.form-field__title_img {
+  margin: 10px 0 6px;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
 /* responsive */
 @media (max-width: 768px) {
   .wp-modal__title {
@@ -1494,4 +1503,336 @@ body.no-scroll {
 }
 
 
+.muted {
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
 
+.wp-section-title {
+  margin: 10px 0 6px;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* ===== INPUT REAL OCULTO ===== */
+.file-input__hidden {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.file-input-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  align-items: center;
+}
+
+/* ===== BOTÓN SUBIDA ===== */
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem 0.2rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-upload:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(5, 16, 13, 0.9);
+}
+
+.file-input__filename {
+  font-size: 1.4rem;
+  color: var(--text-muted-color);
+  padding: 0.5rem 0.9rem 0.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: rgba(4, 12, 10, 0.6);
+  max-width: 280px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.btn-secondary {
+  border-radius: 4px;
+  padding: 0.4rem 0.9rem 0.2rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: var(--text-muted-color);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ===== fila horizontal con scroll ===== */
+.image-preview-grid {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.image-preview-grid::-webkit-scrollbar {
+  height: 6px;
+}
+.image-preview-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.image-preview-card {
+  flex: 0 0 180px;
+  scroll-snap-align: start;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: rgba(4, 12, 10, 0.9);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-preview-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.image-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.image-preview-thumb__cursor-pointer:hover {
+  border: 1px solid rgba(0, 230, 118, 0.55);
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+
+.image-preview-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.3rem 0.45rem;
+}
+
+.image-preview-name {
+  font-size: 1.2rem;
+  padding: 0.3rem 0.45rem;
+  color: var(--text-muted-color);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.image-preview-remove {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem;
+  border-radius: 999px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.image-preview-remove:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #ff6b6b;
+}
+
+
+
+
+/* =========================
+   WAYPOINTS SECTION
+   ========================= */
+
+.track-page__waypoints {
+  grid-area: waypoints;   /* ✅ ESTO ES LO QUE FALTA */
+  width: 100%;
+}
+
+.track-page__waypoints-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.track-page__waypoints-muted {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.waypoint-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 960px) {
+  .waypoint-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.waypoint-card {
+  border-radius: 16px;
+  padding: 12px;
+  cursor: pointer;
+
+  /* “glass” suave, siguiendo tu estilo */
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+  outline: none;
+}
+
+.waypoint-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.waypoint-card:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 215, 128, 0.35); /* si tu primario es dorado */
+}
+
+.waypoint-card__top {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.waypoint-card__title {
+  font-weight: 800;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  line-height: 1.15;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.35);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waypoint-card__type {
+  font-size: 1.2rem;
+  opacity: 0.85;
+  padding: 5px 10px 4px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.10);
+  white-space: nowrap;
+}
+
+.waypoint-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+.waypoint-thumbs {
+  margin-top: 8px;
+}
+
+/* Para que la fila de miniaturas “se sienta” como la tuya */
+.waypoint-thumbs .track-page__thumbs-row {
+  padding-bottom: 4px;
+}
+
+/* “Sin imágenes” coherente */
+.waypoint-noimg {
+  margin-top: 6px;
+  font-size: 1.2rem;
+  opacity: 0.65;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.18);
+}
+
+/* =========================================================
+   WAYPOINTS: en móvil como "Rutas cercanas" (scroll horizontal)
+========================================================= */
+
+/* Desktop sigue igual (tu grid 2 columnas a partir de 960px) */
+@media (min-width: 960px) {
+  .waypoint-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Móvil/Tablet: fila horizontal con snap (igual que nearby-row) */
+@media (max-width: 960px) {
+  .waypoint-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.35rem 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .waypoint-row::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .waypoint-row::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
+  }
+
+  /* Cada card como una "nearby-card": ancho fijo relativo a viewport */
+  .waypoint-card {
+    max-width: 520px;         /* para tablets */
+    scroll-snap-align: start;
+  }
+
+  /* Que la fila de miniaturas dentro no “ensanche” raro */
+  .waypoint-thumbs .track-page__thumbs-row {
+    padding-bottom: 0.25rem;
+  }
+
+  /* En móvil, miniaturas algo más grandes (como tu galería) */
+  .waypoint-thumbs .track-page__thumbs-row .track-page__thumb-card {
+    flex: 0 0 210px; /* igual que tu breakpoint ya usa 210px */
+  }
+}

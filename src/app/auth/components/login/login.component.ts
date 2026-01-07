@@ -57,7 +57,12 @@ export class LoginComponent implements OnInit {
 
           // si venía de un guard, puedes llevarlo ahí; si no, home
           const redirectFromGuard = this._authService.consumeRedirectUrl();
+
+          
           const redirectTo = redirectFromGuard || '/dashboard/home';
+
+          console.log(redirectTo)
+
 
           this._router.navigateByUrl(redirectTo);
         }

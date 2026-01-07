@@ -26,3 +26,11 @@ export interface ViewportTracksResponse {
   density: ViewportDensity;
   zoomLevel: number | null;
 }
+
+export interface TrackWaypointImage {
+  id: string;
+  created_at: string;
+  waypointId: string;
+  url: string;
+  order: number | null;
+}

@@ -20,9 +20,9 @@ export interface DetailResponse {
     startEle:            number;
     startTime:           Date;
     images:              Image[];
+    waypoints:           Waypoint[];
     elevationProfile:    ElevationProfile[];
-    trackPointsForFront: TrackPoint[];
-    waypoints: Waypoint[];
+    trackPointsForFront: TrackPointsForFront[];
 }
 
 export interface ElevationProfile {
@@ -31,11 +31,19 @@ export interface ElevationProfile {
 }
 
 export interface Image {
-    id:         string;
-    created_at: Date;
-    trackId:    string;
-    url:        string;
-    order:      number;
+    id:          string;
+    created_at:  Date;
+    trackId?:    string;
+    url:         string;
+    order:       number;
+    waypointId?: string;
+}
+
+export interface TrackPointsForFront {
+    lat:  number;
+    lon:  number;
+    ele:  number;
+    time: Date;
 }
 
 
@@ -78,6 +86,8 @@ export interface Waypoint {
 
   // solo informativo (no lo edita el usuario)
   gpxIndex?: number | null;
+
+  images: Image[];
 }
 
 export type WaypointPatchDto = {

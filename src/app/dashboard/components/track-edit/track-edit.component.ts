@@ -109,7 +109,7 @@ export class TrackEditComponent implements OnInit, OnDestroy {
   // helpers
   // =========================
   getUrlImage(trackImage: any): string {
-    return `${this.baseUrl}/images/${trackImage.id}`;
+    return `${this.baseUrl}/images/general/${trackImage.id}`;
   }
 
   // =========================

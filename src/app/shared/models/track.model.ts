@@ -57,3 +57,4 @@ export interface NearbyTrackItem {
   // Si el backend devuelve distanceMeters, déjalo:
   distanceMeters?: number;
 }
+
