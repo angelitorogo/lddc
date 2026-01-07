@@ -3019,4 +3019,15 @@ export class TrackDetailByNameComponent
     this.openGallery(idx);
   }
 
+  onNavigateToStart(): void {
+    if (!this.track?.startLat || !this.track?.startLon) {
+      console.warn('No hay coordenadas de inicio');
+      return;
+    }
+
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${this.track.startLat},${this.track.startLon}&travelmode=driving`;
+    window.open(url, '_blank');
+  }
+
+
 }

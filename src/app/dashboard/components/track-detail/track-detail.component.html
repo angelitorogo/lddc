@@ -563,6 +563,17 @@
 
   <!-- FOOTER DE ACCIONES -->
   <footer class="track-page__footer">
+
+    <!-- IR AL INICIO DE LA RUTA (GOOGLE MAPS) -->
+    <button
+      type="button"
+      class="btn-outline track-page__footer-btn"
+      (click)="onNavigateToStart()"
+    >
+      <i class="bi bi-geo-alt-fill"></i>
+      <span>Cómo llegar (coche)</span>
+    </button>
+    
     <button
       type="button"
       class="btn-outline track-page__footer-btn"
