@@ -7,6 +7,7 @@ import {
   AfterViewInit,
   HostListener,
 } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterStateSnapshot } from '@angular/router';
 import { TracksService } from '../../services/track.service';
 import {
@@ -298,6 +299,7 @@ export class TrackDetailComponent
     private route: ActivatedRoute,
     private trackService: TracksService,
     public authService: AuthService,
+    private location: Location,
   ) { }
 
   // =========================================================
@@ -372,7 +374,7 @@ export class TrackDetailComponent
    * Navega de vuelta a la home del dashboard.
    */
   onBack(): void {
-    this.router.navigate(['/dashboard/home']);
+    this.location.back();
   }
 
   /**
@@ -395,6 +397,10 @@ export class TrackDetailComponent
 
       
       this.track = this.mergeWaypointImagesIntoTrackImages(resp);
+
+      //normaliza waypoint images a array (aunque venga null)
+      this.track.waypoints = (this.track.waypoints ?? []).map(w => ({ ...w, images: Array.isArray((w as any).images) ? (w as any).images : [] }));
+
 
       //console.log(this.track)
 
@@ -1862,6 +1868,7 @@ export class TrackDetailComponent
 
   /** Convierte una URL (misma origin / CORS permitido) en File para Web Share 2 */
   private async fetchUrlAsFile(fileUrl: string, filename: string): Promise<File> {
+
     const res = await fetch(fileUrl, { credentials: 'include' });
     if (!res.ok) throw new Error(`No se pudo descargar imagen (${res.status})`);
 
@@ -2567,6 +2574,14 @@ export class TrackDetailComponent
           } else {
             this.track!.waypoints.push(saved as Waypoint);
           }
+
+          // ✅ ordenar waypoints por distanceFromStart
+          this.track!.waypoints.sort((a, b) => {
+            const da = a.distanceFromStart ?? Number.MAX_SAFE_INTEGER;
+            const db = b.distanceFromStart ?? Number.MAX_SAFE_INTEGER;
+            return da - db;
+          });
+
 
           // ✅ actualizar seleccionado (ya con id real si era creación)
           this.selectedWaypoint = {

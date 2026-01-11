@@ -5,11 +5,13 @@ import { RouterModule } from '@angular/router';
 import { CardTrackComponent } from './components/card-track/card-track.component';
 import { SearchbarComponent } from './components/searchbar/searchbar.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TruncatePipe } from './pipes/truncate.pipe';
 
 @NgModule({
   declarations: [
     CardTrackComponent,
-    SearchbarComponent
+    SearchbarComponent,
+    TruncatePipe
   ],
   imports: [
     CommonModule, 
@@ -18,7 +20,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     ReactiveFormsModule,
   ],
   exports: [
-    CardTrackComponent,SearchbarComponent
+    CardTrackComponent,SearchbarComponent, TruncatePipe
   ],
 })
 export class SharedModule {}

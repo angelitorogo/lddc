@@ -15,6 +15,7 @@ import { TrackFollowComponent } from './components/track-follow/track-follow.com
 import { TrackRecorderComponent } from './components/track-recorder/track-recorder.component';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { TrackDetailByNameComponent } from './components/track-detail-by-name/track-detail-by-name.component';
+import { SearchResultsComponent } from './components/search-results/search-results.component';
 
 
 
@@ -78,6 +79,10 @@ const routes: Routes = [
         path: 'tracks/:id/follow',
         canActivate: [AuthGuard],
         component: TrackFollowComponent,
+      },
+      { 
+        path: 'search', 
+        component: SearchResultsComponent 
       },
       /*
       {

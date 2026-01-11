@@ -1,6 +1,6 @@
 // src/app/dashboard/pages/home/home.component.ts
 
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 
 import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
 import {
@@ -10,13 +10,16 @@ import {
 } from '../../../shared/models/track-list-params-model';
 import { TracksService } from '../../services/track.service';
 import { TrackListResponse } from '../../../shared/responses/list.response';
+import { filter, Subscription } from 'rxjs';
+import { NavigationStart, Router } from '@angular/router';
+import { HomeStateService } from '../../services/home-state.service';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit  {
   tracks: Track[] = [];
   loading = false;
   error: string | null = null;
@@ -56,13 +59,42 @@ export class HomeComponent implements OnInit {
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
 
-  constructor(private tracksService: TracksService) {}
+
+  constructor(private tracksService: TracksService, private router: Router,
+    private homeState: HomeStateService) {}
 
   ngOnInit(): void {
+    // ✅ Si venimos de un Track y hay snapshot -> restaurar y NO recargar
+    const snap = this.homeState.get();
+    if (snap) {
+      this.tracks = snap.tracks ?? [];
+      this.total = snap.total ?? 0;
+      this.page = snap.page ?? 1;
+      this.limit = snap.limit ?? 12;
+
+      this.filterRouteType = snap.filterRouteType ?? '';
+      this.filterDifficulty = snap.filterDifficulty ?? '';
+      this.filterMinDistanceKm = snap.filterMinDistanceKm ?? null;
+      this.filterMaxDistanceKm = snap.filterMaxDistanceKm ?? null;
+      this.sortBy = snap.sortBy ?? 'date';
+      this.sortOrder = snap.sortOrder ?? 'desc';
+
+      this.canLoadMore = snap.canLoadMore ?? true;
+      this.loadingMore = false;
+      this.lastRequestedPage = snap.lastRequestedPage ?? 0;
+
+      // ✅ restaurar scroll
+      setTimeout(() => window.scrollTo({ top: snap.scrollY ?? 0 }), 0);
+      return;
+    }
+
+    // carga normal
     setTimeout(() => {
       this.loadTracks(true);
     }, 100);
   }
+
+
 
   loadTracks(reset: boolean = false): void {
     if (reset) {
@@ -161,12 +193,16 @@ export class HomeComponent implements OnInit {
 
   onResetFilters(): void {
     this.filterRouteType = '';
-    this.filterDifficulty = '';
+    this.filterDifficulty = ''; 
     this.filterMinDistanceKm = null;
     this.filterMaxDistanceKm = null;
     this.sortBy = 'date';
     this.sortOrder = 'desc';
     this.page = 1;
+
+    // ✅ si limpias filtros, tiene sentido limpiar snapshot (opcional)
+    this.homeState.clear();
+
     this.loadTracks(true);
   }
 
@@ -269,9 +305,39 @@ export class HomeComponent implements OnInit {
       this.page = 1;
       this.canLoadMore = true;
       this.tracks = [];
+
+      // ✅ cambio de layout: mejor limpiar snapshot
+      this.homeState.clear();
+
       this.loadTracks(true);
     }
   }
 
   trackById = (_: number, t: Track) => t.id;
+
+  onOpenDetailFromHome(track: Track) {
+    if (!track?.id) return;
+
+    this.homeState.set({
+      tracks: this.tracks,
+      total: this.total,
+      page: this.page,
+      limit: this.limit,
+
+      filterRouteType: this.filterRouteType,
+      filterDifficulty: this.filterDifficulty,
+      filterMinDistanceKm: this.filterMinDistanceKm,
+      filterMaxDistanceKm: this.filterMaxDistanceKm,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
+
+      canLoadMore: this.canLoadMore,
+      lastRequestedPage: this.lastRequestedPage,
+
+      scrollY: window.scrollY ?? 0,
+    });
+
+    this.router.navigate(['/dashboard/track', track.id]);
+  }
+
 }

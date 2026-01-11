@@ -1,16 +1,20 @@
-
 <section class="home">
   <header class="home__header">
     <div>
-      <h1 class="home__title">Rutas de {{user?.fullname}}</h1>
-      <p class="home__subtitle">
-        Explora las rutas del usuario. Filtra por distancia, tipo y dificultad.
+      <h1 class="home__title">Resultados</h1>
+
+      <p class="home__subtitle" *ngIf="q">
+        Coincidencias para <span class="q">“{{ q }}”</span>. Filtra por distancia, tipo y dificultad.
+      </p>
+
+      <p class="home__subtitle" *ngIf="!q">
+        Escribe algo en la barra de búsqueda y pulsa Enter o “Buscar”.
       </p>
     </div>
   </header>
 
-  <!-- Filtros -->
-  <section class="filters">
+  <!-- Filtros (igual que Home) -->
+  <section class="filters" *ngIf="q">
     <div class="filters__row">
       <!-- === TIPO DE RUTA (custom select) === -->
       <div class="filters__group">
@@ -274,33 +278,33 @@
   </section>
 
   <!-- Estado de carga / error -->
-  <div *ngIf="loading" class="home__status">
+  <div *ngIf="q && loading" class="home__status">
     Cargando rutas...
   </div>
 
-  <div *ngIf="!loading && error" class="home__status home__status--error">
+  <div *ngIf="q && !loading && error" class="home__status home__status--error">
     {{ error }}
   </div>
 
   <!-- Lista de tracks -->
-  <section *ngIf="!loading && !error" class="tracks-list">
+  <section *ngIf="q && !loading && !error" class="tracks-list">
     <app-card-track
       *ngFor="let track of tracks; trackBy: trackById"
       [track]="track"
-      (openDetail)="onOpenDetailFromTracksUser($event)"
+      (openDetail)="onOpenDetailFromHome($event)"
     ></app-card-track>
   </section>
 
-  <div *ngIf="isMobile && loadingMore" class="home__status">
+  <div *ngIf="q && isMobile && loadingMore" class="home__status">
     Cargando más rutas...
   </div>
 
-  <div *ngIf="isMobile && !loading && !error && tracks.length > 0 && !canLoadMore" class="home__status">
+  <div *ngIf="q && isMobile && !loading && !error && tracks.length > 0 && !canLoadMore" class="home__status">
     No hay más rutas.
   </div>
 
   <!-- Paginación -->
-  <section *ngIf="!isMobile && !loading && !error && tracks.length > 0" class="pagination">
+  <section *ngIf="q && !isMobile && !loading && !error && tracks.length > 0" class="pagination">
     <button
       class="btn btn--secondary"
       [disabled]="!canGoPrev()"
@@ -328,7 +332,6 @@
   <div class="modal">
     <div class="modal-header">
       <h2>Sin resultados</h2>
-
     </div>
     <div class="modal-body">
       <p>{{ errorMessage }}</p>

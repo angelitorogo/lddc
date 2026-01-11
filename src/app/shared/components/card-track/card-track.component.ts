@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Track } from '../../models/track.model';
 import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
@@ -12,6 +12,8 @@ export class CardTrackComponent {
 
   @Input() track: any; // 👈 aquí recibes el track
   @Input() distanceToStart: number | null = null;
+  @Output() openDetail = new EventEmitter<Track>();
+
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
   constructor(private router: Router){}
@@ -64,8 +66,7 @@ export class CardTrackComponent {
   }
 
   onOpenDetail(track: Track) {
-    //console.log(track)
-    this.router.navigate(['/dashboard/track', track.id]);
+    this.openDetail.emit(track);
   }
 
 }

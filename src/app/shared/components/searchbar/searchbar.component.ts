@@ -107,15 +107,20 @@ export class SearchbarComponent implements OnInit, OnDestroy {
     queueMicrotask(() => this.inputEl?.nativeElement?.focus());
   }
 
+  // ✅ CAMBIO: navegar a search results
   onSubmit(): void {
     const q = (this.control.value ?? '').trim();
     if (!q) return;
 
-    // Opción A: navegar a una pantalla de resultados (si la tienes o la crearás)
-    // this.router.navigate(['/dashboard/search'], { queryParams: { q } });
+    this.open = false;
 
-    // Opción B: quedarte en el dropdown y no navegar (no hago nada)
-    this.open = true;
+    const req = q;
+
+    this.clear();
+
+    this.router.navigateByUrl(
+      this.router.createUrlTree(['/dashboard/search'], { queryParams: { q } }).toString()
+    );
   }
 
   onPickTrack(track: any): void {

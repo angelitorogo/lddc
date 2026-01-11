@@ -194,7 +194,7 @@ export class TracksService {
   }
 
   getUrlImage(image: any): string {
-    return `${this.baseUrl}/images/${image.id}`;
+    return `${this.baseUrl}/images/general/${image.id}`;
   }
 
   deleteTrack(trackId: string) {
@@ -220,21 +220,51 @@ export class TracksService {
     });
   }
 
-  searchTracks(params: {
-    q: string;
-    page?: number;
-    limit?: number;
-  }): Observable<any> {
+  searchTracks(params: TrackListParams & { q: string }): Observable<TrackListResponse> {
     let httpParams = new HttpParams().set('q', params.q);
 
-    httpParams = httpParams.set('page', String(params.page ?? 1));
-    httpParams = httpParams.set('limit', String(params.limit ?? 10));
+    if (params.userId !== undefined) {
+      httpParams = httpParams.set('userId', params.userId.toString());
+    }
 
-    return this.http.get<any>(`${this.baseUrl}/search`, {
+    if (params.page !== undefined) {
+      httpParams = httpParams.set('page', params.page.toString());
+    } else {
+      httpParams = httpParams.set('page', '1');
+    }
+
+    if (params.limit !== undefined) {
+      httpParams = httpParams.set('limit', params.limit.toString());
+    } else {
+      httpParams = httpParams.set('limit', '10');
+    }
+
+    if (params.routeType) {
+      httpParams = httpParams.set('routeType', params.routeType);
+    }
+    if (params.minDistance !== undefined) {
+      httpParams = httpParams.set('minDistance', params.minDistance.toString());
+    }
+    if (params.maxDistance !== undefined) {
+      httpParams = httpParams.set('maxDistance', params.maxDistance.toString());
+    }
+    if (params.difficulty) {
+      httpParams = httpParams.set('difficulty', params.difficulty);
+    }
+
+    if (params.sortBy) {
+      httpParams = httpParams.set('sortBy', params.sortBy);
+    }
+    if (params.sortOrder) {
+      httpParams = httpParams.set('sortOrder', params.sortOrder);
+    }
+
+    return this.http.get<TrackListResponse>(`${this.baseUrl}/search`, {
       params: httpParams,
       withCredentials: true,
     });
   }
+
 
   elevationBatch(points: { lat: number; lon: number }[]): Observable<{ elevations: Array<number | null> }> {
     return this.http.post<{ elevations: Array<number | null> }>(

@@ -96,7 +96,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   hoverPolylinePath: google.maps.LatLngLiteral[] = [];
 
   hoverPolylineOptions: google.maps.PolylineOptions = {
-    strokeColor: '#00ee76',
+    strokeColor: '#FFee00',
     strokeOpacity: 0.95,
     strokeWeight: 3,
     zIndex: 999,
@@ -293,6 +293,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (res) => {
+
           this.lastResponse = res;
           this.total = res.total;
           this.density = res.density;
@@ -323,9 +324,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         },
       });
 
-    if (this.showViewportPolylines) {
-      this.loadViewportPolylines();
-    }
+    
   }
 
   private renderMarkers(items: ViewportTrackItem[]): void {
@@ -338,6 +337,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       visibleItems = items.slice(0, this.MAX_MARKERS_WHEN_HIGH);
       this.showHighDensityWarning = true;
     }
+
+    //console.log(visibleItems)
 
     this.markers = visibleItems
       .map((t) => {
@@ -355,6 +356,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .filter((x): x is NonNullable<typeof x> => x !== null);
 
     this.showingCount = this.markers.length;
+
+    
+    if (this.showViewportPolylines) {
+      this.loadViewportPolylines();
+    }
+    
   }
 
   // =========================

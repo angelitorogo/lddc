@@ -476,9 +476,9 @@
           </div>
 
           <!-- Miniaturas (como tu thumbs-row) -->
-          <div class="waypoint-thumbs" *ngIf="wp.images.length">
+          <div class="waypoint-thumbs" *ngIf="(wp?.images?.length ?? 0) > 0">
             <div class="track-page__thumbs-row">
-              <ng-container *ngFor="let img of wp.images; let i = index">
+              <ng-container *ngFor="let img of (wp?.images ?? [])">
                 <figure
                   class="track-page__thumb-card"
                   role="button"
@@ -498,7 +498,7 @@
           </div>
 
           <!-- Si no tiene imágenes -->
-          <div class="waypoint-noimg" *ngIf="!wp.images.length">
+          <div class="waypoint-noimg" *ngIf="(wp?.images?.length ?? 0) === 0">
             Sin imágenes
           </div>
         </article>

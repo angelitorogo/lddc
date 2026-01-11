@@ -457,8 +457,8 @@ export class TrackCreateComponent implements OnDestroy {
           this.router.navigate(['/dashboard/track', res.id]);
         },
         error: (err) => {
-          console.error('Error creando track', err);
-          this.fileError = 'Ha ocurrido un error al crear el track.';
+          //console.error('Error creando track', err.error.message);
+          this.fileError = err.error.message || 'Error creando el track.';
           this.creating = false;
         },
       });

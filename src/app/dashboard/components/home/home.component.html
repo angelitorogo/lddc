@@ -303,6 +303,7 @@
     <app-card-track
       *ngFor="let track of tracks; trackBy: trackById"
       [track]="track"
+      (openDetail)="onOpenDetailFromHome($event)"
     ></app-card-track>
   </section>
 
