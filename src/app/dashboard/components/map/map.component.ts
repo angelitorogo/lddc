@@ -22,6 +22,7 @@ import {
 
 import { TracksService } from '../../services/track.service';
 import { GeolocationService } from '../../services/otros/location.service';
+import { Track } from '../../../shared/models/track.model';
 
 @Component({
   selector: 'app-map',
@@ -174,6 +175,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   // ✅ subs para limpiar
   private sub = new Subscription();
+
+  isMapExpanded = false;
 
   constructor(
     private readonly tracksService: TracksService,
@@ -725,4 +728,44 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     this.viewportTracks = list;
   }
+
+  toggleMapExpanded(): void {
+    this.isMapExpanded = !this.isMapExpanded;
+
+    // al cambiar el layout, el mapa necesita "resize" para renderizar bien
+    queueMicrotask(() => {
+      google.maps.event.trigger(this.googleMap.googleMap!, 'resize');
+
+      // opcional: re-centrar ligeramente para evitar “mapa gris”
+      /*
+      const map = this.googleMap?.googleMap;
+      if (map) {
+        map.panTo(this.center);
+      }
+        */
+    });
+  }
+
+
+   onOpenDetailFromMap(track: Track) {
+    if (!track?.id) return;
+
+    this.router.navigate(['/dashboard/track', track.id]);
+  }
+
+
+  toggleViewportPolylinesButton(): void {
+    if (!this.viewportTracks || this.viewportTracks.length === 0) return;
+
+    this.showViewportPolylines = !this.showViewportPolylines;
+
+    if (!this.showViewportPolylines) {
+      this.viewportPolylines = [];
+      return;
+    }
+
+    this.loadViewportPolylines();
+  }
+
+
 }

@@ -30,11 +30,11 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     this.formLogin = this.fb.group({
-      email: new FormControl('', [
+      email: new FormControl('angelitorogo@hotmail.com', [
         Validators.required,
         Validators.email,
       ]),
-      password: new FormControl('', Validators.required),
+      password: new FormControl('Rod00gom!', Validators.required),
     });
   }
 

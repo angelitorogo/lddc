@@ -8,6 +8,21 @@
     </div>
 
     <div class="map-page__actions">
+      <button
+        class="btn btn--secondary"
+        [title]="isMapExpanded ? 'Contraer mapa' : 'Expandir mapa'"
+        (click)="toggleMapExpanded()"
+      >
+        <i class="bi" [ngClass]="isMapExpanded ? 'bi-fullscreen-exit' : 'bi-fullscreen'"></i>
+      </button>
+      <button
+        class="btn btn--secondary"
+        [disabled]="viewportTracks.length === 0"
+        [title]="showViewportPolylines ? 'Ocultar polilíneas' : 'Mostrar polilíneas'"
+        (click)="toggleViewportPolylinesButton()"
+      >
+        <i class="bi" [ngClass]="showViewportPolylines ? 'bi-eye' : 'bi-eye-slash'"></i>
+      </button>
       <button class="btn btn--secondary" title="Localizar" (click)="toggleMyLocation()">
         <i class="bi" [ngClass]="isMyLocationEnabled ? 'bi-geo-alt-fill' : 'bi-geo-alt'"></i>
       </button>
@@ -16,7 +31,7 @@
     </div>
   </header>
 
-  <section class="split">
+  <section class="split" [class.split--expanded]="isMapExpanded">
     <!-- IZQUIERDA: MAPA -->
     <section class="split__left map-panel">
       <div class="map-panel__topbar">
@@ -123,7 +138,7 @@
     </section>
 
     <!-- DERECHA: LISTADO -->
-    <aside class="split__right">
+    <aside class="split__right" *ngIf="!isMapExpanded">
       <div class="right-panel">
         <header class="right-panel__header">
           <h2 class="right-panel__title">Rutas en pantalla</h2>
@@ -163,6 +178,7 @@
               [attr.id]="'track-card-' + track.id"
               (mouseenter)="onCardEnter(track.id)"
               (mouseleave)="onCardLeave(track.id)"
+              (openDetail)="onOpenDetailFromMap($event)"
             ></app-card-track>
           </div>
 

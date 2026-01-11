@@ -374,3 +374,22 @@ google-map {
   align-items: center;
   margin-top: 0.5rem;
 }
+
+
+/* =========================
+   ✅ Modo mapa expandido
+   ========================= */
+.split--expanded {
+  grid-template-columns: 1fr;
+}
+
+.split--expanded .map-panel {
+  height: calc(100vh - 220px);
+}
+
+@media (max-width: 900px) {
+  .split--expanded .map-panel__map {
+    height: calc(100vh - 260px);
+    min-height: 360px;
+  }
+}
