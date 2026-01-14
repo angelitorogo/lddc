@@ -354,10 +354,11 @@
    ========================= */
 
 .danger-zone {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-color: rgba(255, 107, 107, 0.35);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-color: rgba(255, 107, 107, 0.35);
+    align-items: center;
 }
 
 .danger-zone__title {
@@ -365,7 +366,7 @@
 }
 
 .danger-zone__text {
-  margin: 0 0 1rem 0;
+  margin: 0 0 2rem 2rem;
   color: var(--text-muted-color);
   font-size: 1.15rem;
   line-height: 1.45;

@@ -10,7 +10,7 @@ import {
 
 import { TrackListResponse } from '../../../shared/responses/list.response';
 import { TracksService } from '../../services/track.service';
-import { SearchResultsStateService } from '../../services/search-results-state.service';
+import { SearchResultsStateService } from '../../services/state/search-results-state.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -27,7 +27,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   // paginación
   page = 1;
-  limit = 12;
+  limit = 36;
   total = 0;
 
   // filtros (UI)
@@ -129,6 +129,10 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get adInterval(): number {
+    return this.isMobile ? 8 : 12;
   }
   
 

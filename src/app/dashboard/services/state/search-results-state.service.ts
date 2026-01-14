@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Difficulty, RouteType, Track } from '../../shared/models/track.model';
-import { TrackSortBy, TrackSortOrder } from '../../shared/models/track-list-params-model';
+import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
+import { TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
 
-export type HomeSnapshot = {
+export type SearchResultsSnapshot = {
+  q: string;
+
   tracks: Track[];
   total: number;
   page: number;
@@ -22,14 +24,14 @@ export type HomeSnapshot = {
 };
 
 @Injectable({ providedIn: 'root' })
-export class HomeStateService {
-  private snapshot: HomeSnapshot | null = null;
+export class SearchResultsStateService {
+  private snapshot: SearchResultsSnapshot | null = null;
 
-  set(snapshot: HomeSnapshot) {
+  set(snapshot: SearchResultsSnapshot) {
     this.snapshot = snapshot;
   }
 
-  get(): HomeSnapshot | null {
+  get(): SearchResultsSnapshot | null {
     return this.snapshot;
   }
 

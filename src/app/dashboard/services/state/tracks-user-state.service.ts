@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Difficulty, RouteType, Track } from '../../shared/models/track.model';
-import { TrackSortBy, TrackSortOrder } from '../../shared/models/track-list-params-model';
-import { UpdateUserResponse } from '../../auth/interfaces/update-user.interface';
+import { Difficulty, RouteType, Track } from '../../../shared/models/track.model';
+import { TrackSortBy, TrackSortOrder } from '../../../shared/models/track-list-params-model';
+import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 
 export type TracksUserSnapshot = {
   userId: string;

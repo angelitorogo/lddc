@@ -12,7 +12,9 @@ import { TracksService } from '../../services/track.service';
 import { TrackListResponse } from '../../../shared/responses/list.response';
 import { filter, Subscription } from 'rxjs';
 import { NavigationStart, Router } from '@angular/router';
-import { HomeStateService } from '../../services/home-state.service';
+import { HomeStateService } from '../../services/state/home-state.service';
+import { AuthService } from '../../../auth/services/auth.service';
+import { CookiePreferencesService } from '../../services/otros/cookie-preferences.service';
 
 @Component({
   selector: 'app-home',
@@ -26,7 +28,7 @@ export class HomeComponent implements OnInit  {
 
   // paginación
   page = 1;
-  limit = 12;
+  limit = 36;
   total = 0;
 
   // filtros (UI)
@@ -40,6 +42,9 @@ export class HomeComponent implements OnInit  {
   // 🔹 Estado del modal de error
   showErrorModal = false;
   errorMessage = '';
+
+  showSuccessModal = false;
+
 
   isRouteTypeOpen = false;
   isDifficultyOpen = false;
@@ -59,18 +64,20 @@ export class HomeComponent implements OnInit  {
     { value: 'POINT_TO_POINT', label: 'Lineal' },
   ];
 
+  
+
 
   constructor(private tracksService: TracksService, private router: Router,
-    private homeState: HomeStateService) {}
+    private homeState: HomeStateService, public authService: AuthService, public cookiePrefs: CookiePreferencesService) {}
 
   ngOnInit(): void {
     // ✅ Si venimos de un Track y hay snapshot -> restaurar y NO recargar
     const snap = this.homeState.get();
     if (snap) {
       this.tracks = snap.tracks ?? [];
-      this.total = snap.total ?? 0;
-      this.page = snap.page ?? 1;
-      this.limit = snap.limit ?? 12;
+      this.total = snap.total ?? this.total;
+      this.page = snap.page ?? this.totalPages;
+      this.limit = snap.limit ?? this.limit;
 
       this.filterRouteType = snap.filterRouteType ?? '';
       this.filterDifficulty = snap.filterDifficulty ?? '';
@@ -94,7 +101,9 @@ export class HomeComponent implements OnInit  {
     }, 100);
   }
 
-
+  get adInterval(): number {
+    return this.isMobile ? 8 : 12;
+  }
 
   loadTracks(reset: boolean = false): void {
     if (reset) {
@@ -339,5 +348,21 @@ export class HomeComponent implements OnInit  {
 
     this.router.navigate(['/dashboard/track', track.id]);
   }
+
+  deleteAllTracks():void {
+    this.tracksService.deleteAllTracks().subscribe({
+      next: (res) => {
+        this.showSuccessModal = true;
+        this.loadTracks(true);
+      },
+      error: (err) => console.error(err),
+    });
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
+  }
+
+  
 
 }

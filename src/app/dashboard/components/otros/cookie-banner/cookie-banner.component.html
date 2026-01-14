@@ -13,9 +13,9 @@
         pero serán <strong>no personalizados</strong> y no usaremos tu historial de navegación
         para perfilado.
       </p>
-      <a routerLink="/dashboard/info-cookies" class="cookie-banner__link">
+      <!--<a routerLink="/dashboard/info-cookies" class="cookie-banner__link">
         Ver detalles de cookies
-      </a>
+      </a>-->
     </div>
 
     <div class="cookie-banner__actions">
@@ -27,7 +27,7 @@
         Solo esenciales
       </button>
 
-      <button class="btn btn--link" type="button" (click)="openSettings()">
+      <button class="btn btn--link" type="button" routerLink="/dashboard/info-cookies">
         Configurar
       </button>
     </div>

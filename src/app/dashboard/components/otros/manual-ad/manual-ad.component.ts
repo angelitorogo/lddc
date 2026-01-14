@@ -1,24 +1,35 @@
-// src/app/shared/components/manual-ad/manual-ad.component.ts
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { AdsService } from '../../../services/otros/ads.service';
+import { CookiePreferencesService } from '../../../services/otros/cookie-preferences.service';
 
 @Component({
   selector: 'app-manual-ad',
   templateUrl: './manual-ad.component.html',
 })
-export class ManualAdComponent implements AfterViewInit {
+export class ManualAdComponent implements AfterViewInit, OnChanges {
 
-  // Slot que definas en AdSense para este hueco concreto
-  adSlot = '1234567890'; // cambia por tu slot real
+  @Input() adSlot!: string;
 
   constructor(
     public adsService: AdsService,
+    public cookiePrefs: CookiePreferencesService,
   ) {}
 
   ngAfterViewInit(): void {
-    // Siempre empujamos el anuncio:
-    // - Si el usuario aceptó Ads → personalizados
-    // - Si no aceptó Ads → no personalizados (requestNonPersonalizedAds = 1)
+    this.tryRenderAd();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['adSlot'] && !changes['adSlot'].firstChange) {
+      this.tryRenderAd();
+    }
+  }
+
+  private tryRenderAd(): void {
+    // ✅ Si el usuario no ha elegido, no hacemos nada (no hueco)
+    if (!this.cookiePrefs.hasStoredPrefs) return;
+
+    // ✅ Render del anuncio (personalizado o NPA según prefs actuales)
     this.adsService.pushManualAd();
   }
 }

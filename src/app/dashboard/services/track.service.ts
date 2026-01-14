@@ -69,6 +69,12 @@ export class TracksService {
     });
   }
 
+  getUserStats(userId: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/user/stats`, {id: userId}, {
+      withCredentials: true,
+    });
+  }
+
   getTrackByName(name: string): Observable<DetailResponse> {
     return this.http.get<any>(`${this.baseUrl}/name/${name}`, {
       withCredentials: true,
@@ -400,6 +406,14 @@ export class TracksService {
     return this.http.delete<{ ok: boolean; imageId: string; waypointId: string }>(
       `${this.baseUrl}/${trackId}/waypoints/${waypointId}/images/${imageId}`,
       { withCredentials: true },
+    );
+  }
+
+
+  deleteAllTracks(): Observable<{ ok: boolean; deleted?: any; message?: string }> {
+    return this.http.delete<{ ok: boolean; deleted?: any; message?: string }>(
+      `${this.baseUrl}/purgue/all`,
+      {withCredentials: true}
     );
   }
 

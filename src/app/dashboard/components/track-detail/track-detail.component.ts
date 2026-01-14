@@ -29,6 +29,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 
 import { Waypoint, WaypointType } from '../../../shared/responses/detail.response';
 import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
+import { CookiePreferencesService } from '../../services/otros/cookie-preferences.service';
 
 type ModalType = 'DELETE' | 'SUCCESS';
 
@@ -77,7 +78,7 @@ export class TrackDetailComponent
   @ViewChild('detailMap') mapComponent?: GoogleMap;
 
   mapOptions: google.maps.MapOptions = {
-    mapTypeId: 'satellite',
+    mapTypeId: 'hybrid',
     clickableIcons: true,
     disableDefaultUI: false,
     draggable: true,
@@ -300,6 +301,7 @@ export class TrackDetailComponent
     private trackService: TracksService,
     public authService: AuthService,
     private location: Location,
+    public cookiePrefs: CookiePreferencesService
   ) { }
 
   // =========================================================

@@ -19,6 +19,7 @@ import { UpdateUserPayload, UpdateUserResponse } from '../../../auth/interfaces/
 import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TracksService } from '../../services/track.service';
+import { UserStatsResponse } from '../../../shared/responses/user-stats.response';
 
 @Component({
   selector: 'app-profile',
@@ -105,7 +106,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   // si se ha eliminado correctamente, al aceptar redirigimos a home
   private accountDeletedOk = false;
+  
 
+  userStats: UserStatsResponse | null = null;
   
 
 
@@ -173,8 +176,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         );
 
         this.setAvatarFromUser(u);
-        this.loadTracksSummary(u.id);
+        this.loadUserStats(u.id);
       });
+
+      
 
       
 
@@ -198,7 +203,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         );
 
         this.setAvatarFromUser(res);
-        this.loadTracksSummary(this.userId!);
+        this.loadUserStats(this.userId!);
 
         this.setReadOnlyMode(true);
         
@@ -206,12 +211,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
 
 
-
     }
 
     
+  }
 
-    
+  loadUserStats(userId: string): void {
+    this.tracksService.getUserStats(userId).subscribe( (res:any) => {
+      
+      this.userStats = res;
+
+      this.summaryUserId = userId;
+      
+    });
   }
 
   ngOnDestroy(): void {
@@ -768,39 +780,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadTracksSummary(userId: string): void {
-    this.summaryUserId = userId;
-    this.loadingTracksSummary = true;
-    this.tracksCount = 0;
-    this.lastTrackDate = null;
-
-    // Pedimos 1 elemento ordenado por fecha desc -> nos da "última ruta"
-    // y el "total" nos sirve como contador global.
-    this.tracksService.getTracks({
-      userId,
-      page: 1,
-      limit: 1,
-      sortBy: 'date',
-      sortOrder: 'desc',
-    }).subscribe({
-      next: (res: any) => {
-        this.tracksCount = Number(res?.total ?? 0);
-
-        const last = res?.items?.[0];
-        // Ajusta el campo si tu Track usa otro nombre (dateTrack / createdAt / etc.)
-        this.lastTrackDate = last?.dateTrack ?? last?.createdAt ?? null;
-
-        this.loadingTracksSummary = false;
-      },
-      error: (err: any) => {
-        console.error('Error cargando resumen de rutas', err);
-        this.loadingTracksSummary = false;
-      },
-    });
-  }
+  
 
   goToUserTracks(): void {
-    if (!this.summaryUserId) return;
     // ruta: { path: 'tracks-user/:id', component: TracksUserComponent }
     this.router.navigate(['/dashboard/tracks-user', this.summaryUserId]);
   }

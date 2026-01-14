@@ -145,3 +145,21 @@ img[src$="poster-placeholder.png"] {
   background-color: rgba(183, 28, 28, 0.4);
   border-color: #ff5252;
 }
+
+.ad-block {
+  text-align: center;
+}
+
+.ad-full-row {
+  grid-column: 1 / -1; /* ⬅️ ocupa todas las columnas */
+  width: 100%;
+  /*min-height: 90px;*/
+  display: block;
+}
+
+.track-ad {
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+}

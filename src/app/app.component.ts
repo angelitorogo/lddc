@@ -10,26 +10,22 @@ import { AnalyticsService } from './dashboard/services/otros/analitics.service';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit, OnDestroy{
+export class AppComponent implements OnInit, OnDestroy {
   title = 'Sala2';
   private prefsSub?: Subscription;
 
   constructor(
-    private _authService: AuthService, 
+    private _authService: AuthService,
     private cookiePrefs: CookiePreferencesService,
     private ads: AdsService,
     private analytics: AnalyticsService
-  ) {
-
-  }
+  ) {}
 
   ngOnInit(): void {
-    // Intento inicial de iniciar Ads (si está en producción y hay consentimiento):
+    // ✅ Solo hará algo si ya hay decisión guardada
     this.ads.init();
-    // Intento de inicialización al arrancar (por si ya había consentimiento guardado)
     this.analytics.init();
 
-    // Escuchar cambios de preferencias de cookies
     this.prefsSub = this.cookiePrefs.prefs$.subscribe(() => {
       this.ads.onPreferencesChanged();
       this.analytics.onPreferencesChanged();
@@ -42,17 +38,10 @@ export class AppComponent implements OnInit, OnDestroy{
     this.prefsSub?.unsubscribe();
   }
 
-  // Método para obtener el CSRF Token al iniciar la app
   private initializeCsrfToken(): void {
     this._authService.getCsrfToken().subscribe({
-      next: (response) => {
-        //console.log(response)
-        this._authService.setCsrfToken(response.csrfToken);
-      },
-      error: (err) => {
-        console.error('Error al obtener el CSRF Token:', err);
-      },
+      next: (response) => this._authService.setCsrfToken(response.csrfToken),
+      error: (err) => console.error('Error al obtener el CSRF Token:', err),
     });
   }
-
 }

@@ -9,7 +9,8 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
-import { TracksUserStateService } from '../../services/tracks-user-state.service';
+import { TracksUserStateService } from '../../services/state/tracks-user-state.service';
+import { CookiePreferencesService } from '../../services/otros/cookie-preferences.service';
 
 @Component({
   selector: 'app-tracks-user',
@@ -25,7 +26,7 @@ export class TracksUserComponent implements OnInit, OnDestroy {
 
   // paginación
   page = 1;
-  limit = 12;
+  limit = 36;
   total = 0;
 
   // autor-track
@@ -68,6 +69,7 @@ export class TracksUserComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private tracksUserState: TracksUserStateService,
+    public cookiePrefs: CookiePreferencesService
   ) {}
 
   ngOnInit(): void {
@@ -122,6 +124,10 @@ export class TracksUserComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
+  }
+
+  get adInterval(): number {
+    return this.isMobile ? 8 : 12;
   }
 
   // ✅ Guardar estado y navegar a detalle

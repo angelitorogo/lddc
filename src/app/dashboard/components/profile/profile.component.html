@@ -194,7 +194,7 @@
           <span
             class="account-info__value"
             [class.account-info__value--ok]="this.profileUser?.active"
-            [class.account-info__value--err]="this.profileUser?.active"
+            [class.account-info__value--err]="!this.profileUser?.active"
           >
             <span *ngIf="isOwnProfile">{{ this.profileUser?.active ? 'Activa' : 'Inactiva' }}</span>
             <span *ngIf="!isOwnProfile">{{ userActive ? 'Activa' : 'Inactiva' }}</span>
@@ -221,44 +221,90 @@
       </div>
     </section>
 
-
-    <!-- ✅ NUEVO: RESUMEN DE RUTAS -->
+    <!-- ✅ NUEVO: ESTADISTICAS DE USUARIO -->
     <section class="panel panel__resume-tracks">
-      <h2 class="panel__title">Rutas creadas</h2>
+      <h2 class="panel__title">Estadísticas de usuario</h2>
 
       <div class="account-info">
+
         <div class="account-info__row">
           <span class="account-info__label">Total de rutas</span>
           <span class="account-info__value">
-            {{ loadingTracksSummary ? 'Cargando...' : (tracksCount | number:'1.0-0') }}
+            {{userStats?.totalTracks| number:'1.0-0' }}
+          </span>
+        </div>
+
+
+        <div class="account-info__row">
+          <span class="account-info__label">Distancia total recorrida</span>
+          <span class="account-info__value">
+            {{ userStats?.totalDistanceKm | number:'1.2-2' }} km
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Ascenso total</span>
+          <span class="account-info__value">
+            {{ userStats?.totalAscent | number:'1.0-0' }} m
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Máxima distancia en una ruta</span>
+          <span class="account-info__value">
+            {{ userStats?.longestTrackDistanceKm | number:'1.2-2' }} km
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Máxima ascenso en una ruta</span>
+          <span class="account-info__value">
+            {{ userStats?.maxSingleAscent | number:'1.0-0' }} m
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Media de distancia por ruta</span>
+          <span class="account-info__value">
+            {{ userStats?.averageDistanceKm | number:'1.2-2' }} km
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Media de ascenso por ruta</span>
+          <span class="account-info__value">
+            {{ userStats?.averageAscent | number:'1.0-0' }} m
+          </span>
+        </div>
+
+        <div class="account-info__row">
+          <span class="account-info__label">Tiempo total empleado</span>
+          <span class="account-info__value">
+            {{ userStats?.totalTimeHours | number:'1.0-0' }} horas
           </span>
         </div>
 
         <div class="account-info__row">
           <span class="account-info__label">Última ruta</span>
           <span class="account-info__value">
-            <ng-container *ngIf="!loadingTracksSummary; else loadingLast">
-              <ng-container *ngIf="lastTrackDate; else noTracks">
-                {{ lastTrackDate | date:'dd/MM/yyyy' }}
-              </ng-container>
-              <ng-template #noTracks>—</ng-template>
-            </ng-container>
-            <ng-template #loadingLast>Cargando...</ng-template>
+            {{ userStats?.lastTrackDate| date:'dd/MM/yyyy' }}
           </span>
         </div>
+
+        <div class="form__actions" style="margin-top: 1rem;">
+          <button
+            type="button"
+            class="btn btn--primary btn--action"
+            (click)="goToUserTracks()"
+          >
+            <span *ngIf="isOwnProfile">Ver mis rutas</span>
+            <span *ngIf="!isOwnProfile">Ver rutas del usuario</span>
+          </button>
+        </div>
+
+        
       </div>
 
-      <div class="form__actions" style="margin-top: 1rem;">
-        <button
-          type="button"
-          class="btn btn--primary btn--action"
-          [disabled]="loadingTracksSummary || !summaryUserId"
-          (click)="goToUserTracks()"
-        >
-          <span *ngIf="isOwnProfile">Ver mis rutas</span>
-          <span *ngIf="!isOwnProfile">Ver rutas del usuario</span>
-        </button>
-      </div>
     </section>
 
 

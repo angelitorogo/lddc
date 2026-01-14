@@ -1,22 +1,11 @@
-<!--<ng-container *ngIf="cookiePrefs.hasConsent('ads'); else adsBlocked">
+
+
+<ng-container *ngIf="cookiePrefs.hasStoredPrefs"> <!-- de momento no añadir min-height:90px; a style="display:block; width:100%;-->
   <ins class="adsbygoogle"
-       style="display:block"
-       [attr.data-ad-client]="adsService['clientId']"
-       [attr.data-ad-slot]="adSlot"
+       style="display:block; width:100%; margin-bottom: 1.5rem;"
        data-ad-format="auto"
-       data-full-width-responsive="true">
+       data-full-width-responsive="true"
+       [attr.data-ad-client]="adsService.adsClientId"
+       [attr.data-ad-slot]="adSlot">
   </ins>
 </ng-container>
-
-<ng-template #adsBlocked>
-</ng-template>-->
-
-
-<!-- manual-ad.component.html (ejemplo) -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-format="auto"
-     data-full-width-responsive="true"
-     [attr.data-ad-client]="adsService.clientId"
-     [attr.data-ad-slot]="adSlot">
-</ins>

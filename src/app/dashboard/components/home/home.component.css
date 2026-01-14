@@ -33,7 +33,7 @@
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .filters__row {
@@ -237,6 +237,17 @@
   color: var(--color-primary);
 }
 
+.btn--error {
+  background-color: transparent;
+  border-color: var(--color-error);
+  color: var(--color-error)
+}
+
+.btn--error:hover {
+  background-color: var(--color-error);
+  color: #0f1a15;
+}
+
 .btn--secondary:hover:not(:disabled) {
   background-color: var(--color-primary);
   color: #0f1a15;
@@ -266,6 +277,7 @@
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
   align-items: stretch;
+  margin-block: 1rem;
 }
 
 /* === PAGINACIÓN === */
@@ -326,7 +338,7 @@
 
   .tracks-list {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1rem;
   }
 }
@@ -340,3 +352,9 @@
   }
 }
 
+
+@media (max-width: 580px) {
+  .home {
+    padding-bottom: 84px; /* ajusta a 84-100 según tu gusto */
+  }
+}

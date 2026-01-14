@@ -258,10 +258,12 @@
     "cover side"
     "profile profile"
     "description description"
+    "ads ads"
     "nearby nearby"
     "waypoints waypoints";
-  gap: 1.25rem 1.5rem;
+  gap:1rem;
   align-items: stretch;
+  margin-bottom: 1rem;
 }
 
 .track-page__layout--no-cover {
@@ -270,6 +272,7 @@
     "side"
     "profile"
     "description"
+    "ads"
     "nearby"
     "waypoints";
 }
@@ -309,6 +312,7 @@
       "profile"
       "side"
       "description"
+      "ads"
       "nearby"
       "waypoints";
   }
@@ -1837,4 +1841,16 @@ body.no-scroll {
   .waypoint-thumbs .track-page__thumbs-row .track-page__thumb-card {
     flex: 0 0 210px; /* igual que tu breakpoint ya usa 210px */
   }
+}
+
+.grid-name {
+  grid-area: ads;
+}
+
+.track-ad--full {
+  grid-column: 1 / -1;  /* ✅ ocupa todo el grid */
+  width: 100%;
+  display: block;
+  min-height: 90px;
+  margin: 0 0 1rem;
 }

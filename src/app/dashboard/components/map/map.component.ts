@@ -23,6 +23,7 @@ import {
 import { TracksService } from '../../services/track.service';
 import { GeolocationService } from '../../services/otros/location.service';
 import { Track } from '../../../shared/models/track.model';
+import { CookiePreferencesService } from '../../services/otros/cookie-preferences.service';
 
 @Component({
   selector: 'app-map',
@@ -181,7 +182,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   constructor(
     private readonly tracksService: TracksService,
     private readonly router: Router,
-    private readonly geolocationService: GeolocationService
+    private readonly geolocationService: GeolocationService,
+    public cookiePrefs: CookiePreferencesService
   ) {}
 
   ngAfterViewInit(): void {
