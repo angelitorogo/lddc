@@ -598,7 +598,7 @@
       <span>Copiar enlace</span>
     </button>
 
-    <button type="button" class="btn-outline track-page__footer-btn" (click)="onShareLink()">
+    <button type="button" class="btn-outline track-page__footer-btn" (click)="onShareLink()" *ngIf="isMobile()">
       <i class="bi bi-share"></i>
       <span>Compartir</span>
     </button>

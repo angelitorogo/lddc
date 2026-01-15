@@ -61,7 +61,7 @@ export class LoginComponent implements OnInit {
           
           const redirectTo = redirectFromGuard || '/dashboard/home';
 
-          console.log(redirectTo)
+          //console.log(redirectTo)
 
 
           this._router.navigateByUrl(redirectTo);

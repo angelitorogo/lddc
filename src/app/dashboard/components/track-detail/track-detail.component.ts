@@ -30,6 +30,8 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { Waypoint, WaypointType } from '../../../shared/responses/detail.response';
 import { UpdateUserResponse } from '../../../auth/interfaces/update-user.interface';
 import { CookiePreferencesService } from '../../services/otros/cookie-preferences.service';
+import { ShareTracksService } from '../../services/share-tracks.service';
+import { HomeStateService } from '../../services/state/home-state.service';
 
 type ModalType = 'DELETE' | 'SUCCESS';
 
@@ -301,7 +303,9 @@ export class TrackDetailComponent
     private trackService: TracksService,
     public authService: AuthService,
     private location: Location,
-    public cookiePrefs: CookiePreferencesService
+    public cookiePrefs: CookiePreferencesService,
+    private shareTracks: ShareTracksService,
+    private homeState: HomeStateService,
   ) { }
 
   // =========================================================
@@ -395,6 +399,8 @@ export class TrackDetailComponent
     this.resetElevationChartHard();
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
+
+      //console.log(resp.images[0])
       
       this.track = this.mergeWaypointImagesIntoTrackImages(resp);
 
@@ -1826,6 +1832,7 @@ export class TrackDetailComponent
   }
   */
 
+  /*
   async onShareLink(): Promise<void> {
     const url = this.buildPublicTrackUrl();
     const title = this.track?.name ?? 'Ruta';
@@ -1868,20 +1875,29 @@ export class TrackDetailComponent
       console.log('ℹ️ Share cancelado o no disponible', err);
     }
   }
+  */
 
-  /** Convierte una URL (misma origin / CORS permitido) en File para Web Share 2 */
-  private async fetchUrlAsFile(fileUrl: string, filename: string): Promise<File> {
 
-    const res = await fetch(fileUrl, { credentials: 'include' });
-    if (!res.ok) throw new Error(`No se pudo descargar imagen (${res.status})`);
+  async onShareLink(): Promise<void> {
+    if (!this.track) return;
 
-    const blob = await res.blob();
+    const result = await this.shareTracks.shareTrack(this.track);
 
-    // Intentar usar el mime real; si no, caer a image/webp
-    const type = blob.type || 'image/webp';
 
-    // Si el filename no coincide con mime, no pasa nada; el type manda
-    return new File([blob], filename, { type });
+
+    // Aquí pon tu snackbar/toast real
+    /*
+    if (result === 'shared') console.log('✅ Compartido');
+    if (result === 'copied') console.log('📋 Enlace copiado');
+    if (result === 'cancelled') console.log('ℹ️ Compartir cancelado');
+    if (result === 'unsupported') console.log('❌ No disponible');
+    */
+  }
+
+
+  public isMobile(): boolean {
+    const ua = navigator.userAgent || '';
+    return /Android|iPhone|iPad|iPod/i.test(ua);
   }
 
 
@@ -2354,6 +2370,7 @@ export class TrackDetailComponent
    */
   successOk(): void {
     this.confirmDeleteOpen = false;
+    this.homeState.clear();
     this.router.navigate(['/tracks']);
   }
 

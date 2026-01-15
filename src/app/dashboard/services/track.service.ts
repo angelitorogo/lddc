@@ -417,4 +417,29 @@ export class TracksService {
     );
   }
 
+
+  /**
+   * ✅ Link público “bonito” (con OG tags) para compartir en redes.
+   * Backend ya lo tienes: GET /tracks/share/:id
+   */
+  buildShareUrl(trackId: string): string {
+    // OJO: esto debe apuntar al dominio público, no al API_URL si API_URL es /api
+    // Por eso uso DOMAIN_URL (sin /api)
+    const domain = environment.DOMAIN_URL || 'https://ladamadelcancho.com';
+    return `${domain}/#/dashboard/track/${encodeURIComponent(trackId)}`;
+  }
+
+  /**
+   * ✅ Convierte una URL de imagen a absoluta si viene como "/uploads/..."
+   * (Si tu getUrlImage actual devuelve endpoint por id, lo dejamos, pero
+   * para share-card nos viene mejor tener la url pública directa si existe)
+   */
+  toAbsoluteUrl(id: string): string {
+    if (!id) return '';
+
+    const domain = environment.API_URL;
+    // si url viene como "/uploads/track-images/xxx.png"
+    return `${domain}/tracks/images/general/${id}`;
+  }
+
 }

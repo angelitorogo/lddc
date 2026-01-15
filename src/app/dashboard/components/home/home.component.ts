@@ -105,7 +105,7 @@ export class HomeComponent implements OnInit  {
     return this.isMobile ? 8 : 12;
   }
 
-  loadTracks(reset: boolean = false): void {
+  public loadTracks(reset: boolean = false): void {
     if (reset) {
       this.page = 1;
       this.total = 0;
@@ -150,6 +150,8 @@ export class HomeComponent implements OnInit  {
         } else {
           this.tracks = res.items;
         }
+
+        //console.log(this.tracks)
 
         this.total = res.total;
         this.page = res.page;
