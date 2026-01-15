@@ -69,4 +69,8 @@ export class CardTrackComponent {
     this.openDetail.emit(track);
   }
 
+  get name(): string {
+    return this.track.name.length > 18 ? this.track.name.slice(0, 18).replaceAll('-', ' ') + '...' : this.track.name.replaceAll('-', ' ');
+  }
+
 }

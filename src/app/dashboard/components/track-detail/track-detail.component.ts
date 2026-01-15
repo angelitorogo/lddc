@@ -396,8 +396,6 @@ export class TrackDetailComponent
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
       
-
-      
       this.track = this.mergeWaypointImagesIntoTrackImages(resp);
 
       //normaliza waypoint images a array (aunque venga null)
@@ -1316,10 +1314,13 @@ export class TrackDetailComponent
           position: 'left',
           grace: 0,
           min: yStep < 100 ? yBounds.min : this.redondearACentenaDown(yBounds.min),
+          //max: yStep < 100 ? yBounds.max : this.redondearACentenaDown(yBounds.max + yStep),
+          //min: 0,
+          //max: 3000,
           max: yStep < 100 ? yBounds.max : this.redondearACentenaDown(yBounds.max + yStep),
           title: { display: !this.isMobileView, text: 'Altitud (m)' },
           ticks: {
-            stepSize: this.redondearACentenaUp(yStep),
+            //stepSize: this.redondearACentenaUp(yStep),
             display: true,
             callback: (value: any, index: number, ticks: any[]) => {
               // ❌ Oculta el primer tick y el último
@@ -3048,6 +3049,10 @@ export class TrackDetailComponent
 
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.track.startLat},${this.track.startLon}&travelmode=driving`;
     window.open(url, '_blank');
+  }
+
+  get name(): string {
+    return this.track!.name.replaceAll('-', ' ');
   }
 
 }

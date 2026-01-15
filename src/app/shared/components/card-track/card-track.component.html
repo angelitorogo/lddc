@@ -9,7 +9,7 @@
     <div class="track-card__content">
         <header class="track-card__header">
             <h2 class="track-card__title">
-                {{ track.name.length > 18 ? (track.name | slice:0:18) + '…' : track.name }}
+                {{ name | titlecase}}
             </h2>
             <span class="track-card__difficulty track-card__difficulty--{{ track.difficulty | lowercase }}">
                 {{ trackDifficulty(track) }}

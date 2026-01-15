@@ -273,9 +273,9 @@
     </div>
   </section>
 
-  <div class="ad-block" >
-    <app-manual-ad adSlot="1111111111"></app-manual-ad> <!-- Cambia 1111111111 por tu slot real -->
-  </div>
+  <!--<div class="ad-block" >
+    <app-manual-ad adSlot="1111111111"></app-manual-ad>
+  </div>-->
 
   <!-- Estado de carga / error -->
   <div *ngIf="loading" class="home__status">
@@ -298,9 +298,9 @@
       </app-card-track>
 
       <!-- Anuncio intercalado -->
-      <div class="ad-block ad-full-row" *ngIf="(i + 1) % adInterval === 0">
+      <!--<div class="ad-block ad-full-row" *ngIf="(i + 1) % adInterval === 0">
         <app-manual-ad adSlot="3333333333"></app-manual-ad>
-      </div>
+      </div>-->
       
 
     </ng-container>
@@ -314,9 +314,9 @@
     No hay más rutas.
   </div>
 
-  <div class="ad-block">
-    <app-manual-ad adSlot="1111111111"></app-manual-ad> <!-- Cambia 1111111111 por tu slot real -->
-  </div>
+  <!--<div class="ad-block">
+    <app-manual-ad adSlot="1111111111"></app-manual-ad>
+  </div>-->
 
   <!-- Paginación -->
   <section *ngIf="!isMobile && !loading && !error && tracks.length > 0" class="pagination">

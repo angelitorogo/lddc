@@ -19,7 +19,7 @@ export class TracksService {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
   private appName = environment.APP_NAME || 'La Dama del Cancho';
-  private domainName = environment.DOMAIN_URL || 'lddc.argomez.com';
+  private domainName = environment.DOMAIN_URL || 'ladamadelcancho.com';
 
   constructor(private http: HttpClient) {}
 

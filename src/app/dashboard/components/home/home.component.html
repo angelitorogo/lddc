@@ -3,7 +3,7 @@
 <section class="home">
   <header class="home__header">
     <div>
-      <h1 class="home__title">Rutas disponibles</h1> {{isMobile}}
+      <h1 class="home__title">Rutas disponibles</h1>
 
       <p class="home__subtitle">
         Explora todas rutas. Filtra por distancia, tipo y dificultad.
@@ -294,9 +294,9 @@
   </section>
 
   <!-- ⭐⭐ PRIMER BANNER MANUAL AQUÍ ⭐⭐ -->
-  <div class="ad-block">
-    <app-manual-ad adSlot="1111111111"></app-manual-ad> <!-- Cambia 1111111111 por tu slot real -->
-  </div>
+  <!--<div class="ad-block">
+    <app-manual-ad adSlot="1111111111"></app-manual-ad>
+  </div>-->
   
   
 
@@ -321,9 +321,9 @@
       </app-card-track>
 
       <!-- Anuncio intercalado -->
-      <div class="ad-block ad-full-row" *ngIf="(i + 1) % adInterval === 0">
+      <!--<div class="ad-block ad-full-row" *ngIf="(i + 1) % adInterval === 0">
         <app-manual-ad adSlot="3333333333"></app-manual-ad>
-      </div>
+      </div>-->
       
 
     </ng-container>
@@ -338,9 +338,9 @@
   </div>
 
   <!-- ⭐⭐ SEGUNDO BANNER MANUAL AQUÍ (debajo del listado) ⭐⭐ -->
-  <div class="ad-block">
-    <app-manual-ad adSlot="2222222222"></app-manual-ad><!-- Cambia 2222222222 por tu slot real -->
-  </div>
+  <!--<div class="ad-block">
+    <app-manual-ad adSlot="2222222222"></app-manual-ad>
+  </div>-->
   
 
   <!-- Paginación -->

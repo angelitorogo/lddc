@@ -8,7 +8,7 @@ export interface CookiePrefs {
 }
 
 // ✅ Tu nueva key
-const STORAGE_KEY = 'lddc.lddc.cookiePrefs';
+const STORAGE_KEY = 'ladamadelcancho.cookiePrefs';
 
 @Injectable({ providedIn: 'root' })
 export class CookiePreferencesService {

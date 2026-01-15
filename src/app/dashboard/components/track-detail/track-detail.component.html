@@ -8,7 +8,7 @@
 
     <div class="track-page__header-main">
       <h1 class="track-page__title">
-        {{ track.name }}
+        {{ name | titlecase }}
       </h1>
       <p class="track-page__subtitle">
         - {{ getRouteTypeLabel() }}
@@ -360,9 +360,9 @@
       </ng-template>
     </section>
 
-    <div class="ad-block grid-name">
-      <app-manual-ad adSlot="1111111111"></app-manual-ad> <!-- Cambia 1111111111 por tu slot real -->
-    </div>
+    <!--<div class="ad-block grid-name">
+      <app-manual-ad adSlot="1111111111"></app-manual-ad>
+    </div>-->
     
 
     <!-- FILA 4: RUTAS CERCANAS -->

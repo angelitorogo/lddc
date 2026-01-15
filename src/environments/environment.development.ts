@@ -1,5 +1,5 @@
 export const environment = {
-    API_URL: 'https://auth.argomez.com/api',
+    API_URL: 'https://auth-dev.argomez.com/api',
     DOMAIN_URL: 'http://localhost:4200',
     APP_NAME: 'La Dama del Cancho',
     PRODUCTION: false,
