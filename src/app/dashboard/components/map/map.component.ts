@@ -179,6 +179,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   isMapExpanded = false;
 
+  private hoverClearTimer: any = null;
+
   constructor(
     private readonly tracksService: TracksService,
     private readonly router: Router,
@@ -299,6 +301,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: (res) => {
 
+          console.log(res)
+
           this.lastResponse = res;
           this.total = res.total;
           this.density = res.density;
@@ -343,7 +347,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.showHighDensityWarning = true;
     }
 
-    //console.log(visibleItems)
+    console.log(visibleItems)
 
     this.markers = visibleItems
       .map((t) => {
@@ -461,16 +465,22 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   }
 
   onMarkerMouseOver(trackId: string): void {
+    // Cancelar limpieza pendiente
+    if (this.hoverClearTimer) {
+      clearTimeout(this.hoverClearTimer);
+      this.hoverClearTimer = null;
+    }
+
     this.hoveredTrackId = trackId;
+
+    this.bumpTrackToTop(trackId);
     this.loadHoverPolyline(trackId);
     this.scrollCardIntoView(trackId);
+    this.rebuildHoveredMarkers();
   }
 
   onMarkerMouseOut(trackId: string): void {
-    if (this.hoveredTrackId === trackId) {
-      this.hoveredTrackId = null;
-      this.loadHoverPolyline(null);
-    }
+    this.scheduleHoverClear(trackId);
   }
 
   scrollCardIntoView(trackId: string): void {
@@ -504,7 +514,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (this.hoverLoadTimer) clearTimeout(this.hoverLoadTimer);
 
     this.hoverLoadTimer = setTimeout(() => {
-      this.tracksService.getTrackById(trackId).subscribe({
+      this.tracksService.getTrackById(trackId, { forMap: true, maxPoints: 300 }).subscribe({
         next: (detail: any) => {
           if (this.hoveredTrackId !== trackId) return;
 
@@ -538,9 +548,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private loadViewportPolylines(): void {
     const token = ++this.polylineReqToken;
 
-    const ids = (this.viewportTracks ?? [])
-      .map((t: any) => t?.id)
-      .filter(Boolean) as string[];
+    // ❌ Antes: todas las rutas del viewport
+    // const ids = (this.viewportTracks ?? [])
+    //   .map((t: any) => t?.id)
+    //   .filter(Boolean) as string[];
+
+    // ✅ Después: solo las rutas que realmente tienen marcador en el mapa
+    const ids = (this.markers ?? [])
+      .map((m) => m.trackId)
+      .filter(Boolean);
 
     if (ids.length === 0) {
       this.viewportPolylines = [];
@@ -564,8 +580,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .pipe(
         mergeMap(
           (id) =>
-            this.tracksService.getTrackById(id).pipe(
+            this.tracksService.getTrackById(id, { forMap: true, maxPoints: 300 }).pipe(
               map((detail: any) => {
+                //console.log(detail)
                 const pts = detail?.trackPointsForFront ?? [];
                 const path = Array.isArray(pts)
                   ? pts.map((p: any) => ({ lat: p.lat, lng: p.lon }))
@@ -768,6 +785,65 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     this.loadViewportPolylines();
   }
+
+  onViewportPolylineClick(trackId: string): void {
+    if (!trackId) return;
+
+    // Reutilizamos la misma lógica que cuando pasas el ratón por encima de un marcador
+    this.onMarkerMouseOver(trackId);
+  }
+
+  onViewportPolylineEnter(trackId: string): void {
+    if (!trackId) return;
+
+    // Cancelar limpieza pendiente
+    if (this.hoverClearTimer) {
+      clearTimeout(this.hoverClearTimer);
+      this.hoverClearTimer = null;
+    }
+
+    this.hoveredTrackId = trackId;
+
+    this.bumpTrackToTop(trackId);
+    this.loadHoverPolyline(trackId);
+    this.scrollCardIntoView(trackId);
+    this.rebuildHoveredMarkers();
+  }
+
+  onViewportPolylineLeave(trackId: string): void {
+    this.scheduleHoverClear(trackId);
+  }
+
+  private bumpTrackToTop(trackId: string): void {
+    if (!this.viewportTracks || this.viewportTracks.length === 0) return;
+
+    const index = this.viewportTracks.findIndex((t: any) => t.id === trackId);
+    if (index <= 0) return; // ya está el primero o no existe
+
+    const [item] = this.viewportTracks.splice(index, 1);
+
+    // reasignar para que Angular detecte el cambio
+    this.viewportTracks = [item, ...this.viewportTracks];
+  }
+
+
+  private scheduleHoverClear(trackId: string): void {
+    if (this.hoverClearTimer) {
+      clearTimeout(this.hoverClearTimer);
+      this.hoverClearTimer = null;
+    }
+
+    this.hoverClearTimer = setTimeout(() => {
+      // Solo limpiar si seguimos en ese mismo track
+      if (this.hoveredTrackId === trackId) {
+        this.hoveredTrackId = null;
+        this.hoverPolylinePath = [];
+        this.hoveredMarkers = [];
+      }
+      this.hoverClearTimer = null;
+    }, 120); // puedes ajustar 80–150ms según te guste
+  }
+
 
 
 }

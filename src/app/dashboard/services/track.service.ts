@@ -63,10 +63,14 @@ export class TracksService {
     });
   }
 
-  getTrackById(id: string): Observable<DetailResponse> {
-    return this.http.get<any>(`${this.baseUrl}/${id}`, {
-      withCredentials: true,
-    });
+  getTrackById(id: string, opts?: { forMap?: boolean; maxPoints?: number }): Observable<any> {
+    let params = new HttpParams();
+
+    if (opts?.forMap) params = params.set('forMap', 'true');
+    if (typeof opts?.maxPoints === 'number') params = params.set('maxPoints', String(opts.maxPoints));
+
+    return this.http.get(`${this.baseUrl}/${id}`, { params });
+  
   }
 
   getUserStats(userId: string): Observable<any> {

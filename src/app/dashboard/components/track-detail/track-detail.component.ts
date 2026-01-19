@@ -400,7 +400,7 @@ export class TrackDetailComponent
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
 
-      //console.log(resp.images[0])
+      console.log(resp)
       
       this.track = this.mergeWaypointImagesIntoTrackImages(resp);
 
@@ -967,6 +967,10 @@ export class TrackDetailComponent
     const gracePct = 0.10; // prueba: 0.06, 0.10, 0.15, 0.20
     const yBounds = this.computeNiceYBounds(yValues, gracePct);
     const yStep = this.computeYTickStep(yBounds.min, yBounds.max);
+    
+    //console.log(yStep)
+    //console.log('min: ',yBounds.min)
+    //console.log('max: ',yBounds.max)
 
     const verticalLinePlugin = {
       id: 'verticalLinePlugin',
@@ -1319,14 +1323,12 @@ export class TrackDetailComponent
         y: {
           position: 'left',
           grace: 0,
-          min: yStep < 100 ? yBounds.min : this.redondearACentenaDown(yBounds.min),
-          //max: yStep < 100 ? yBounds.max : this.redondearACentenaDown(yBounds.max + yStep),
-          //min: 0,
-          //max: 3000,
-          max: yStep < 100 ? yBounds.max : this.redondearACentenaDown(yBounds.max + yStep),
+          min: yStep < 100 ? yBounds.min - 200 : this.redondearACentenaDown(yBounds.min),
+          max: yStep < 100 ? yBounds.max + 200 : this.redondearACentenaDown(yBounds.max + yStep),
+          
           title: { display: !this.isMobileView, text: 'Altitud (m)' },
           ticks: {
-            //stepSize: this.redondearACentenaUp(yStep),
+            stepSize: this.redondearACentenaUp(yStep),
             display: true,
             callback: (value: any, index: number, ticks: any[]) => {
               // ❌ Oculta el primer tick y el último
@@ -1342,6 +1344,8 @@ export class TrackDetailComponent
           },
         },
       },
+
+
     };
 
     this.elevationChart = new Chart(ctx, {

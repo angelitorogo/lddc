@@ -92,7 +92,9 @@
             *ngFor="let pl of viewportPolylines; trackBy: trackByPolylineId"
             [path]="pl.path"
             [options]="viewportPolylineOptions"
-          ></map-polyline>
+            (polylineMouseover)="onViewportPolylineEnter(pl.trackId)"
+            (polylineMouseout)="onViewportPolylineLeave(pl.trackId)"
+          ></map-polyline> <!--(polylineClick)="onViewportPolylineClick(pl.trackId)"-->
         </ng-container>
 
         <!-- Base markers: si NO es hover, marker normal (sin icon input) -->
