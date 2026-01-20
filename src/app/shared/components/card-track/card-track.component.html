@@ -1,6 +1,11 @@
 <article class="track-card" (click)="onOpenDetail(track)">
     <div class="track-card__image-wrapper">
-        <img *ngIf="trackImageUrl(track) as imgUrl" [src]="imgUrl" alt="Imagen de la ruta" />
+        <img *ngIf="trackImageUrl(track) as imgUrl" 
+            [src]="imgUrl"
+            [alt]="'Imagen de la ruta ' + track.name" 
+            loading="lazy"
+            width="400"
+            height="250"/>
         <div *ngIf="!trackImageUrl(track)" class="track-card__placeholder">
             🏔️
         </div>

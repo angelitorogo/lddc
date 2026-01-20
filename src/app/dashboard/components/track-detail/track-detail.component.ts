@@ -400,7 +400,7 @@ export class TrackDetailComponent
 
     this.trackService.getTrackById(id).subscribe((resp: DetailResponse) => {
 
-      console.log(resp)
+      //console.log(resp)
       
       this.track = this.mergeWaypointImagesIntoTrackImages(resp);
 
@@ -814,9 +814,7 @@ export class TrackDetailComponent
   /**
    * Acción placeholder (por ahora solo log).
    */
-  onDeleteTrack(): void {
-    console.log('Eliminar ruta', this.track?.id);
-  }
+
 
   onClickFollow(): void {
     this.authService.setRedirectUrl(this.currentUrl);
@@ -2583,7 +2581,7 @@ export class TrackDetailComponent
         next: (saved: Partial<Waypoint> | null) => {
           if (!saved?.id) {
             this.waypointSaveError = 'El backend devolvió un waypoint inválido (null/sin id).';
-            console.log(this.waypointSaveError, saved);
+            //console.log(this.waypointSaveError, saved);
             return;
           }
 

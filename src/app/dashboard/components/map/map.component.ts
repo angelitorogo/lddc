@@ -144,6 +144,9 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private polylineCache = new Map<string, google.maps.LatLngLiteral[]>();
   private polylineReqToken = 0;
 
+  // 👇 NUEVO: suscripción para las polilíneas del viewport
+  private viewportPolylinesSub?: Subscription;
+
   // =========================
   // My location (Google-like blue dot)
   // =========================
@@ -211,6 +214,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     this.myLocation = null;
     this.myAccuracy = null;
+
+    // 👇 Cancelar cualquier carga de polilíneas en curso
+    if (this.viewportPolylinesSub) {
+      this.viewportPolylinesSub.unsubscribe();
+      this.viewportPolylinesSub = undefined;
+    }
+
   }
 
   // =========================
@@ -301,7 +311,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: (res) => {
 
-          console.log(res)
+          //console.log(res)
 
           this.lastResponse = res;
           this.total = res.total;
@@ -347,7 +357,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.showHighDensityWarning = true;
     }
 
-    console.log(visibleItems)
+    //console.log(visibleItems)
 
     this.markers = visibleItems
       .map((t) => {
@@ -514,7 +524,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     if (this.hoverLoadTimer) clearTimeout(this.hoverLoadTimer);
 
     this.hoverLoadTimer = setTimeout(() => {
-      this.tracksService.getTrackById(trackId, { forMap: true, maxPoints: 300 }).subscribe({
+      this.tracksService.getTrackById(trackId, { forMap: true, maxPoints: 150 }).subscribe({
         next: (detail: any) => {
           if (this.hoveredTrackId !== trackId) return;
 
@@ -548,6 +558,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private loadViewportPolylines(): void {
     const token = ++this.polylineReqToken;
 
+    // 👇 CANCELAR CARGA ANTERIOR SI LA HUBIERA
+    if (this.viewportPolylinesSub) {
+      //console.log('cancelada carga')
+      this.viewportPolylinesSub.unsubscribe();
+      this.viewportPolylinesSub = undefined;
+    }
+
     // ❌ Antes: todas las rutas del viewport
     // const ids = (this.viewportTracks ?? [])
     //   .map((t: any) => t?.id)
@@ -574,13 +591,19 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
     this.viewportPolylines = initial;
 
+    if (missing.length === 0) {
+      //console.log('usando cache')
+      return; //to estaba en caché, nada que cargar
+    }
+
     const concurrency = 3;
 
-    from(missing)
+    // 👇 Guardamos la suscripción para poder cancelarla si cambia el viewport
+    this.viewportPolylinesSub = from(missing)
       .pipe(
         mergeMap(
           (id) =>
-            this.tracksService.getTrackById(id, { forMap: true, maxPoints: 300 }).pipe(
+            this.tracksService.getTrackById(id, { forMap: true, maxPoints: 150 }).pipe(
               map((detail: any) => {
                 //console.log(detail)
                 const pts = detail?.trackPointsForFront ?? [];

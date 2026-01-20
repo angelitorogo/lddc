@@ -399,6 +399,7 @@
               *ngIf="t.images?.length"
               [src]="getUrlImage(t.images[0], 'general')"
               [alt]="t.name || 'Ruta cercana'"
+              loading="lazy"
             />
             <div class="nearby-card__img-placeholder" *ngIf="!t.images?.length">
               Sin foto
@@ -551,6 +552,7 @@
           class="lightbox__img"
           [src]="getUrlImage(track!.images[galleryIndex], 'all')"
           [alt]="track.name || 'Imagen de la ruta'"
+          loading="lazy"
         />
 
         <div class="lightbox__counter" *ngIf="track.images.length">
@@ -603,7 +605,7 @@
       <span>Compartir</span>
     </button>
 
-    <button
+    <button 
       type="button"
       class="btn-outline track-page__footer-btn"
       (click)="onEditTrack()"
@@ -839,7 +841,7 @@
             <div class="image-preview-grid" *ngIf="waypointImagePreviews.length">
               <div class="image-preview-card" *ngFor="let img of waypointImagePreviews; let i = index">
                 <div class="image-preview-thumb">
-                  <img [src]="img.url" [alt]="img.file.name" />
+                  <img [src]="img.url" [alt]="img.file.name" loading="lazy"/>
                 </div>
 
                 <div class="image-preview-meta">
