@@ -100,7 +100,7 @@
 
       <section class="track-panel track-panel__user-avatar">
         <div class="user-data">
-          <p class="user_data__text">Creador: <span (click)="showProfile()">{{user?.fullname}}</span></p>
+          <p class="user_data__text">Creador: <span (click)="showProfile()">{{track.userTrack.fullname}}</span></p>
         </div>     
       </section>
 
@@ -150,12 +150,13 @@
           </div>
         </div>
 
+        <!--
         <div class="actions_panel">
           <a class="btn-outline track-page__footer-btn btn-follow" (click)="onClickFollow()">
             <i class="bi bi-signpost-2"></i>
             Seguir
           </a>
-        </div>
+        </div>-->
 
       </section>
 
@@ -243,7 +244,6 @@
         class="track-page__profile-chart"
         #profileWrap
         (mouseleave)="onProfileLeave()"
-        (touchstart)="onProfileTouch($event)"
         (touchmove)="onProfileTouch($event)"
         (touchend)="onProfileLeave()"
       >
@@ -405,8 +405,11 @@
               Sin foto
             </div>
 
-            <span class="nearby-card__badge" *ngIf="t.distanceMeters != null">
+            <span class="nearby-card__badge" *ngIf="t.distanceMeters != null && t.distanceMeters > 1000">
               a {{ (t.distanceMeters / 1000) | number:'1.1-1' }} km
+            </span>
+            <span class="nearby-card__badge" *ngIf="t.distanceMeters != null && t.distanceMeters < 1000">
+              a {{ (t.distanceMeters) | number:'1.0-0' }} m
             </span>
           </div>
 
@@ -499,7 +502,7 @@
                   (keydown.space)="openGalleryByImageId(img.id); $event.stopPropagation()"
                 >
                   <img
-                    [src]="getWaypointImageUrl(img.id, 'wp')"
+                    [src]="getWaypointImageUrl(img.id, 'all')"
                     [alt]="track.name || 'Imagen del waypoint'"
                     loading="lazy"
                   />
@@ -600,7 +603,7 @@
       <span>Copiar enlace</span>
     </button>
 
-    <button type="button" class="btn-outline track-page__footer-btn" (click)="onShareLink()" *ngIf="isMobile()">
+    <button type="button" class="btn-outline track-page__footer-btn" (click)="onShareLink()" ><!--*ngIf="isMobile()"-->
       <i class="bi bi-share"></i>
       <span>Compartir</span>
     </button>
@@ -746,7 +749,7 @@
         </div>
 
         <div class="wp-modal__row" *ngIf="wp.cmt">
-          <span class="wp-modal__label">Comentario</span>image-preview-thumb
+          <span class="wp-modal__label">Comentario</span>
           <span class="wp-modal__value wp-modal__value--multiline">{{ wp.cmt }}</span>
         </div>
 

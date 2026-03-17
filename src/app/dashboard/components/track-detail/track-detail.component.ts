@@ -183,7 +183,6 @@ export class TrackDetailComponent
 
   showPois = false;
 
-  user: UpdateUserResponse | null = null;
   avatarPreviewUrl = 'assets/images/poster-placeholder.png';
 
   @ViewChild('descTa', { static: false }) descTa?: ElementRef<HTMLTextAreaElement>;
@@ -380,7 +379,15 @@ export class TrackDetailComponent
    * Navega de vuelta a la home del dashboard.
    */
   onBack(): void {
-    this.location.back();
+    this.router.navigate(['/dashboard/home']);
+    
+  }
+
+  private nameTrunkated(): string {
+    if(this.isMobileView) {
+      return this.track!.name.length > 23 ? this.track!.name.slice(0, 23).replaceAll('-', ' ') + '...' : this.track!.name.replaceAll('-', ' ');
+    }
+    return this.track!.name.length > 50 ? this.track!.name.slice(0, 50).replaceAll('-', ' ') + '...' : this.track!.name.replaceAll('-', ' ');
   }
 
   /**
@@ -403,6 +410,8 @@ export class TrackDetailComponent
       //console.log(resp)
       
       this.track = this.mergeWaypointImagesIntoTrackImages(resp);
+      this.track.name = this.nameTrunkated();
+
 
       //normaliza waypoint images a array (aunque venga null)
       this.track.waypoints = (this.track.waypoints ?? []).map(w => ({ ...w, images: Array.isArray((w as any).images) ? (w as any).images : [] }));
@@ -412,9 +421,10 @@ export class TrackDetailComponent
 
       setTimeout(() => this.autoResizeDesc(), 0);
 
-      this.userById(this.track);
       this.preparePoiMarkers();
       this.loadNearbyTracks();
+
+      
 
       if (!this.track.trackPointsForFront) {
         this.track.trackPointsForFront = [];
@@ -484,17 +494,6 @@ export class TrackDetailComponent
     return { ...track, images: Array.from(map.values()) };
   }
 
-
-  private userById(track: DetailResponse) {
-    this.authService.getUserById(track.authorUserId).subscribe((user: UpdateUserResponse) => {
-      this.user = user;
-      if (this.user.image) {
-        this.avatarPreviewUrl = `${environment.API_URL}/files/${user.image}?v=${user.updated_at ?? Date.now()}`;
-      } else {
-        this.avatarPreviewUrl = 'assets/images/poster-placeholder.png';
-      }
-    });
-  }
 
   // =========================================================
   // ✅ MAPA / POLILÍNEA
@@ -958,7 +957,7 @@ export class TrackDetailComponent
 
     // ✅ evita que Chart “suba” al siguiente tick grande (ej: 13.2 -> 14)
     //    Lo dejamos a 1 decimal hacia abajo (se ve natural en la UI)
-    const maxKm = Math.floor(maxKmRaw * 10) / 10;
+    const maxKm = Math.ceil(maxKmRaw * 10) / 10;
 
     // bounds de Y
     const yValues = smoothedProfile.map((p) => p.elevationMeters);
@@ -1093,7 +1092,12 @@ export class TrackDetailComponent
           ctx.font = `${iconFontSize}px Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(this.getPoiEmoji(poi.type), x, byClamped + badgeH / 2);
+          // ✅ ajuste fino visual
+          ctx.fillText(
+            this.getPoiEmoji(poi.type),
+            x + 1,                          // → 2px a la derecha
+            byClamped + badgeH / 2 + 1      // ↓ 1px abajo
+          );
         }
 
         ctx.restore();
@@ -1559,7 +1563,11 @@ export class TrackDetailComponent
     if (!this.elevationChart) return;
     if (!this.profileWrap) return;
 
-    ev.preventDefault();
+    // Solo queremos evitar el scroll cuando estamos moviendo el dedo.
+    // (Este handler ahora solo está enganchado a touchmove)
+    if (ev.cancelable) {
+      ev.preventDefault();
+    }
 
     const touch = ev.touches[0];
     if (!touch) return;
@@ -1717,6 +1725,7 @@ export class TrackDetailComponent
           this.nearbyTracks = (items ?? []).filter(
             (t) => t?.id && t.id !== this.track?.id
           );
+          console.log(this.nearbyTracks)
           this.isLoadingNearby = false;
         },
         error: (err) => {
@@ -1813,87 +1822,13 @@ export class TrackDetailComponent
     }
   }
 
-  /**
-   * Comparte el enlace usando Web Share API si existe; si no, copia el enlace.
-   */
-  /*
   async onShareLink(): Promise<void> {
-    const url = this.buildPublicTrackUrl();
-    const title = this.track?.name ?? 'Ruta';
-    const text = 'Mira esta ruta';
 
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text, url });
-        return;
-      }
-      await this.onCopyLink();
-    } catch (err) {
-      console.log('ℹ️ Share cancelado o no disponible', err);
-    }
-  }
-  */
-
-  /*
-  async onShareLink(): Promise<void> {
-    const url = this.buildPublicTrackUrl();
-    const title = this.track?.name ?? 'Ruta';
-    const text = 'Mira esta ruta';
-
-    try {
-      // Si hay Web Share 2 (files), intentamos adjuntar portada
-      const cover = this.track?.images?.[0];
-
-      if (cover && navigator.share) {
-        const coverUrl = this.trackService.getUrlImage(cover);
-
-        // Descarga y convierte a File
-        const file = await this.fetchUrlAsFile(coverUrl, 'cover.webp');
-
-        // Solo si el navegador soporta compartir archivos
-        const canShareFiles =
-          typeof (navigator as any).canShare === 'function' &&
-          (navigator as any).canShare({ files: [file] });
-
-        if (canShareFiles) {
-          await navigator.share({
-            title,
-            text,
-            url,
-            files: [file],
-          } as any);
-          return;
-        }
-      }
-
-      // Fallback clásico (Web Share 1 o sin soporte de files)
-      if (navigator.share) {
-        await navigator.share({ title, text, url });
-        return;
-      }
-
-      await this.onCopyLink();
-    } catch (err) {
-      console.log('ℹ️ Share cancelado o no disponible', err);
-    }
-  }
-  */
-
-
-  async onShareLink(): Promise<void> {
+    console.log('compartir')
     if (!this.track) return;
 
-    const result = await this.shareTracks.shareTrack(this.track);
+    await this.shareTracks.shareTrack(this.track);
 
-
-
-    // Aquí pon tu snackbar/toast real
-    /*
-    if (result === 'shared') console.log('✅ Compartido');
-    if (result === 'copied') console.log('📋 Enlace copiado');
-    if (result === 'cancelled') console.log('ℹ️ Compartir cancelado');
-    if (result === 'unsupported') console.log('❌ No disponible');
-    */
   }
 
 
@@ -2974,6 +2909,8 @@ export class TrackDetailComponent
     });
   }
 
+  
+
   /**
    * Sube imágenes nuevas seleccionadas para el waypoint actual (ya creado)
    */
@@ -3046,6 +2983,7 @@ export class TrackDetailComponent
     return this.poiOnProfile?.find(p => p.id === id) ?? null;
   }
 
+  
   /**
    * Abre la galería global en la imagen cuyo id coincida.
    * Importante: como tú ya haces mergeWaypointImagesIntoTrackImages(),

@@ -16,7 +16,7 @@ export class ShareTracksService {
 
         try {
             // ✅ Web Share 2 (files) SOLO en móvil
-            if (navigator.share && this.isMobile()) {
+            if (navigator.share) {
                 const file = await this.tryBuildShareCardFile(detail);
                 if (file) {
                     const canShareFiles =
@@ -44,10 +44,12 @@ export class ShareTracksService {
         }
     }
 
+    /*
     private isMobile(): boolean {
         const ua = navigator.userAgent || '';
         return /Android|iPhone|iPad|iPod/i.test(ua);
     }
+    */
 
     // ------------------------
     // Texto atractivo
@@ -256,7 +258,7 @@ export class ShareTracksService {
         }
 
         const ta = document.createElement('textarea');
-        ta.value = text;
+        //ta.value = text; //por no repetir el texto de "echale un ojo..." que ya va en la imagen, solo copiamos la url
         ta.style.position = 'fixed';
         ta.style.left = '-9999px';
         document.body.appendChild(ta);

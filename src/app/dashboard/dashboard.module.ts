@@ -27,6 +27,7 @@ import { TrackRecorderComponent } from './components/track-recorder/track-record
 import { TrackDetailByNameComponent } from './components/track-detail-by-name/track-detail-by-name.component';
 import { SearchResultsComponent } from './components/search-results/search-results.component';
 import { MobileStickyLegalFooterComponent } from './components/principal/mobile-sticky-legal-footer/mobile-sticky-legal-footer.component';
+import { DownloadsComponent } from './components/downloads/downloads.component';
 
 
 
@@ -51,6 +52,7 @@ import { MobileStickyLegalFooterComponent } from './components/principal/mobile-
     TrackRecorderComponent,
     SearchResultsComponent,
     MobileStickyLegalFooterComponent,
+    DownloadsComponent,
   ],
   imports: [
     CommonModule,

@@ -23,6 +23,19 @@ export interface DetailResponse {
     waypoints:           Waypoint[];
     elevationProfile:    ElevationProfile[];
     trackPointsForFront: TrackPointsForFront[];
+    userTrack: User;
+}
+
+export interface User {
+    active: boolean;
+    created_at: string;
+    email: string;
+    fullname: string;
+    id: string;
+    image: string;
+    role: string;
+    telephone: string;
+    updated_at: string;
 }
 
 export interface ElevationProfile {

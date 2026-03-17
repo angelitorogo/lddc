@@ -144,7 +144,7 @@
 }
 
 .track-panel__title {
-  margin: 0 0 0.8rem 0;
+  margin: 0 0 2rem 0;
   font-size: 1.4rem;
   color: var(--text-muted-color);
   padding-top: 0.5rem;
@@ -364,7 +364,7 @@
   flex: 1 1 55%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .track-page__gallery {
@@ -1721,6 +1721,7 @@ body.no-scroll {
 
   transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
   outline: none;
+  overflow: hidden;
 }
 
 .waypoint-card:hover {
@@ -1777,9 +1778,10 @@ body.no-scroll {
 
 /* Para que la fila de miniaturas “se sienta” como la tuya */
 .waypoint-thumbs .track-page__thumbs-row {
+  width: 100%;
+  overflow-x: auto;
   padding-bottom: 4px;
 }
-
 /* “Sin imágenes” coherente */
 .waypoint-noimg {
   margin-top: 6px;

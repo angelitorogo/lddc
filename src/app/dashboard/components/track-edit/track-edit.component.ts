@@ -71,14 +71,17 @@ export class TrackEditComponent implements OnInit, OnDestroy {
   // navegación
   // =========================
   onBack(): void {
+    /*
     const redirectFromGuard = this.authService.consumeRedirectUrl();
     const redirectTo = redirectFromGuard || '/dashboard/home';
 
     this.router.navigateByUrl(redirectTo);
+    */
+   this.router.navigate(['/dashboard/track', this.trackId]);
   }
 
   onCancel(): void {
-    this.onBack();
+    this.router.navigate(['/dashboard/track', this.trackId]);
   }
 
   // =========================
@@ -233,9 +236,15 @@ export class TrackEditComponent implements OnInit, OnDestroy {
         this.loadTrackForEdit(this.trackId!);
       },
       error: (err) => {
-        console.error(err);
+        console.error(err.error.message[0]);
         this.isSaving = false;
-        this.error = 'No se han podido guardar los cambios.';
+
+        if(err.error.message[0] == 'description must be shorter than or equal to 5000 characters') {
+          this.error = 'La descripción no puede tener mas de 5000 caracteres.';
+        } else {
+          this.error = 'No se han podido guardar los cambios.';
+        }
+        
       }
     });
   }

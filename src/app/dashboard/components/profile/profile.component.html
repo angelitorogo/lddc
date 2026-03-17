@@ -191,14 +191,22 @@
       <div class="account-info">
         <div class="account-info__row">
           <span class="account-info__label">Estado</span>
-          <span
+          <span  *ngIf="isOwnProfile"
             class="account-info__value"
             [class.account-info__value--ok]="this.profileUser?.active"
             [class.account-info__value--err]="!this.profileUser?.active"
           >
-            <span *ngIf="isOwnProfile">{{ this.profileUser?.active ? 'Activa' : 'Inactiva' }}</span>
-            <span *ngIf="!isOwnProfile">{{ userActive ? 'Activa' : 'Inactiva' }}</span>
+            <span>{{ this.profileUser?.active ? 'Activa' : 'Inactiva' }}</span>
           </span>
+
+          <span *ngIf="!isOwnProfile"
+            class="account-info__value"
+            [class.account-info__value--ok]="userActive"
+            [class.account-info__value--err]="!userActive"
+          >
+            <span >{{ userActive ? 'Activa' : 'Inactiva' }}</span>
+          </span>
+
         </div>
 
         <div class="account-info__row">

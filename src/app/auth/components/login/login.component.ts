@@ -83,7 +83,8 @@ export class LoginComponent implements OnInit {
     const { email, password } = this.formLogin.value;
 
     this._authService.login(email, password).subscribe({
-      next: () => {
+      next: (res: any) => {
+        console.log('Login correcto', res);
         // ✅ MUY IMPORTANTE en tu arquitectura:
         // tras login por cookies, “loggedIn” solo se pone a true cuando llamas a setUser(...)
         // así que comprobamos el usuario (verify) y luego redirigimos.

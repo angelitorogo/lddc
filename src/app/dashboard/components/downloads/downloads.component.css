@@ -1,0 +1,504 @@
+/* Contenedor principal, mismo ancho que track-create */
+.downloads {
+  max-width: 900px;
+  margin: 0 auto 2rem;
+  color: var(--text-color);
+}
+
+/* HEADER */
+
+.downloads__header {
+  margin-bottom: 1.5rem;
+}
+
+.downloads__title {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.downloads__subtitle {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted-color);
+  font-size: 1.4rem;
+}
+
+/* LAYOUT contenido */
+
+.downloads__content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  padding: 3.1rem 4.2rem;
+}
+
+.downloads__info {
+  flex: 1 1 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.downloads__preview {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Badge Android */
+
+.downloads__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem 0.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background-color: rgba(4, 12, 10, 0.9);
+  color: var(--text-muted-color);
+  font-size: 1.2rem;
+}
+
+.downloads__badge i {
+  font-size: 1.3rem;
+  color: var(--color-primary);
+}
+
+/* Texto */
+
+.downloads__text {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--text-muted-color);
+}
+
+/* Botones principales (coherentes con track-create) */
+
+.btn-primary,
+.btn-secondary {
+  border-radius: 4px;
+  padding: 0.4rem 0.9rem 0.2rem;
+  cursor: pointer;
+  font-size: 1.4rem;
+  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: var(--text-muted-color);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-primary {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  color: #0f1a15;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-primary--action {
+  display: inline-flex;
+  gap: 0.55rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Disabled coherente */
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+
+.btn-primary:disabled:hover,
+.btn-secondary:disabled:hover {
+  border: 1px solid var(--color-border);
+  color: var(--text-muted-color);
+}
+
+/* Grupo de acciones */
+
+.downloads__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.downloads__btn-main {
+  min-width: 240px;
+}
+
+.downloads__btn-alt {
+  white-space: nowrap;
+}
+
+/* Hint + QR */
+
+.downloads__hint {
+  margin: 0.5rem 0 0;
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
+
+.downloads__qr {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.downloads__qr-box {
+  width: 110px;
+  height: 110px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: rgba(3, 10, 8, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.downloads__qr-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.downloads__qr-text {
+  font-size: 1.1rem;
+  color: var(--text-muted-color);
+}
+
+/* Capturas */
+
+.downloads__preview-title {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--text-muted-color);
+}
+
+/* — Escritorio / tablet: carrusel horizontal — */
+.downloads__screenshots {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  justify-content: center;
+}
+
+.downloads__screenshots::-webkit-scrollbar {
+  height: 6px;
+}
+
+.downloads__screenshots::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.downloads__screenshot-card {
+  flex: 0 0 200px;
+  scroll-snap-align: start;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background-color: rgba(4, 12, 10, 0.9);
+  overflow: hidden;
+}
+
+.downloads__screenshot-card:hover {
+  cursor: pointer;
+  border: 1px solid var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.downloads__screenshot-thumb {
+  width: 100%;
+  aspect-ratio: 9 / 16; /* formato pantalla móvil */
+  background-color: #000;
+}
+
+
+
+.downloads__screenshot-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.downloads__preview-footnote {
+  margin: 0.4rem 0 0;
+  font-size: 1.05rem;
+  color: var(--text-muted-color);
+}
+
+/* MODAL */
+
+.downloads__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 1rem;
+}
+
+.downloads__modal {
+  max-width: 520px;
+  width: 100%;
+  background: rgba(7, 18, 15, 0.96);
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+}
+
+.downloads__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem 0.3rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.downloads__modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.downloads__modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted-color);
+  font-size: 1.3rem;
+  padding: 0.2rem;
+}
+
+.downloads__modal-close:hover {
+  color: var(--color-primary);
+}
+
+.downloads__modal-body {
+  padding: 0.6rem 3rem 0.4rem;
+  font-size: 1.25rem;
+  color: var(--text-muted-color);
+}
+
+.downloads__modal-body ol {
+  padding-left: 1.3rem;
+  margin: 0.5rem 0 0.4rem;
+}
+
+.downloads__modal-body li + li {
+  margin-top: 0.25rem;
+}
+
+.downloads__modal-note {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.downloads__modal-footer {
+  padding: 0.5rem 1rem 0.9rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+/* Tablet: columna única, se apila todo */
+@media (max-width: 800px) {
+  .downloads__content {
+    flex-direction: column;
+  }
+}
+
+/* Móvil: 1 columna, botones apilados, capturas en grid 2x2, QR centrado */
+@media (max-width: 600px) {
+  .downloads__content {
+    padding: 0.9rem;
+    gap: 1.2rem;
+  }
+
+  .downloads__header {
+    text-align: center;
+  }
+
+  .downloads__title {
+    font-size: 1.6rem;
+  }
+
+  .downloads__subtitle {
+    font-size: 1.25rem;
+  }
+
+  /* Botones apilados a todo el ancho */
+  .downloads__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .downloads__btn-main,
+  .downloads__btn-alt {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* QR centrado */
+  .downloads__qr {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Capturas en rejilla 2x2, sin scroll horizontal */
+  .downloads__screenshots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-x: visible;
+  }
+
+  .downloads__screenshot-card {
+    flex: 0 0 calc(50% - 0.75rem);
+    max-width: 220px;
+  }
+
+  /* Modal ocupa todo el ancho disponible */
+  .downloads__modal {
+    max-width: 100%;
+  }
+}
+
+
+/* =========================================================
+   MODAL GALERÍA DE CAPTURAS (solo estilos, sin lógica)
+   ========================================================= */
+.downloads-gallery-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+}
+
+.downloads-gallery {
+  position: relative;
+  width: min(900px, 100%);
+  height: min(600px, 80%);
+  background: rgba(7, 18, 15, 0.96);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  overflow: hidden;
+}
+
+/* Imagen central */
+.downloads-gallery__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.downloads-gallery__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Cerrar */
+.downloads-gallery__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(7, 18, 15, 0.92);
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.downloads-gallery__close:hover {
+  border-color: var(--color-primary);
+  background: rgba(11, 29, 23, 0.95);
+}
+
+/* Flechas */
+.downloads-gallery__nav {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.downloads-gallery__nav:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-primary);
+}
+
+.downloads-gallery__nav i {
+  font-size: 1.9rem;
+}
+
+/* Contador */
+.downloads-gallery__counter {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 0.5rem 0.9rem 0.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(7, 18, 15, 0.95);
+  font-size: 1.2rem;
+  color: var(--text-muted-color);
+}
+
+/* Responsive del modal de galería */
+@media (max-width: 600px) {
+  .downloads-gallery {
+    grid-template-columns: 44px 1fr 44px;
+    height: min(520px, 85%);
+  }
+}

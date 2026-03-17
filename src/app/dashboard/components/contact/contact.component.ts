@@ -160,7 +160,8 @@ export class ContactComponent implements OnInit, OnDestroy {
   }
 
   openCookieSettings() {
-    this.router.navigate(['/dashboard/cookies']);
+    this.router.navigate(['/dashboard/info-cookies']);
+    console.log(this.siteKey)
   }
 
   // 🔹 Cerrar el modal

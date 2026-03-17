@@ -47,6 +47,14 @@
         >
           Contacto
         </a>
+        <a
+          class="nav-links__item"
+          routerLink="/dashboard/downloads"
+          routerLinkActive="nav-links__item--active"
+          (click)="onNavigate()"
+        >
+          Descargas
+        </a>
       </nav>
 
       <!-- Zona derecha: ciudad actual / usuario / etc -->
@@ -123,6 +131,15 @@
         >
           <i class="bi bi-envelope"></i>
           <span>Contacto</span>
+        </a>
+        <a
+          class="nav-mobile__item"
+          routerLink="/dashboard/downloads"
+          routerLinkActive="nav-mobile__item--active"
+          (click)="onNavigate()"
+        >
+          <i class="bi bi-download"></i>
+          <span>Descargas</span>
         </a>
         
       </div>

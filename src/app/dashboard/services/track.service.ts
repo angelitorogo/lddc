@@ -19,7 +19,7 @@ export class TracksService {
   private readonly baseUrl = `${environment.API_URL}/tracks`;
 
   private appName = environment.APP_NAME || 'La Dama del Cancho';
-  private domainName = environment.DOMAIN_URL || 'ladamadelcancho.com';
+  private domainName = environment.DOMAIN_URL || 'https://ladamadelcancho.com';
 
   constructor(private http: HttpClient) {}
 
@@ -56,6 +56,7 @@ export class TracksService {
     if (params.sortOrder) {
       httpParams = httpParams.set('sortOrder', params.sortOrder);
     }
+    
 
     return this.http.get<TrackListResponse>(this.baseUrl, {
       params: httpParams,
@@ -430,7 +431,7 @@ export class TracksService {
     // OJO: esto debe apuntar al dominio público, no al API_URL si API_URL es /api
     // Por eso uso DOMAIN_URL (sin /api)
     const domain = environment.DOMAIN_URL || 'https://ladamadelcancho.com';
-    return `${domain}/#/dashboard/track/${encodeURIComponent(trackId)}`;
+    return `${domain}/track/${encodeURIComponent(trackId)}`;
   }
 
   /**

@@ -1,0 +1,202 @@
+<section class="downloads">
+  <!-- HEADER -->
+  <header class="downloads__header">
+    <h1 class="downloads__title">App para Android</h1>
+    <p class="downloads__subtitle">
+      Lleva tus rutas de La Dama del Cancho siempre contigo: consulta tracks, mapas y perfiles
+      de elevación directamente en tu móvil o tablet Android.
+    </p>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="downloads__content">
+    <!-- Columna izquierda: info + botones + QR -->
+    <div class="downloads__info">
+      <div class="downloads__badge">
+        <i class="bi bi-android2"></i>
+        <span>Android • APK directa</span>
+      </div>
+
+      <p class="downloads__text">
+        La app todavía no está disponible en Google Play Store. Puedes descargarla e instalarla
+        directamente desde nuestro servidor seguro.
+      </p>
+
+      <div class="downloads__actions">
+        <a
+          [href]="appDownloadUrl"
+          class="btn-primary btn-primary--action downloads__btn-main"
+          rel="noopener"
+        >
+          <i class="bi bi-download"></i>
+          <span>Descargar app para Android</span>
+        </a>
+
+        <button
+          type="button"
+          class="btn-secondary downloads__btn-alt"
+          (click)="openInstallModal()"
+        >
+          Cómo instalar la APK
+        </button>
+      </div>
+
+      <p class="downloads__hint">
+        También puedes usar el código QR para abrir directamente el enlace de descarga en tu móvil.
+      </p>
+
+      <!-- QR -->
+      <div class="downloads__qr">
+        <div class="downloads__qr-box">
+          <img src="assets/images/qr_url_app.png" alt="Código QR descarga app Android" />
+        </div>
+        <div class="downloads__qr-text">
+          <p>Escanéalo con la cámara de tu móvil para abrir la descarga.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna derecha: capturas -->
+    <div class="downloads__preview">
+      <h2 class="downloads__preview-title">Así se ve la app</h2>
+
+      <div class="downloads__screenshots">
+  <div
+    class="downloads__screenshot-card"
+    *ngFor="let shot of screenshots; let i = index"
+    role="button"
+    tabindex="0"
+    (click)="openGallery(i)"
+    (keydown.enter)="openGallery(i)"
+    (keydown.space)="openGallery(i)"
+  >
+    <div class="downloads__screenshot-thumb">
+      <img
+        [src]="shot.src"
+        [alt]="shot.alt"
+        loading="lazy"
+      />
+    </div>
+  </div>
+</div>
+
+
+      <p class="downloads__preview-footnote">
+        Capturas de la versión actual de la app. Iremos añadiendo mejoras y nuevas funciones poco a poco.
+      </p>
+    </div>
+  </div>
+
+  <!-- MODAL AYUDA INSTALACIÓN APK -->
+  <div
+    class="downloads__modal-backdrop"
+    *ngIf="showInstallModal"
+    (click)="closeInstallModal()"
+  >
+    <div
+      class="downloads__modal"
+      (click)="$event.stopPropagation()"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="downloads-install-title"
+    >
+      <header class="downloads__modal-header">
+        <h2 id="downloads-install-title">Cómo instalar la APK</h2>
+        <button
+          type="button"
+          class="downloads__modal-close"
+          (click)="closeInstallModal()"
+          aria-label="Cerrar"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </header>
+
+      <div class="downloads__modal-body">
+        <p>
+          Para instalar la app en tu dispositivo Android, sigue estos pasos:
+        </p>
+        <ol>
+          <li>Descarga el archivo APK desde el botón <strong>“Descargar app para Android”</strong>.</li>
+          <li>Abre el archivo descargado desde la notificación o desde la carpeta <strong>Descargas</strong>.</li>
+          <li>
+            Si Android te muestra un aviso de seguridad, permite la instalación desde
+            <strong>orígenes desconocidos</strong> (solo para tu navegador o gestor de archivos).
+          </li>
+          <li>Confirma la instalación y espera a que el asistente termine.</li>
+          <li>Una vez instalada, encontrarás la app en el lanzador de aplicaciones.</li>
+        </ol>
+        <p class="downloads__modal-note">
+          Recomendado: descarga e instala la app siempre desde esta página oficial de La Dama del Cancho.
+        </p>
+      </div>
+
+      <footer class="downloads__modal-footer">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="closeInstallModal()"
+        >
+          Entendido
+        </button>
+      </footer>
+    </div>
+  </div>
+</section>
+
+
+<!-- MODAL GALERÍA DE CAPTURAS -->
+<div
+  class="downloads-gallery-backdrop"
+  *ngIf="isGalleryOpen"
+  (click)="closeGallery()"
+>
+  <div
+    class="downloads-gallery"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+  >
+    <button
+      type="button"
+      class="downloads-gallery__close"
+      aria-label="Cerrar galería"
+      (click)="closeGallery()"
+    >
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <button
+      type="button"
+      class="downloads-gallery__nav downloads-gallery__nav--prev"
+      aria-label="Anterior"
+      (click)="prevImage()"
+      [disabled]="!hasPrevImage()"
+    >
+      <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <div class="downloads-gallery__stage">
+      <img
+        class="downloads-gallery__img"
+        [src]="screenshots[galleryIndex].src"
+        [alt]="screenshots[galleryIndex].alt"
+        loading="lazy"
+      />
+
+      <div class="downloads-gallery__counter">
+        {{ galleryIndex + 1 }} / {{ screenshots.length }}
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="downloads-gallery__nav downloads-gallery__nav--next"
+      aria-label="Siguiente"
+      (click)="nextImage()"
+      [disabled]="!hasNextImage()"
+    >
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</div>

@@ -16,6 +16,7 @@ import { TrackRecorderComponent } from './components/track-recorder/track-record
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { TrackDetailByNameComponent } from './components/track-detail-by-name/track-detail-by-name.component';
 import { SearchResultsComponent } from './components/search-results/search-results.component';
+import { DownloadsComponent } from './components/downloads/downloads.component';
 
 
 
@@ -66,6 +67,10 @@ const routes: Routes = [
       {
         path: 'contact',
         component: ContactComponent
+      },
+      {
+        path: 'downloads',
+        component: DownloadsComponent
       },
       {
         path: 'terms-privacy',
